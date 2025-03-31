@@ -1,3 +1,4 @@
+// src/pages/LoginPage.jsx
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';

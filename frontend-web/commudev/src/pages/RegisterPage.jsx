@@ -1,3 +1,4 @@
+// src/pages/RegisterPage.jsx
 import React, { useEffect } from 'react';
 import AuthLayout from '../layouts/AuthLayout';
 import RegisterForm from '../components/auth/RegisterForm';

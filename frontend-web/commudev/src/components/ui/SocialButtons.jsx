@@ -1,3 +1,4 @@
+// src/components/ui/SocialButtons.jsx
 import React from 'react';
 import {
   Button,
