@@ -5,6 +5,7 @@ import edu.cit.commudev.Entity.UserEntity;
 import edu.cit.commudev.Repository.UserAuthRepo;
 import edu.cit.commudev.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -17,6 +18,9 @@ public class UserAuthService {
     
     @Autowired
     private UserRepo userRepo;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     // Register a new user auth entry (typically called after creating a user)
     public UserAuthEntity registerUserAuth(String username) {
@@ -36,11 +40,8 @@ public class UserAuthService {
         UserEntity user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
         
-        // In a real application, you would use a password encoder to compare passwords
-        // return passwordEncoder.matches(password, user.getPassword());
-        
-        // For simplicity, we're just comparing the raw passwords
-        return user.getPassword().equals(password);
+        // Use password encoder to verify the password
+        return passwordEncoder.matches(password, user.getPassword());
     }
     
     // Get auth info by username

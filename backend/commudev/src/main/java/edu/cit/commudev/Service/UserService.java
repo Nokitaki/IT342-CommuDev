@@ -86,33 +86,17 @@ public class UserService {
     }
     
     // Update password
-    public UserEntity updatePassword(int id, String currentPassword, String newPassword) {
+     public UserEntity updatePassword(int id, String currentPassword, String newPassword) {
         UserEntity user = getUserById(id);
         
-        // In a real application, you would check if the current password matches
-        // if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-        //     throw new IllegalArgumentException("Current password is incorrect");
-        // }
-        
-        // For demo purposes, we'll just check if they match directly
-        if (!user.getPassword().equals(currentPassword)) {
+        // Use password encoder to verify the current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
         
-        // In a real application, you would hash the new password
-        // user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPassword(newPassword);
+        // Encode the new password
+        user.setPassword(passwordEncoder.encode(newPassword));
         
         return userRepo.save(user);
-    }
-    
-    // Delete user
-    public String deleteUser(int id) {
-        if (userRepo.existsById(id)) {
-            userRepo.deleteById(id);
-            return "User with ID: " + id + " successfully deleted";
-        } else {
-            return "User with ID: " + id + " not found";
-        }
     }
 }
