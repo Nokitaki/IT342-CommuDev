@@ -1,4 +1,4 @@
-package main.java.edu.cit.commudev.Config;
+package edu.cit.commudev.Config;
 
 import edu.cit.commudev.Service.CustomUserDetailsService;
 import edu.cit.commudev.Util.JwtTokenUtil;

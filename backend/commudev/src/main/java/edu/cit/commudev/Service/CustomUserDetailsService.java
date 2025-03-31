@@ -1,4 +1,4 @@
-package main.java.edu.cit.commudev.Service;
+package edu.cit.commudev.Service;
 
 import edu.cit.commudev.Entity.UserEntity;
 import edu.cit.commudev.Repository.UserRepo;
