@@ -1,0 +1,52 @@
+/* Auth styles - importing from Material UI theme, but can add additional styles here */
+
+.auth-background {
+    min-height: 100vh;
+    background: #e4efe4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Add any additional custom styles here */
+  .form-divider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+  }
+  
+  .form-divider::before,
+  .form-divider::after {
+    content: '';
+    flex-grow: 1;
+    height: 1px;
+    background-color: #e0e0e0;
+  }
+  
+  .form-divider-text {
+    padding: 0 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  
+  /* Animation for alerts */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .alert-animation {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .auth-card {
+      width: 100%;
+      min-height: auto;
+    }
+  }
