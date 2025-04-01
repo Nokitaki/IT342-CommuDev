@@ -1,0 +1,148 @@
+/* src/styles/components/sidebar.css */
+.sidebar {
+  background-color: white;
+  padding: 10px;
+  border-right: 1px solid #e4e6eb;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.logo-container {
+  display: block;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.profile-sidebar-link {
+  text-decoration: none;
+  display: block;
+}
+
+.profile-sidebar {
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+  max-width: 300px;
+}
+
+.profile-info {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.profile-info h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.community-section,
+.friends-section {
+  margin-top: 0px;
+  padding: 5px;
+}
+
+.community-section h3,
+.friends-section h3 {
+  font-size: 14px;
+  color: #65676b;
+  margin-bottom: 15px;
+}
+
+.community-item,
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #000;
+}
+
+.community-item:hover,
+.friend-item:hover {
+  background-color: #f0f2f5;
+}
+
+.community-icon {
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.scrollable-friends-list {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-right: 10px;
+}
+
+.scrollable-friends-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollable-friends-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollable-friends-list::-webkit-scrollbar-thumb {
+  background-color: #e0e0e0;
+  border-radius: 20px;
+}
+
+.scrollable-friends-list::-webkit-scrollbar-thumb:hover {
+  background-color: #bdbdbd;
+}
+
+.friend-item {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e4e6eb;
+  margin-right: 10px;
+  position: relative;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border: 2px solid white;
+}
+
+.status-indicator.online {
+  background-color: #31a24c;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}

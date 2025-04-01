@@ -1,0 +1,43 @@
+/* src/styles/pages/newsfeed.css */
+.newsfeed-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.storiesAndfeed {
+  height: calc(100vh - 125px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  overflow-x: hidden;
+}
+
+.storiesAndfeed::-webkit-scrollbar {
+  width: 8px;
+}
+
+.storiesAndfeed::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.storiesAndfeed::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.storiesAndfeed::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.right-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .newsfeed-content {
+    padding-bottom: 60px; /* To accommodate the fixed bottom nav on mobile */
+  }
+}

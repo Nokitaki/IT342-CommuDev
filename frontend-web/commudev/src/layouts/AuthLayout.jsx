@@ -6,7 +6,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
-import logo from '../assets/img/logo.png';
+import logo from '../assets/images/logo.png';
 
 const theme = createTheme({
   typography: {

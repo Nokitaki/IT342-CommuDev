@@ -1,8 +1,9 @@
 // src/routes/index.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+import NewsfeedPage from '../pages/newsfeed/NewsfeedPage';
 import { isLoggedIn } from '../services/authService';
 
 // Protected route component
@@ -50,8 +51,7 @@ const AppRoutes = () => {
           path="/newsfeed" 
           element={
             <ProtectedRoute>
-              {/* Replace with your NewsFeed component when available */}
-              <div>NewsFeed Page (Coming Soon)</div>
+              <NewsfeedPage />
             </ProtectedRoute>
           } 
         />

@@ -1,0 +1,265 @@
+/* src/styles/components/newsfeed.css */
+.create-post-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.feed-title {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.create-post-container {
+  display: flex;
+  align-items: center;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.create-post-avatar {
+  margin-right: 12px;
+}
+
+.post-input-container {
+  flex-grow: 1;
+}
+
+.post-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f0f2f5;
+  cursor: pointer;
+}
+
+.feed-item {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  word-wrap: break-word;
+  overflow: auto;
+  transition: transform 0.2s ease;
+}
+
+.feed-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: #1f1f1f;
+  margin: 0;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.username:hover {
+  color: #0066cc;
+  cursor: pointer;
+}
+
+.post-meta {
+  color: #65676b;
+  font-size: 14px;
+}
+
+.status-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge-active {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.post-type-value {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.post-type-event {
+  background-color: #e6eefe;
+  color: #3a58b7;
+}
+
+.post-type-announcement {
+  background-color: #fff2de;
+  color: #bf6d00;
+}
+
+.post-type-reminder {
+  background-color: #f4d8e0;
+  color: #9b2b59;
+}
+
+.post-content {
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.post-content p {
+  margin: 0;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.post-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #e4e6eb;
+}
+
+.like-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #666;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.like-button:hover {
+  background-color: #f0f0f0;
+}
+
+.like-button:focus {
+  outline: none;
+}
+
+.like-button .heart-icon {
+  width: 20px;
+  height: 20px;
+  fill: #e91e63;
+  transition: fill 0.2s ease, transform 0.2s ease;
+}
+
+.like-button:hover .heart-icon {
+  fill: #ff0000;
+  transform: scale(1.1);
+}
+
+.like-button.active .heart-icon {
+  fill: #e91e63;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-edit {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.btn-delete {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.edit-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.edit-form {
+  margin-top: 10px;
+  padding: 16px;
+  background-color: #f7f9fa;
+  border-radius: 8px;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .feed-item {
+    border-radius: 0;
+    margin: 0 -20px 20px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+}

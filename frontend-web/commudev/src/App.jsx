@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from 'react';
 import AppRoutes from './routes';
-import './styles/auth.css';
+import './index.css';
 
 function App() {
   return (
