@@ -5,7 +5,7 @@ import '../../styles/components/userCarousel.css';
 
 const UserCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const usersPerPage = 8;
+  const usersPerPage = 7;
 
   // Mock data for the user carousel
   const mockUsers = [
