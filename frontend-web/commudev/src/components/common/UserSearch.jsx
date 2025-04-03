@@ -28,7 +28,7 @@ const UserSearch = () => {
     <div className="search-container">
       <input
         type="text"
-        placeholder="Search users..."
+        placeholder="    Search users..."
         value={searchTerm}
         onChange={handleSearch}
         className="search-input"

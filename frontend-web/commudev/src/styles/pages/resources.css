@@ -1,0 +1,113 @@
+/* src/styles/pages/resources.css */
+
+.resources-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .resources-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .resources-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .resources-title {
+    font-size: 1.5rem;
+    color: #333;
+    margin: 0;
+  }
+  
+  .categories-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .category-button {
+    background-color: #f0f2f5;
+    border: 1px solid #e4e6eb;
+    color: #65676b;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .category-button:hover {
+    background-color: #e4e6eb;
+  }
+  
+  .category-button.active {
+    /* Changed from blue gradient to green gradient */
+    background: linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%);
+    color: white;
+    border: none;
+  }
+  
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .loading-message, .no-resources-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #65676b;
+  }
+  
+  .modal-input {
+    width: 100%;
+    background-color: #f7f9fa;
+    border: 1px solid #dfe4ea;
+    color: #2c3e50;
+    padding: 0.875rem;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  
+  .modal-input:focus {
+    outline: none;
+    border-color: #4CAF50; /* Changed from blue to green */
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.1); /* Changed from blue to green */
+  }
+  
+  /* Button styles in modal */
+  .modal-actions .btn-primary {
+    /* Changed from blue gradient to green gradient */
+    background: linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%);
+    color: white;
+  }
+  
+  .modal-actions .btn-primary:hover {
+    background: linear-gradient(45deg, #43A047 30%, #7CB342 90%);
+  }
+  
+  @media (max-width: 768px) {
+    .resources-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .resources-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 15px;
+    }
+  }

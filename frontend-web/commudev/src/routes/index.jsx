@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import NewsfeedPage from '../pages/newsfeed/NewsfeedPage';
+import ResourcesPage from '../pages/resources/ResourcesPage';
+import MessagesPage from '../pages/messages/MessagesPage';
 import { isLoggedIn } from '../services/authService';
 
 // Protected route component
@@ -52,6 +54,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <NewsfeedPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/resources" 
+          element={
+            <ProtectedRoute>
+              <ResourcesPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/messages" 
+          element={
+            <ProtectedRoute>
+              <MessagesPage />
             </ProtectedRoute>
           } 
         />

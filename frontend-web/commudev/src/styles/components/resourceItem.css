@@ -1,0 +1,202 @@
+/* src/styles/components/resourceItem.css */
+
+.resource-item {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .resource-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .resource-header {
+    margin-bottom: 15px;
+  }
+  
+  .resource-author {
+    display: flex;
+    align-items: center;
+  }
+  
+  .author-info {
+    flex: 1;
+    margin-left: 12px;
+  }
+  
+  .author-name {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: #1f1f1f;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .resource-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 4px;
+  }
+  
+  .upload-date {
+    font-size: 13px;
+    color: #65676b;
+  }
+  
+  .resource-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .resource-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .resource-badge-active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .resource-badge-inactive {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .resource-type {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .resource-type-document {
+    background-color: #e6eefe;
+    color: #3a58b7;
+  }
+  
+  .resource-type-media {
+    background-color: #fff2de;
+    color: #bf6d00;
+  }
+  
+  .resource-type-other {
+    background-color: #f4d8e0;
+    color: #9b2b59;
+  }
+  
+  .resource-content {
+    flex: 1;
+    margin-bottom: 15px;
+  }
+  
+  .resource-title {
+    font-weight: 600;
+    font-size: 17px;
+    margin: 0 0 10px 0;
+    color: #1f1f1f;
+  }
+  
+  .resource-description {
+    font-size: 14px;
+    color: #65676b;
+    line-height: 1.4;
+    margin: 0 0 15px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .resource-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #65676b;
+  }
+  
+  .download-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .download-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .resource-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e4e6eb;
+  }
+  
+  .resource-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .download-button {
+    /* Changed from blue to green */
+    background: linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%);
+    color: white;
+  }
+  
+  .download-button:hover {
+    /* Changed from blue to green */
+    background: linear-gradient(45deg, #43A047 30%, #7CB342 90%);
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .edit-button {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .edit-button:hover {
+    background-color: #d7eeda;
+  }
+  
+  .delete-button {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .delete-button:hover {
+    background-color: #ffcdd2;
+  }
+  
+  @media (max-width: 768px) {
+    .resource-actions {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .action-buttons {
+      justify-content: space-between;
+    }
+  }
