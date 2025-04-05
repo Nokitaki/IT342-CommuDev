@@ -1,9 +1,9 @@
-package edu.cit.commudev.Repository;
-
-import edu.cit.commudev.Entity.NewsfeedEntity;
+package edu.cit.commudev.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import edu.cit.commudev.entity.NewsfeedEntity;
 
 @Repository
 public interface NewsfeedRepo extends JpaRepository<NewsfeedEntity, Integer> {

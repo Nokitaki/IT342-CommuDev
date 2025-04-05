@@ -1,118 +1,191 @@
-package edu.cit.commudev.Service;
+package edu.cit.commudev.service;
 
-import edu.cit.commudev.Entity.UserEntity;
-import edu.cit.commudev.Repository.UserRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import edu.cit.commudev.entity.Role;
+import edu.cit.commudev.entity.User;
+import edu.cit.commudev.repository.RoleRepository;
+import edu.cit.commudev.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
+/**
+ * Service for user management.
+ * Implements UserDetailsService for Spring Security integration.
+ */
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private UserRepo userRepo;
-    
-    // Create a new user (Registration)
-    public UserEntity createUser(UserEntity user) {
-        // Check if username already exists
-        if (userRepo.existsByUsername(user.getUsername())) {
-            throw new IllegalArgumentException("Username already taken");
+    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+    }
+
+    /**
+     * Load user by username for Spring Security authentication.
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Try to find user by email first
+        Optional<User> userByEmail = userRepository.findByEmail(username);
+        if (userByEmail.isPresent()) {
+            return userByEmail.get();
         }
-        
-        // Check if email already exists
-        if (userRepo.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email already registered");
+
+        // If not found by email, try by username
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+    /**
+     * Get all users.
+     *
+     * @return List of all users
+     */
+    public List<User> allUsers() {
+        return userRepository.findAll();
+    }
+
+    /**
+     * Find user by ID.
+     *
+     * @param id user ID
+     * @return Optional of User
+     */
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    /**
+     * Find user by username.
+     *
+     * @param username the username
+     * @return Optional of User
+     */
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    /**
+     * Find user by email.
+     *
+     * @param email the email
+     * @return Optional of User
+     */
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    /**
+     * Get currently authenticated user.
+     *
+     * @return the authenticated user
+     */
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No authenticated user found");
         }
-        
-        // In a real application, you would hash the password here
-        // user.setPassword(passwordEncoder.encode(user.getPassword()));
-        
-        return userRepo.save(user);
-    }
-    
-    // Read all users
-    public List<UserEntity> getAllUsers() {
-        return userRepo.findAll();
-    }
-    
-    // Read one user by ID
-    public UserEntity getUserById(int id) {
-        return userRepo.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User with ID: " + id + " not found"));
-    }
-    
-    // Read user by username
-    public UserEntity getUserByUsername(String username) {
-        return userRepo.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("User with username: " + username + " not found"));
-    }
-    
-    // Search users by name
-    public List<UserEntity> searchUsersByName(String searchTerm) {
-        return userRepo.findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-            searchTerm, searchTerm);
-    }
-    
-    // Update user
-    public UserEntity updateUser(int id, UserEntity userDetails) {
-        UserEntity existingUser = getUserById(id);
-        
-        // Only update email if it's changed and not already taken by another user
-        if (!existingUser.getEmail().equals(userDetails.getEmail())) {
-            Optional<UserEntity> userWithEmail = userRepo.findByEmail(userDetails.getEmail());
-            if (userWithEmail.isPresent() && userWithEmail.get().getUserId() != id) {
-                throw new IllegalArgumentException("Email already registered to another account");
-            }
-            existingUser.setEmail(userDetails.getEmail());
+
+        String username = authentication.getName();
+
+        // Try to find by username first (since we're using username for auth)
+        Optional<User> userByUsername = findByUsername(username);
+        if (userByUsername.isPresent()) {
+            return userByUsername.get();
         }
-        
-        // Update other fields
-        existingUser.setFirstname(userDetails.getFirstname());
-        existingUser.setMiddleinit(userDetails.getMiddleinit());
-        existingUser.setLastname(userDetails.getLastname());
-        existingUser.setDateOfBirth(userDetails.getDateOfBirth());
-        existingUser.setAge(userDetails.getAge());
-        existingUser.setState(userDetails.getState());
-        existingUser.setEmploymentStatus(userDetails.getEmploymentStatus());
-        existingUser.setProfilePicture(userDetails.getProfilePicture());
-        existingUser.setBiography(userDetails.getBiography());
-        
-        // Don't update password here - should have a separate method for that with proper validation
-        
-        return userRepo.save(existingUser);
-    }
-    
-    // Update password
-    public UserEntity updatePassword(int id, String currentPassword, String newPassword) {
-        UserEntity user = getUserById(id);
-        
-        // In a real application, you would check if the current password matches
-        // if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-        //     throw new IllegalArgumentException("Current password is incorrect");
-        // }
-        
-        // For demo purposes, we'll just check if they match directly
-        if (!user.getPassword().equals(currentPassword)) {
-            throw new IllegalArgumentException("Current password is incorrect");
+
+        // If not found by username, try by email
+        Optional<User> userByEmail = findByEmail(username);
+        if (userByEmail.isPresent()) {
+            return userByEmail.get();
         }
-        
-        // In a real application, you would hash the new password
-        // user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPassword(newPassword);
-        
-        return userRepo.save(user);
+
+        throw new EntityNotFoundException("Authenticated user not found in database");
     }
-    
-    // Delete user
-    public String deleteUser(int id) {
-        if (userRepo.existsById(id)) {
-            userRepo.deleteById(id);
-            return "User with ID: " + id + " successfully deleted";
-        } else {
-            return "User with ID: " + id + " not found";
+
+    /**
+     * Enable or disable a user.
+     *
+     * @param userId user ID
+     * @param enabled enabled status
+     * @return updated User
+     */
+    @Transactional
+    public User setUserEnabled(Long userId, boolean enabled) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+        user.setEnabled(enabled);
+        return userRepository.save(user);
+    }
+
+    /**
+     * Add a role to a user.
+     *
+     * @param userId user ID
+     * @param roleName role name
+     * @return updated User
+     */
+    @Transactional
+    public User addRoleToUser(Long userId, String roleName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleName));
+
+        user.addRole(role);
+        return userRepository.save(user);
+    }
+
+    /**
+     * Count total number of users.
+     *
+     * @return user count
+     */
+    public long countUsers() {
+        return userRepository.count();
+    }
+
+    /**
+     * Count active (enabled) users.
+     *
+     * @return active user count
+     */
+    public long countActiveUsers() {
+        return StreamSupport.stream(userRepository.findAll().spliterator(), false)
+                .filter(User::isEnabled)
+                .count();
+    }
+
+    /**
+     * Get verification rate (percentage of verified users).
+     *
+     * @return verification rate as percentage
+     */
+    public double getVerificationRate() {
+        long totalUsers = countUsers();
+        if (totalUsers == 0) {
+            return 0.0;
         }
+
+        long verifiedUsers = countActiveUsers();
+        return (double) verifiedUsers / totalUsers * 100.0;
     }
+
+
 }

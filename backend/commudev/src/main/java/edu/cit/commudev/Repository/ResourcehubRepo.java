@@ -1,8 +1,10 @@
-package edu.cit.commudev.Repository;
+package edu.cit.commudev.repository;
 
-import edu.cit.commudev.Entity.ResourcehubEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import edu.cit.commudev.entity.ResourcehubEntity;
+
 import java.util.List;
 
 @Repository

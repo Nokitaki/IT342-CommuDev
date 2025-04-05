@@ -1,4 +1,4 @@
-package edu.cit.commudev.Entity;
+package edu.cit.commudev.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

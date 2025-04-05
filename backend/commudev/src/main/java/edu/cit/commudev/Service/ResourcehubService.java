@@ -1,7 +1,8 @@
-package edu.cit.commudev.Service;
+package edu.cit.commudev.service;
 
-import edu.cit.commudev.Entity.ResourcehubEntity;
-import edu.cit.commudev.Repository.ResourcehubRepo;
+import edu.cit.commudev.entity.ResourcehubEntity;
+import edu.cit.commudev.repository.ResourcehubRepo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

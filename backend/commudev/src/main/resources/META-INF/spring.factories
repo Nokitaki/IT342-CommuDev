@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=edu.cit.commudev.config.DotenvProcessor
+org.springframework.boot.env.EnvironmentPostProcessor=edu.cit.commudev.config.CustomDotenvProcessor

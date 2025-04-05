@@ -1,109 +1,83 @@
-package edu.cit.commudev.Controller;
+package edu.cit.commudev.controller;
 
-import edu.cit.commudev.Entity.UserEntity;
-import edu.cit.commudev.Service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import edu.cit.commudev.dto.UserDto;
+import edu.cit.commudev.entity.User;
+import edu.cit.commudev.repository.UserRepository;
+import edu.cit.commudev.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+@RequestMapping("/users")
 @RestController
-@RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
+    private final UserService userService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserService userService;
+    public UserController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+    }
 
-    // Create a new user (Registration)
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserEntity userEntity) {
-        try {
-            UserEntity createdUser = userService.createUser(userEntity);
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+    @GetMapping("/")
+    public ResponseEntity<List<UserDto>> allUsers() {
+        List<User> users = userService.allUsers();
+        List<UserDto> userDtos = users.stream()
+                .map(user -> new UserDto(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.isEnabled()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDtos);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> authenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("User is not authenticated");
         }
-    }
 
-    // Read all users
-    @GetMapping("/all")
-    public ResponseEntity<List<UserEntity>> getAllUsers() {
-        List<UserEntity> users = userService.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
-    }
+        String identifier = authentication.getName();
+        System.out.println("Authenticated user identifier: " + identifier);
 
-    // Read one user by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable int id) {
-        try {
-            UserEntity user = userService.getUserById(id);
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.NOT_FOUND);
-        }
-    }
-    
-    // Read user by username
-    @GetMapping("/username/{username}")
-    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
-        try {
-            UserEntity user = userService.getUserByUsername(username);
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.NOT_FOUND);
-        }
-    }
-    
-    // Search users by name
-    @GetMapping("/search")
-    public ResponseEntity<List<UserEntity>> searchUsers(@RequestParam String name) {
-        List<UserEntity> users = userService.searchUsersByName(name);
-        return new ResponseEntity<>(users, HttpStatus.OK);
-    }
+        // Try to find by email first
+        Optional<User> userByEmail = userRepository.findByEmail(identifier);
+        User currentUser;
 
-    // Update user
-    @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserEntity userDetails) {
-        try {
-            UserEntity updatedUser = userService.updateUser(id, userDetails);
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
-    }
-    
-    // Update password
-    @PatchMapping("/{id}/password")
-    public ResponseEntity<?> updatePassword(
-            @PathVariable int id, 
-            @RequestBody Map<String, String> passwordDetails) {
-        
-        try {
-            String currentPassword = passwordDetails.get("currentPassword");
-            String newPassword = passwordDetails.get("newPassword");
-            
-            if (currentPassword == null || newPassword == null) {
-                return new ResponseEntity<>(
-                    Map.of("error", "Current password and new password are required"), 
-                    HttpStatus.BAD_REQUEST
-                );
+        if (userByEmail.isPresent()) {
+            currentUser = userByEmail.get();
+            System.out.println("User found by email: " + identifier);
+        } else {
+            // Try to find by username
+            Optional<User> userByUsername = userRepository.findByUsername(identifier);
+
+            if (userByUsername.isPresent()) {
+                currentUser = userByUsername.get();
+                System.out.println("User found by username: " + identifier);
+            } else {
+                System.out.println("User not found with identifier: " + identifier);
+                return ResponseEntity.status(404).body("User not found");
             }
-            
-            UserEntity updatedUser = userService.updatePassword(id, currentPassword, newPassword);
-            return new ResponseEntity<>(Map.of("message", "Password updated successfully"), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
         }
-    }
 
-    // Delete user
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable int id) {
-        String message = userService.deleteUser(id);
-        return new ResponseEntity<>(message, HttpStatus.OK);
+        // Create a DTO to avoid exposing sensitive data
+        UserDto userDto = new UserDto(
+                currentUser.getId(),
+                currentUser.getUsername(),
+                currentUser.getEmail(),
+                currentUser.isEnabled()
+        );
+
+        return ResponseEntity.ok(userDto);
     }
 }

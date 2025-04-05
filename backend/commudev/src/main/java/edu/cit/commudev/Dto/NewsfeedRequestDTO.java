@@ -1,4 +1,4 @@
-package edu.cit.commudev.Dto;
+package edu.cit.commudev.dto;
 
 public class NewsfeedRequestDTO {
     

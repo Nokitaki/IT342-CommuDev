@@ -1,7 +1,8 @@
-package edu.cit.commudev.Controller;
+package edu.cit.commudev.controller;
 
-import edu.cit.commudev.Entity.NewsfeedEntity;
-import edu.cit.commudev.Service.NewsfeedService;
+import edu.cit.commudev.entity.NewsfeedEntity;
+import edu.cit.commudev.service.NewsfeedService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

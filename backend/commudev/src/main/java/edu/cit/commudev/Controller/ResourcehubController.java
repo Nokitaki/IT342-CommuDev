@@ -1,7 +1,8 @@
-package edu.cit.commudev.Controller;
+package edu.cit.commudev.controller;
 
-import edu.cit.commudev.Entity.ResourcehubEntity;
-import edu.cit.commudev.Service.ResourcehubService;
+import edu.cit.commudev.entity.ResourcehubEntity;
+import edu.cit.commudev.service.ResourcehubService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

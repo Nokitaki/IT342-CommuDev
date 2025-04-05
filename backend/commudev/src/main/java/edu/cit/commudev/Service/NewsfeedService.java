@@ -1,7 +1,8 @@
-package edu.cit.commudev.Service;
+package edu.cit.commudev.service;
 
-import edu.cit.commudev.Entity.NewsfeedEntity;
-import edu.cit.commudev.Repository.NewsfeedRepo;
+import edu.cit.commudev.entity.NewsfeedEntity;
+import edu.cit.commudev.repository.NewsfeedRepo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
