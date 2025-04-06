@@ -1,13 +1,15 @@
 /* src/styles/components/navigation.css */
 .navigation-bar {
   background-color: var(--navigation-bg);
-  padding: 5px;
+  padding: 1px;
   border-radius: 20px;
   margin-bottom: 10px;
   flex-shrink: 0;
-  width: 70%;
+  width: 500px;
+  height: 65px;
   margin-left: auto;
   margin-right: auto;
+  margin-top: 10px;
 }
 
 .nav-icons {

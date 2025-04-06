@@ -6,6 +6,7 @@ import RegisterPage from '../pages/auth/RegisterPage';
 import NewsfeedPage from '../pages/newsfeed/NewsfeedPage';
 import ResourcesPage from '../pages/resources/ResourcesPage';
 import MessagesPage from '../pages/messages/MessagesPage';
+import ProfilePage from '../pages/profile/ProfilePage';
 import { isLoggedIn } from '../services/authService';
 
 // Protected route component
@@ -72,6 +73,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MessagesPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           } 
         />
