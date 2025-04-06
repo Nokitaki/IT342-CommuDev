@@ -59,6 +59,11 @@ public class SecurityConfiguration {
                         // Public endpoints
                         .requestMatchers("/auth/**", "/public/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        
+                        // Public newsfeed endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/newsfeed/all", "/api/newsfeed/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/newsfeed/user/**").permitAll()
+                        
                         // Add this line for public profile access
                         .requestMatchers("/users/profiles/**").permitAll()
 
@@ -70,6 +75,14 @@ public class SecurityConfiguration {
 
                         // User profile endpoints - authenticated users can access their own profile
                         .requestMatchers("/users/me/**").authenticated()
+                        
+                        // Authenticated newsfeed endpoints
+                        .requestMatchers("/api/newsfeed/create").authenticated()
+                        .requestMatchers("/api/newsfeed/my-posts").authenticated()
+                        .requestMatchers("/api/newsfeed/update/**").authenticated()
+                        .requestMatchers("/api/newsfeed/delete/**").authenticated()
+                        .requestMatchers("/api/newsfeed/like/**").authenticated()
+                        .requestMatchers("/api/newsfeed/can-edit/**").authenticated()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()

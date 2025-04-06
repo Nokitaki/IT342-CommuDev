@@ -118,6 +118,11 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private ProfileVisibility profileVisibility = ProfileVisibility.PUBLIC;
 
+    // Add the posts relationship
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore // Prevent circular references in JSON serialization
+    private List<NewsfeedEntity> posts = new ArrayList<>();
+
     // Default constructor
     public User() {
     }
@@ -178,6 +183,26 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public List<NewsfeedEntity> getPosts() {
+        return posts;
+    }
+    
+    public void setPosts(List<NewsfeedEntity> posts) {
+        this.posts = posts;
+    }
+    
+    // Helper method to add a post
+    public void addPost(NewsfeedEntity post) {
+        posts.add(post);
+        post.setUser(this);
+    }
+    
+    // Helper method to remove a post
+    public void removePost(NewsfeedEntity post) {
+        posts.remove(post);
+        post.setUser(null);
     }
 
     // Role management methods
