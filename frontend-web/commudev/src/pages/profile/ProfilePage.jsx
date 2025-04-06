@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import NewsfeedItem from '../../components/newsfeed/NewsfeedItem';
 import PostFormModal from '../../components/modals/PostFormModal';
 import NavigationBar from '../../components/navigation/NavigationBar';
+import ProfileEditor from '../../components/profile/ProfileEditor';
 import useAuth from '../../hooks/useAuth';
 import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
@@ -15,7 +16,7 @@ import '../../styles/pages/profile.css';
 const ProfilePage = () => {
   // Authentication and user data
   const { userData, profilePicture, handleLogout } = useAuth();
-  const { profile, loading: profileLoading, error: profileError, updateProfile } = useProfile();
+  const { profile, loading: profileLoading, error: profileError, fetchProfile, updateProfile } = useProfile();
   
   // Post related state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +27,9 @@ const ProfilePage = () => {
   // UI state
   const [activeTab, setActiveTab] = useState('posts');
   const [coverImage, setCoverImage] = useState('/src/assets/images/profile/cover-default.jpg');
+  
+  // Profile editing state
+  const [isEditing, setIsEditing] = useState(false);
   
   // Newsfeed hooks
   const { handleCreatePost, handleUpdatePost, handleDeletePost, handleLikePost } = useNewsfeed();
@@ -434,10 +438,7 @@ const ProfilePage = () => {
             <div className="profile-buttons">
               <Button 
                 variant="primary" 
-                onClick={() => { 
-                  // Implement edit profile functionality
-                  console.log("Edit profile clicked");
-                }}
+                onClick={() => setIsEditing(true)}
               >
                 Edit Profile
               </Button>
@@ -604,8 +605,6 @@ const ProfilePage = () => {
           <div className="profile-column-right">
             {renderTabContent()}
           </div>
-        </div>
-      </div>
       
       {/* Post creation modal */}
       <PostFormModal 
@@ -618,6 +617,25 @@ const ProfilePage = () => {
         editPost={editingPost}
         userName={getFullName()}
       />
+      
+      {/* Profile Editor Overlay */}
+      {isEditing && profile && (
+        <div className="profile-editor-overlay">
+          <div className="profile-editor-container">
+            <ProfileEditor 
+              profile={profile} 
+              onCancel={() => setIsEditing(false)} 
+              onSuccess={(updatedProfile) => {
+                setIsEditing(false);
+                // Refresh the profile data
+                fetchProfile();
+              }} 
+            />
+          </div>
+        </div>
+      )}
+    </div>
+    </div>
     </div>
   );
 };
