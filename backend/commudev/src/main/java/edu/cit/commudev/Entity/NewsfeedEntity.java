@@ -1,10 +1,6 @@
 package edu.cit.commudev.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,76 +9,100 @@ public class NewsfeedEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int newsfeed_id;
+    @Column(name = "newsfeed_id")
+    private int newsfeedId;
     
-    private String post_description;
-    private String post_type;
-    private LocalDateTime post_date;
-    private int like_count;
-    private String post_status;
+    @Column(name = "post_description")
+    private String postDescription;
+    
+    @Column(name = "post_type")
+    private String postType;
+    
+    @Column(name = "post_date")
+    private LocalDateTime postDate;
+    
+    @Column(name = "like_count")
+    private int likeCount;
+    
+    @Column(name = "post_status")
+    private String postStatus;
+    
+    // Add relationship to User entity
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
     
     // Default constructor
     public NewsfeedEntity() {
-        this.post_date = LocalDateTime.now();
-        this.like_count = 0;
-        this.post_status = "active";
+        this.postDate = LocalDateTime.now();
+        this.likeCount = 0;
+        this.postStatus = "active";
     }
     
     // Parameterized constructor
-    public NewsfeedEntity(String post_description, String post_type) {
-        this.post_description = post_description;
-        this.post_type = post_type;
-        this.post_date = LocalDateTime.now();
-        this.like_count = 0;
-        this.post_status = "active";
+    public NewsfeedEntity(String postDescription, String postType) {
+        this.postDescription = postDescription;
+        this.postType = postType;
+        this.postDate = LocalDateTime.now();
+        this.likeCount = 0;
+        this.postStatus = "active";
     }
     
     // Getters and Setters
-    public int getNewsfeed_id() {
-        return newsfeed_id;
+    public int getNewsfeedId() {
+        return newsfeedId;
     }
     
-    public void setNewsfeed_id(int newsfeed_id) {
-        this.newsfeed_id = newsfeed_id;
+    public void setNewsfeedId(int newsfeedId) {
+        this.newsfeedId = newsfeedId;
     }
     
-    public String getPost_description() {
-        return post_description;
+    public String getPostDescription() {
+        return postDescription;
     }
     
-    public void setPost_description(String post_description) {
-        this.post_description = post_description;
+    public void setPostDescription(String postDescription) {
+        this.postDescription = postDescription;
     }
     
-    public String getPost_type() {
-        return post_type;
+    public String getPostType() {
+        return postType;
     }
     
-    public void setPost_type(String post_type) {
-        this.post_type = post_type;
+    public void setPostType(String postType) {
+        this.postType = postType;
     }
     
-    public LocalDateTime getPost_date() {
-        return post_date;
+    public LocalDateTime getPostDate() {
+        return postDate;
     }
     
-    public void setPost_date(LocalDateTime post_date) {
-        this.post_date = post_date;
+    public void setPostDate(LocalDateTime postDate) {
+        this.postDate = postDate;
     }
     
-    public int getLike_count() {
-        return like_count;
+    public int getLikeCount() {
+        return likeCount;
     }
     
-    public void setLike_count(int like_count) {
-        this.like_count = like_count;
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
     
-    public String getPost_status() {
-        return post_status;
+    public String getPostStatus() {
+        return postStatus;
     }
     
-    public void setPost_status(String post_status) {
-        this.post_status = post_status;
+    public void setPostStatus(String postStatus) {
+        this.postStatus = postStatus;
+    }
+    
+    // New getter and setter for user
+    public User getUser() {
+        return user;
+    }
+    
+    public void setUser(User user) {
+        this.user = user;
     }
 }
