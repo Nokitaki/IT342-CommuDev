@@ -1,83 +1,136 @@
 package edu.cit.commudev.controller;
 
+import edu.cit.commudev.dto.PublicUserProfileDto;
 import edu.cit.commudev.dto.UserDto;
+import edu.cit.commudev.dto.UserProfileUpdateDto;
 import edu.cit.commudev.entity.User;
-import edu.cit.commudev.repository.UserRepository;
 import edu.cit.commudev.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
 import java.util.stream.Collectors;
 
-@RequestMapping("/users")
 @RestController
+@RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-    private final UserRepository userRepository;
 
-    public UserController(UserService userService, UserRepository userRepository) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRepository = userRepository;
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<UserDto>> allUsers() {
-        List<User> users = userService.allUsers();
-        List<UserDto> userDtos = users.stream()
-                .map(user -> new UserDto(
-                        user.getId(),
-                        user.getUsername(),
-                        user.getEmail(),
-                        user.isEnabled()))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(userDtos);
-    }
-
+    // Get current authenticated user's profile
     @GetMapping("/me")
-    public ResponseEntity<?> authenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<UserDto> getCurrentUserProfile() {
+        User currentUser = userService.getCurrentUser();
+        return ResponseEntity.ok(convertToDetailedDto(currentUser));
+    }
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body("User is not authenticated");
+    // Update current user's profile
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUserProfile(@RequestBody UserProfileUpdateDto updateDto) {
+        try {
+            User updatedUser = userService.updateCurrentUserProfile(updateDto);
+            return ResponseEntity.ok(convertToDetailedDto(updatedUser));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
 
-        String identifier = authentication.getName();
-        System.out.println("Authenticated user identifier: " + identifier);
-
-        // Try to find by email first
-        Optional<User> userByEmail = userRepository.findByEmail(identifier);
-        User currentUser;
-
-        if (userByEmail.isPresent()) {
-            currentUser = userByEmail.get();
-            System.out.println("User found by email: " + identifier);
-        } else {
-            // Try to find by username
-            Optional<User> userByUsername = userRepository.findByUsername(identifier);
-
-            if (userByUsername.isPresent()) {
-                currentUser = userByUsername.get();
-                System.out.println("User found by username: " + identifier);
-            } else {
-                System.out.println("User not found with identifier: " + identifier);
-                return ResponseEntity.status(404).body("User not found");
+    // Upload profile picture
+    @PostMapping("/me/picture")
+    public ResponseEntity<?> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("Please select a file to upload");
             }
+            
+            User updatedUser = userService.updateProfilePicture(file);
+            return ResponseEntity.ok(convertToDetailedDto(updatedUser));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload file: " + e.getMessage());
         }
+    }
 
-        // Create a DTO to avoid exposing sensitive data
-        UserDto userDto = new UserDto(
-                currentUser.getId(),
-                currentUser.getUsername(),
-                currentUser.getEmail(),
-                currentUser.isEnabled()
-        );
+    // Get user profile by username - public endpoint
+    @GetMapping("/profiles/{username}")
+    public ResponseEntity<?> getPublicUserProfile(
+            @PathVariable String username, 
+            Authentication authentication) {
+        
+        try {
+            User profileUser = userService.getUserByUsername(username);
+            
+            // Get current user if authenticated
+            User currentUser = null;
+            if (authentication != null && authentication.isAuthenticated()) {
+                currentUser = userService.getCurrentUser();
+            }
+            
+            // Check if the current user can view this profile
+            if (!userService.canViewProfile(currentUser, profileUser)) {
+                // Return limited profile for users without access
+                PublicUserProfileDto limitedProfile = new PublicUserProfileDto();
+                limitedProfile.setUsername(profileUser.getUsername());
+                limitedProfile.setProfileVisibility("PRIVATE");
+                return ResponseEntity.ok(limitedProfile);
+            }
+            
+            // User has access, return the public profile
+            return ResponseEntity.ok(convertToPublicDto(profileUser));
+            
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found: " + username);
+        }
+    }
 
-        return ResponseEntity.ok(userDto);
+    // Helper method to convert User to detailed UserDto
+    private UserDto convertToDetailedDto(User user) {
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setFirstname(user.getFirstname());
+        dto.setLastname(user.getLastname());
+        dto.setDateOfBirth(user.getDateOfBirth());
+        dto.setAge(user.getAge());
+        dto.setCountry(user.getCountry() != null ? user.getCountry().name() : null);
+        dto.setEmploymentStatus(user.getEmploymentStatus() != null ? 
+                user.getEmploymentStatus().name() : null);
+        dto.setProfilePicture(user.getProfilePicture());
+        dto.setBiography(user.getBiography());
+        dto.setEnabled(user.isEnabled());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setProfileVisibility(user.getProfileVisibility() != null ? 
+                user.getProfileVisibility().name() : "PUBLIC");
+        
+        // Convert roles to string list
+        dto.setRoles(user.getRoles().stream()
+                .map(role -> role.getName())
+                .collect(Collectors.toList()));
+        
+        return dto;
+    }
+
+    // Helper method to convert User to PublicUserProfileDto
+    private PublicUserProfileDto convertToPublicDto(User user) {
+        PublicUserProfileDto dto = new PublicUserProfileDto();
+        dto.setUsername(user.getUsername());
+        dto.setFirstname(user.getFirstname());
+        dto.setLastname(user.getLastname());
+        dto.setProfilePicture(user.getProfilePicture());
+        dto.setBiography(user.getBiography());
+        dto.setCountry(user.getCountry() != null ? user.getCountry().getDisplayName() : null);
+        dto.setProfileVisibility(user.getProfileVisibility() != null ? 
+                user.getProfileVisibility().name() : "PUBLIC");
+        return dto;
     }
 }

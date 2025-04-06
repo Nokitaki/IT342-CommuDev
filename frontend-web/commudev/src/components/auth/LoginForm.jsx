@@ -16,7 +16,7 @@ import {
   Email as EmailIcon,
 } from '@mui/icons-material';
 import PasswordField from '../ui/PasswordField';
-import SocialButtons from '../ui/SocialButtons';
+import VerificationDialog from './VerificationDialog';
 import useAuth from '../../hooks/useAuth';
 
 const styles = {
@@ -42,13 +42,25 @@ const styles = {
   },
 };
 
-const LoginForm = () => {
+const LoginForm = ({ initialUsername = '' }) => {
   const [formData, setFormData] = useState({
-    username: '',
+    username: initialUsername,
     password: ''
   });
   
-  const { loading, error, successMessage, handleLogin } = useAuth();
+  const { 
+    loading, 
+    error, 
+    success, 
+    handleLogin, 
+    needsVerification, 
+    pendingVerificationEmail,
+    handleVerify,
+    handleResendCode
+  } = useAuth();
+
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationOpen, setVerificationOpen] = useState(false);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -63,6 +75,23 @@ const LoginForm = () => {
     handleLogin(formData);
   };
 
+  // Show verification dialog when needed
+  React.useEffect(() => {
+    if (needsVerification) {
+      setVerificationOpen(true);
+    }
+  }, [needsVerification]);
+
+  // Handle verification submit
+  const handleVerificationSubmit = () => {
+    handleVerify(pendingVerificationEmail, verificationCode);
+  };
+
+  // Handle resend code
+  const handleResendVerification = () => {
+    handleResendCode(pendingVerificationEmail);
+  };
+
   return (
     <>
       {error && (
@@ -71,9 +100,9 @@ const LoginForm = () => {
         </Alert>
       )}
 
-      {successMessage && (
+      {success && (
         <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
-          {successMessage}
+          {success}
         </Alert>
       )}
 
@@ -83,7 +112,7 @@ const LoginForm = () => {
             required
             fullWidth
             id="username"
-            label="Username"
+            label="Email or Username"
             value={formData.username}
             onChange={handleChange}
             sx={styles.textField}
@@ -106,7 +135,9 @@ const LoginForm = () => {
             align="right" 
             sx={{ color: 'text.secondary', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
           >
-            Forgot your password?
+            <Link component={RouterLink} to="/forgot-password">
+              Forgot your password?
+            </Link>
           </Typography>
 
           <Button
@@ -124,9 +155,7 @@ const LoginForm = () => {
         </Stack>
       </form>
 
-      <SocialButtons />
-
-      <Box sx={{ textAlign: 'center' }}>
+      <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Typography variant="body2" color="text.secondary">
           Don't have an account?{' '}
           <Link
@@ -144,6 +173,18 @@ const LoginForm = () => {
           </Link>
         </Typography>
       </Box>
+
+      {/* Verification Dialog */}
+      <VerificationDialog
+        open={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        email={pendingVerificationEmail}
+        verificationCode={verificationCode}
+        setVerificationCode={setVerificationCode}
+        onSubmit={handleVerificationSubmit}
+        onResend={handleResendVerification}
+        loading={loading}
+      />
     </>
   );
 };

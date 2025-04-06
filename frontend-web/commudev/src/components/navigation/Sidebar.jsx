@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import UserSearch from '../common/UserSearch';
 import Avatar from '../common/Avatar';
 import PeopleYouMayKnow from '../newsfeed/PeopleYouMayKnow';
-import { getUserData } from '../../services/authService';
+//import { getUserData } from '../../services/authService';
 import '../../styles/components/sidebar.css';
 
 const Sidebar = () => {

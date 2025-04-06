@@ -54,10 +54,13 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         // Public endpoints
                         .requestMatchers("/auth/**", "/public/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Add this line for public profile access
+                        .requestMatchers("/users/profiles/**").permitAll()
 
                         // Admin endpoints
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -66,7 +69,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/users/").hasAnyRole("ADMIN", "MANAGER")
 
                         // User profile endpoints - authenticated users can access their own profile
-                        .requestMatchers("/users/me").authenticated()
+                        .requestMatchers("/users/me/**").authenticated()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()
@@ -89,16 +92,17 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-                "https://app-backend.com",
-                "http://localhost:8080",
-                "http://localhost:3000"  // For frontend development
+                "http://localhost:5173",  // Frontend development
+                "http://localhost:3000",  // Alternative frontend port
+                "http://localhost:8080"   // Backend URL
         ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
                 "X-Requested-With",
-                "Accept"
+                "Accept",
+                "Origin"
         ));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);

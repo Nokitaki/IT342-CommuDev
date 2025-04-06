@@ -1,12 +1,14 @@
 package edu.cit.commudev.service;
 
+import edu.cit.commudev.dto.UserProfileUpdateDto;
+import edu.cit.commudev.entity.Country;
+import edu.cit.commudev.entity.EmploymentStatus;
+import edu.cit.commudev.entity.ProfileVisibility;
 import edu.cit.commudev.entity.Role;
 import edu.cit.commudev.entity.User;
-import edu.cit.commudev.repository.RoleRepository;
 import edu.cit.commudev.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-
-import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,10 +17,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.stream.StreamSupport;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
+import edu.cit.commudev.repository.RoleRepository;
 
 /**
  * Service for user management.
@@ -29,6 +38,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
+    @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -187,5 +197,118 @@ public class UserService implements UserDetailsService {
         return (double) verifiedUsers / totalUsers * 100.0;
     }
 
+    /**
+     * Update the current user's profile information
+     * @param updateDto DTO containing fields to update
+     * @return updated User entity
+     */
+    @Transactional
+    public User updateCurrentUserProfile(UserProfileUpdateDto updateDto) {
+        User currentUser = getCurrentUser();
+        
+        // Update fields if provided
+        if (updateDto.getFirstname() != null) {
+            currentUser.setFirstname(updateDto.getFirstname());
+        }
+        if (updateDto.getLastname() != null) {
+            currentUser.setLastname(updateDto.getLastname());
+        }
+        if (updateDto.getDateOfBirth() != null) {
+            currentUser.setDateOfBirth(updateDto.getDateOfBirth());
+        }
+        if (updateDto.getAge() != null) {
+            currentUser.setAge(updateDto.getAge());
+        }
+        if (updateDto.getCountry() != null) {
+            try {
+                currentUser.setCountry(Country.valueOf(updateDto.getCountry()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid country: " + updateDto.getCountry());
+            }
+        }
+        if (updateDto.getEmploymentStatus() != null) {
+            try {
+                currentUser.setEmploymentStatus(EmploymentStatus.valueOf(updateDto.getEmploymentStatus()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid employment status: " + updateDto.getEmploymentStatus());
+            }
+        }
+        if (updateDto.getBiography() != null) {
+            currentUser.setBiography(updateDto.getBiography());
+        }
+        if (updateDto.getProfileVisibility() != null) {
+            try {
+                currentUser.setProfileVisibility(ProfileVisibility.valueOf(updateDto.getProfileVisibility()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid profile visibility setting: " + updateDto.getProfileVisibility());
+            }
+        }
+        
+        return userRepository.save(currentUser);
+    }
 
+    /**
+     * Get a user by username
+     * @param username the username to search
+     * @return User entity if found
+     */
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+    /**
+     * Check if a user has permission to view another user's profile
+     * @param viewerUser the user trying to view the profile (can be null for anonymous)
+     * @param profileUser the profile owner
+     * @return true if access is allowed
+     */
+    public boolean canViewProfile(User viewerUser, User profileUser) {
+        // Public profiles are visible to everyone
+        if (profileUser.getProfileVisibility() == ProfileVisibility.PUBLIC) {
+            return true;
+        }
+        
+        // Private profiles are only visible to the owner
+        if (profileUser.getProfileVisibility() == ProfileVisibility.PRIVATE) {
+            return viewerUser != null && viewerUser.getId().equals(profileUser.getId());
+        }
+        
+        // FRIENDS visibility - would need friendship relationship logic
+        // For now, only the user can see their own profile with FRIENDS visibility
+        return viewerUser != null && viewerUser.getId().equals(profileUser.getId());
+    }
+
+    /**
+     * Update the current user's profile picture
+     * @param file the uploaded profile picture file
+     * @return updated User entity
+     * @throws IOException if file operations fail
+     */
+    @Transactional
+    public User updateProfilePicture(MultipartFile file) throws IOException {
+        User currentUser = getCurrentUser();
+        
+        // Create directory for user uploads if it doesn't exist
+        String uploadDir = "uploads/profile-pictures/";
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        
+        // Generate a unique filename
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String newFilename = currentUser.getId() + "_" + System.currentTimeMillis() + fileExtension;
+        
+        // Save the file
+        Path filePath = uploadPath.resolve(newFilename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        // Update user profile picture path
+        String fileUrl = "/profile-pictures/" + newFilename;
+        currentUser.setProfilePicture(fileUrl);
+        
+        return userRepository.save(currentUser);
+    }
 }

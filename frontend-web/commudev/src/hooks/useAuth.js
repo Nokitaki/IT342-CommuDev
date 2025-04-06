@@ -2,116 +2,160 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  login,
-  register,
-  getUserData,
-  storeUserData,
-  clearUserData,
-  isLoggedIn
+  login, 
+  register, 
+  logout, 
+  isLoggedIn, 
+  verifyUser, 
+  resendVerificationCode 
 } from '../services/authService';
 
 const useAuth = () => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
-  const [profilePicture, setProfilePicture] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(isLoggedIn());
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
+  
+  // Check authentication status on mount and when localStorage changes
   useEffect(() => {
-    // Check if user is logged in and fetch their data
-    if (isLoggedIn()) {
-      fetchUserData();
-    }
+    const checkAuthStatus = () => {
+      setIsAuthenticated(isLoggedIn());
+    };
+    
+    // Initial check
+    checkAuthStatus();
+    
+    // Set up event listener for changes in localStorage
+    window.addEventListener('storage', checkAuthStatus);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('storage', checkAuthStatus);
+    };
   }, []);
-
-  const fetchUserData = async () => {
+  
+  const handleLogin = async (credentials) => {
     try {
-      const data = await getUserData();
-      setUserData(data);
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
       
-      if (data?.profilePicture) {
-        setProfilePicture(`http://localhost:8080${data.profilePicture}`);
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+      await login(credentials.username, credentials.password);
       
-      // If unauthorized, log user out
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        handleLogout();
-      }
-    }
-  };
-
-  const handleLogin = async (formData, callback) => {
-    setLoading(true);
-    setError('');
-    setSuccessMessage('');
-
-    try {
-      const userData = await login(formData.username, formData.password);
-      setUserData(userData);
+      setIsAuthenticated(true);
+      setSuccess('Login successful!');
       
-      if (userData?.profilePicture) {
-        setProfilePicture(`http://localhost:8080${userData.profilePicture}`);
-      }
-      
-      storeUserData(userData);
-      setSuccessMessage('Login successful!');
-      
-      if (callback) {
-        callback(userData);
-      } else {
-        // Default: navigate to newsfeed after successful login
-        setTimeout(() => {
-          navigate('/newsfeed');
-        }, 1000);
-      }
+      // Redirect to newsfeed
+      setTimeout(() => {
+        navigate('/newsfeed');
+      }, 1000);
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.message || 'Login failed. Please check your credentials.');
+      
+      // Check if the error indicates verification needed
+      if (err.message && err.message.includes('not verified')) {
+        setNeedsVerification(true);
+        setPendingVerificationEmail(credentials.username);
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  const handleRegister = async (formData, callback) => {
-    setLoading(true);
-    setError('');
-    setSuccessMessage('');
-
+  
+  const handleRegister = async (userData) => {
     try {
-      await register(formData);
-      setSuccessMessage('Registration successful! Please login.');
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
       
-      if (callback) {
-        callback();
-      }
+      const response = await register(userData);
+      
+      setSuccess('Registration successful! Please check your email for verification.');
+      setNeedsVerification(true);
+      setPendingVerificationEmail(userData.email);
+      
+      return response;
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
+      return null;
     } finally {
       setLoading(false);
     }
   };
-
+  
+  const handleVerify = async (email, code) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      await verifyUser(email, code);
+      
+      setSuccess('Account verified successfully! You can now login.');
+      setNeedsVerification(false);
+      setPendingVerificationEmail('');
+      
+      return true;
+    } catch (err) {
+      setError(err.message || 'Verification failed. Please try again.');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleResendCode = async (email) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      await resendVerificationCode(email);
+      
+      setSuccess('Verification code has been sent to your email.');
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to resend verification code.');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const handleLogout = () => {
-    clearUserData();
-    setUserData(null);
-    setProfilePicture(null);
+    logout();
+    setIsAuthenticated(false);
     navigate('/login');
   };
-
+  
+  // Clear messages after 5 seconds
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess(null);
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
+  
   return {
-    userData,
-    profilePicture,
     loading,
     error,
-    successMessage,
+    success,
+    isAuthenticated,
+    needsVerification,
+    pendingVerificationEmail,
     handleLogin,
     handleRegister,
+    handleVerify,
+    handleResendCode,
     handleLogout,
     setError,
-    setSuccessMessage,
-    fetchUserData
+    setSuccess
   };
 };
 

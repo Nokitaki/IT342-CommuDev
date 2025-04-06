@@ -7,6 +7,7 @@ import NewsfeedPage from '../pages/newsfeed/NewsfeedPage';
 import ResourcesPage from '../pages/resources/ResourcesPage';
 import MessagesPage from '../pages/messages/MessagesPage';
 import ProfilePage from '../pages/profile/ProfilePage';
+import PublicProfilePage from '../pages/profile/PublicProfilePage';
 import { isLoggedIn } from '../services/authService';
 
 // Protected route component
@@ -49,6 +50,9 @@ const AppRoutes = () => {
           } 
         />
         
+        {/* Public profile page - accessible to anyone */}
+        <Route path="/profiles/:username" element={<PublicProfilePage />} />
+        
         {/* Protected routes */}
         <Route 
           path="/newsfeed" 
@@ -87,6 +91,7 @@ const AppRoutes = () => {
         />
         
         {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

@@ -10,13 +10,15 @@ import {
   InputAdornment,
   Alert,
   CircularProgress,
-  Stack
+  Stack,
+  Grid
 } from '@mui/material';
 import {
   Email as EmailIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import PasswordField from '../ui/PasswordField';
-import SocialButtons from '../ui/SocialButtons';
+import VerificationDialog from './VerificationDialog';
 import useAuth from '../../hooks/useAuth';
 
 const styles = {
@@ -46,18 +48,25 @@ const RegisterForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
     firstname: '',
-    lastname: '',
-    middleinit: '',
-    dateOfBirth: '',
-    age: '',
-    state: '',
-    employmentStatus: '',
-    email: ''
+    lastname: ''
   });
   
-  const { loading, error, successMessage, handleRegister } = useAuth();
+  const { 
+    loading, 
+    error, 
+    success, 
+    handleRegister,
+    needsVerification,
+    pendingVerificationEmail,
+    handleVerify,
+    handleResendCode
+  } = useAuth();
+
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationOpen, setVerificationOpen] = useState(false);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -67,14 +76,37 @@ const RegisterForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    handleRegister(formData, () => {
-      // Redirect to login page after successful registration
+    const result = await handleRegister(formData);
+    if (result) {
+      // If registration is successful, show verification dialog
+      setVerificationOpen(true);
+    }
+  };
+
+  // Show verification dialog when needed
+  React.useEffect(() => {
+    if (needsVerification) {
+      setVerificationOpen(true);
+    }
+  }, [needsVerification]);
+
+  // Handle verification submit
+  const handleVerificationSubmit = async () => {
+    const success = await handleVerify(pendingVerificationEmail, verificationCode);
+    if (success) {
+      // Close dialog and redirect to login after successful verification
+      setVerificationOpen(false);
       setTimeout(() => {
-        navigate('/login', { state: { username: formData.username } });
+        navigate('/login', { state: { username: formData.email } });
       }, 1500);
-    });
+    }
+  };
+
+  // Handle resend code
+  const handleResendVerification = () => {
+    handleResendCode(pendingVerificationEmail || formData.email);
   };
 
   return (
@@ -85,14 +117,53 @@ const RegisterForm = () => {
         </Alert>
       )}
 
-      {successMessage && (
+      {success && (
         <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
-          {successMessage}
+          {success}
         </Alert>
       )}
 
       <form onSubmit={handleSubmit}>
         <Stack spacing={2.5}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                required
+                fullWidth
+                id="firstname"
+                label="First Name"
+                value={formData.firstname}
+                onChange={handleChange}
+                sx={styles.textField}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="primary" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                required
+                fullWidth
+                id="lastname"
+                label="Last Name"
+                value={formData.lastname}
+                onChange={handleChange}
+                sx={styles.textField}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="primary" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+          </Grid>
+
           <TextField
             required
             fullWidth
@@ -101,35 +172,17 @@ const RegisterForm = () => {
             value={formData.username}
             onChange={handleChange}
             sx={styles.textField}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon color="primary" />
+                </InputAdornment>
+              ),
+            }}
           />
-
-          <PasswordField 
-            value={formData.password}
-            onChange={handleChange}
-          />
-
-          <Stack direction="row" spacing={2}>
-            <TextField
-              required
-              fullWidth
-              id="firstname"
-              label="First Name"
-              value={formData.firstname}
-              onChange={handleChange}
-              sx={styles.textField}
-            />
-            <TextField
-              required
-              fullWidth
-              id="lastname"
-              label="Last Name"
-              value={formData.lastname}
-              onChange={handleChange}
-              sx={styles.textField}
-            />
-          </Stack>
 
           <TextField
+            required
             fullWidth
             id="email"
             label="Email"
@@ -146,33 +199,9 @@ const RegisterForm = () => {
             }}
           />
 
-          <Stack direction="row" spacing={2}>
-            <TextField
-              fullWidth
-              id="age"
-              label="Age"
-              type="number"
-              value={formData.age}
-              onChange={handleChange}
-              sx={styles.textField}
-            />
-            <TextField
-              fullWidth
-              id="state"
-              label="State"
-              value={formData.state}
-              onChange={handleChange}
-              sx={styles.textField}
-            />
-          </Stack>
-
-          <TextField
-            fullWidth
-            id="employmentStatus"
-            label="Employment Status"
-            value={formData.employmentStatus}
+          <PasswordField 
+            value={formData.password}
             onChange={handleChange}
-            sx={styles.textField}
           />
 
           <Button
@@ -190,9 +219,7 @@ const RegisterForm = () => {
         </Stack>
       </form>
 
-      <SocialButtons />
-
-      <Box sx={{ textAlign: 'center' }}>
+      <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Typography variant="body2" color="text.secondary">
           Already have an account?{' '}
           <Link
@@ -210,6 +237,18 @@ const RegisterForm = () => {
           </Link>
         </Typography>
       </Box>
+
+      {/* Verification Dialog */}
+      <VerificationDialog
+        open={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        email={pendingVerificationEmail || formData.email}
+        verificationCode={verificationCode}
+        setVerificationCode={setVerificationCode}
+        onSubmit={handleVerificationSubmit}
+        onResend={handleResendVerification}
+        loading={loading}
+      />
     </>
   );
 };

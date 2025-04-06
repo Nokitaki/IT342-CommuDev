@@ -114,6 +114,10 @@ public class User implements UserDetails {
         }
     }
 
+    @Column(name = "profile_visibility")
+    @Enumerated(EnumType.STRING)
+    private ProfileVisibility profileVisibility = ProfileVisibility.PUBLIC;
+
     // Default constructor
     public User() {
     }
@@ -336,4 +340,15 @@ public class User implements UserDetails {
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
     }
+
+    
+    public ProfileVisibility getProfileVisibility() {
+        return profileVisibility;
+    }
+
+    public void setProfileVisibility(ProfileVisibility profileVisibility) {
+        this.profileVisibility = profileVisibility;
+    }
+
+    
 }

@@ -461,6 +461,101 @@
     margin-bottom: 20px;
     color: #65676b;
   }
+
+  /* Add these styles to your src/styles/pages/profile.css file */
+
+/* Empty placeholder styles */
+.empty-photos-placeholder,
+.empty-friends-placeholder {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.empty-photos-placeholder p,
+.empty-friends-placeholder p {
+  color: #65676b;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Bio text style */
+.bio-text {
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+/* Make sure the profile content scrolls properly */
+.profile-main {
+  overflow-y: auto;
+  max-height: calc(100vh - 60px); /* Adjust based on your navbar height */
+}
+
+/* Ensure images in the profile have max-width */
+.profile-avatar-image,
+.profile-cover-image {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Make user profile more responsive */
+@media (max-width: 768px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+  
+  .profile-column-left,
+  .profile-column-right {
+    width: 100%;
+  }
+}
+
+/* Improve loading state */
+.loading-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+/* Add a better style for the post creation input */
+.profile-create-post-input {
+  background-color: #f0f2f5;
+  border-radius: 20px;
+  padding: 8px 12px 8px 12px;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-create-post-input:hover {
+  background-color: #e4e6eb;
+}
+
+/* Make camera icon more visible */
+.profile-camera-icon {
+  background-color: #e4e6eb;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.profile-camera-icon:hover {
+  background-color: #d8dadf;
+}
   
   /* Responsive adjustments */
   @media (max-width: 960px) {
@@ -529,3 +624,164 @@
       width: 120px;
     }
   }
+
+  /* Add these styles to your existing profile.css file */
+
+/* Social Media Links */
+.social-media-links {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f0f2f5;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  background-color: #e4e6eb;
+}
+
+.social-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.social-icon.facebook:hover {
+  background-color: rgba(24, 119, 242, 0.1);
+}
+
+.social-icon.instagram:hover {
+  background-color: rgba(228, 64, 95, 0.1);
+}
+
+.social-icon.linkedin:hover {
+  background-color: rgba(10, 102, 194, 0.1);
+}
+
+/* Social Media in profile header */
+.profile-social-media {
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+/* Social Media in profile sidebar */
+.profile-social-links-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e4e6eb;
+}
+
+/* Enhanced info items for the About section */
+.info-label {
+  font-weight: 500;
+  color: #65676b;
+  margin-right: 5px;
+}
+
+/* Bio text improvements */
+.bio-text {
+  white-space: pre-wrap;
+  line-height: 1.4;
+  color: #1c1e21;
+  font-size: 15px;
+}
+
+/* Debugging help */
+.debug-box {
+  background-color: #f0f2f5;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Improved loading state */
+.loading-message {
+  padding: 40px;
+  text-align: center;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  color: #65676b;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #1877f2;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty placeholders */
+.empty-photos-placeholder,
+.empty-friends-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #65676b;
+}
+
+/* Make sure the profile name is displayed correctly */
+.profile-name {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #1c1e21;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+/* Ensure proper spacing in the About tab */
+.profile-info-item {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.profile-info-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Make profile edit button more prominent */
+.profile-buttons .btn-primary {
+  background-color: #1877f2;
+  color: white;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.profile-buttons .btn-primary:hover {
+  background-color: #166fe5;
+}

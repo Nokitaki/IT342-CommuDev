@@ -8,58 +8,43 @@ import PostFormModal from '../../components/modals/PostFormModal';
 import NavigationBar from '../../components/navigation/NavigationBar';
 import useAuth from '../../hooks/useAuth';
 import useNewsfeed from '../../hooks/useNewsfeed';
+import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
 
 const ProfilePage = () => {
+  // Authentication and user data
   const { userData, profilePicture, handleLogout } = useAuth();
+  const { profile, loading: profileLoading, error: profileError, updateProfile } = useProfile();
+  
+  // Post related state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
-  const [activeTab, setActiveTab] = useState('posts');
   const [isLoading, setIsLoading] = useState(true);
+  
+  // UI state
+  const [activeTab, setActiveTab] = useState('posts');
   const [coverImage, setCoverImage] = useState('/src/assets/images/profile/cover-default.jpg');
+  
+  // Newsfeed hooks
   const { handleCreatePost, handleUpdatePost, handleDeletePost, handleLikePost } = useNewsfeed();
 
-  // Mock data for friends and photos
-  const friends = [
-    { id: 1, name: "Maria Garcia", image: "prof1.png", mutualFriends: 5 },
-    { id: 2, name: "Robert Chen", image: "prof2.jpg", mutualFriends: 2 },
-    { id: 3, name: "Sarah Johnson", image: "prof3.jpg", mutualFriends: 8 },
-    { id: 4, name: "David Wong", image: "prof1.png", mutualFriends: 3 },
-    { id: 5, name: "Emily Taylor", image: "prof2.jpg", mutualFriends: 1 },
-    { id: 6, name: "James Rodriguez", image: "prof3.jpg", mutualFriends: 4 },
-    { id: 7, name: "Sophia Kim", image: "prof1.png", mutualFriends: 7 },
-    { id: 8, name: "Michael Brown", image: "prof2.jpg", mutualFriends: 2 },
-    { id: 9, name: "Olivia Martinez", image: "prof3.jpg", mutualFriends: 5 }
-  ];
+  // Debug user data
+  useEffect(() => {
+    console.log("User data:", userData);
+    console.log("Profile data:", profile);
+  }, [userData, profile]);
 
-  const photos = [
-    { id: 1, src: "photo1.jpg", date: "2 days ago" },
-    { id: 2, src: "photo2.jpg", date: "1 week ago" },
-    { id: 3, src: "photo3.jpg", date: "2 weeks ago" },
-    { id: 4, src: "photo4.jpg", date: "3 weeks ago" },
-    { id: 5, src: "photo5.jpg", date: "1 month ago" },
-    { id: 6, src: "photo6.jpg", date: "1 month ago" },
-    { id: 7, src: "photo7.jpg", date: "2 months ago" },
-    { id: 8, src: "photo8.jpg", date: "2 months ago" },
-    { id: 9, src: "photo9.jpg", date: "3 months ago" }
-  ];
-
-  // Mock user information
-  const userInfo = {
-    workplaces: [
-      { company: "Barangay Office", position: "Community Leader", current: true },
-      { company: "Municipal Government", position: "Project Coordinator", current: false }
-    ],
-    education: [
-      { school: "University of the Philippines", degree: "BS Community Development", current: false },
-      { school: "Manila High School", degree: "", current: false }
-    ],
-    location: "Manila, Philippines",
-    hometown: "Cebu City, Philippines",
-    relationship: "Married",
-    joined: "January 2023"
+  // Helper function for getting full name
+  const getFullName = () => {
+    
+    // If userData doesn't have the name, check profile (from useProfile)
+    if (profile && profile.firstname && profile.lastname) {
+      return `${profile.firstname} ${profile.lastname}`;
+    }
+    // If neither has the name, return default
+    return 'User Profile';
   };
 
   // Filter posts for the current user
@@ -69,11 +54,16 @@ const ProfilePage = () => {
         setIsLoading(true);
         const allPosts = await fetchAllPosts();
         // Get current user ID from userData
-        const userId = userData?.id || 1; // Default to 1 if not available
+        const userId = userData?.id;
         
-        // Filter posts by creator_id
-        const filtered = allPosts.filter(post => post.creator_id === userId);
-        setUserPosts(filtered);
+        if (userId) {
+          // Filter posts by creator_id or creator name
+          const filtered = allPosts.filter(post => 
+            post.creator_id === userId || 
+            post.creator === `${userData.firstname} ${userData.lastname}`
+          );
+          setUserPosts(filtered);
+        }
       } catch (error) {
         console.error("Error loading user posts:", error);
       } finally {
@@ -81,8 +71,36 @@ const ProfilePage = () => {
       }
     };
 
-    loadUserPosts();
+    if (userData) {
+      loadUserPosts();
+    }
   }, [userData]);
+
+  // Social media icons
+  const SocialMediaLinks = () => (
+    <div className="social-media-links">
+      {/* Facebook icon */}
+      <a href="#" className="social-icon facebook" title="Facebook">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
+          <path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96C18.34 21.21 22 17.06 22 12.06C22 6.53 17.5 2.04 12 2.04Z"/>
+        </svg>
+      </a>
+      
+      {/* Instagram icon */}
+      <a href="#" className="social-icon instagram" title="Instagram">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#E4405F">
+          <path d="M12 2C14.717 2 15.056 2.01 16.122 2.06C17.187 2.11 17.912 2.277 18.55 2.525C19.21 2.779 19.766 3.123 20.322 3.678C20.8305 4.1779 21.224 4.78259 21.475 5.45C21.722 6.087 21.89 6.813 21.94 7.878C21.987 8.944 22 9.283 22 12C22 14.717 21.99 15.056 21.94 16.122C21.89 17.187 21.722 17.912 21.475 18.55C21.2247 19.2178 20.8311 19.8226 20.322 20.322C19.822 20.8303 19.2173 21.2238 18.55 21.475C17.913 21.722 17.187 21.89 16.122 21.94C15.056 21.987 14.717 22 12 22C9.283 22 8.944 21.99 7.878 21.94C6.813 21.89 6.088 21.722 5.45 21.475C4.78233 21.2245 4.17753 20.8309 3.678 20.322C3.16941 19.8222 2.77593 19.2175 2.525 18.55C2.277 17.913 2.11 17.187 2.06 16.122C2.013 15.056 2 14.717 2 12C2 9.283 2.01 8.944 2.06 7.878C2.11 6.812 2.277 6.088 2.525 5.45C2.77524 4.78218 3.1688 4.17732 3.678 3.678C4.17767 3.16923 4.78243 2.77573 5.45 2.525C6.088 2.277 6.812 2.11 7.878 2.06C8.944 2.013 9.283 2 12 2ZM12 7C10.6739 7 9.40215 7.52678 8.46447 8.46447C7.52678 9.40215 7 10.6739 7 12C7 13.3261 7.52678 14.5979 8.46447 15.5355C9.40215 16.4732 10.6739 17 12 17C13.3261 17 14.5979 16.4732 15.5355 15.5355C16.4732 14.5979 17 13.3261 17 12C17 10.6739 16.4732 9.40215 15.5355 8.46447C14.5979 7.52678 13.3261 7 12 7ZM18.5 6.75C18.5 6.41848 18.3683 6.10054 18.1339 5.86612C17.8995 5.6317 17.5815 5.5 17.25 5.5C16.9185 5.5 16.6005 5.6317 16.3661 5.86612C16.1317 6.10054 16 6.41848 16 6.75C16 7.08152 16.1317 7.39946 16.3661 7.63388C16.6005 7.8683 16.9185 8 17.25 8C17.5815 8 17.8995 7.8683 18.1339 7.63388C18.3683 7.39946 18.5 7.08152 18.5 6.75ZM12 9C12.7956 9 13.5587 9.31607 14.1213 9.87868C14.6839 10.4413 15 11.2044 15 12C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 15 12 15C11.2044 15 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 12C9 11.2044 9.31607 10.4413 9.87868 9.87868C10.4413 9.31607 11.2044 9 12 9Z"/>
+        </svg>
+      </a>
+      
+      {/* LinkedIn icon */}
+      <a href="#" className="social-icon linkedin" title="LinkedIn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#0A66C2">
+          <path d="M20.447 20.452H16.893V14.883C16.893 13.555 16.866 11.846 15.041 11.846C13.188 11.846 12.905 13.291 12.905 14.785V20.452H9.351V9H12.765V10.561H12.811C13.288 9.661 14.448 8.711 16.181 8.711C19.782 8.711 20.448 11.081 20.448 14.166V20.452H20.447ZM5.337 7.433C4.193 7.433 3.274 6.507 3.274 5.368C3.274 4.23 4.194 3.305 5.337 3.305C6.477 3.305 7.401 4.23 7.401 5.368C7.401 6.507 6.476 7.433 5.337 7.433ZM7.119 20.452H3.555V9H7.119V20.452Z"/>
+        </svg>
+      </a>
+    </div>
+  );
 
   // Get content based on active tab
   const renderTabContent = () => {
@@ -151,7 +169,7 @@ const ProfilePage = () => {
                   />
                 ))
               ) : (
-                <div className="no-posts-message">No posts yet</div>
+                <div className="no-posts-message">No posts yet. Create your first post!</div>
               )}
             </div>
           </>
@@ -165,74 +183,87 @@ const ProfilePage = () => {
                 <h2 className="profile-box-title">About</h2>
               </div>
               <div className="profile-box-content">
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    {userInfo.workplaces.map((workplace, index) => (
-                      <div key={index} className="profile-info-work">
-                        <div className="profile-info-primary">
-                          {workplace.position} at {workplace.company}
-                        </div>
-                        <div className="profile-info-secondary">
-                          {workplace.current ? "Current" : "Past"}
-                        </div>
+                {/* Biography */}
+                {profile?.biography && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z" />
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary bio-text">
+                        {profile.biography}
                       </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    {userInfo.education.map((edu, index) => (
-                      <div key={index} className="profile-info-education">
-                        <div className="profile-info-primary">
-                          {edu.school}
-                        </div>
-                        {edu.degree && (
-                          <div className="profile-info-secondary">
-                            {edu.degree}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      Lives in {userInfo.location}
                     </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      {userInfo.relationship}
+                {/* Date of Birth */}
+                {profile?.dateOfBirth && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        <span className="info-label">Date of Birth:</span> {profile.dateOfBirth}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 
+                {/* Age */}
+                {profile?.age !== undefined && profile?.age > 0 && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13 9h-2v2h2V9zm4 0h-2v2h2V9zm3 6.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.58l2.2-2.21c.28-.27.36-.66.25-1.01C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 9v2h2V9h-2z"/>
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        <span className="info-label">Age:</span> {profile.age} years
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Employment info from actual profile data */}
+                {profile?.employmentStatus && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        <span className="info-label">Employment:</span> {profile.employmentStatus.replace(/_/g, ' ')}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Location from actual profile data */}
+                {profile?.country && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        <span className="info-label">Location:</span> {profile.country}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Joined date from actual profile data */}
                 <div className="profile-info-item">
                   <div className="profile-info-icon">
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -241,7 +272,24 @@ const ProfilePage = () => {
                   </div>
                   <div className="profile-info-details">
                     <div className="profile-info-primary">
-                      Joined {userInfo.joined}
+                      <span className="info-label">Joined:</span> {profile?.createdAt ? 
+                        new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 
+                        'Recently joined'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Social Media Links */}
+                <div className="profile-info-item">
+                  <div className="profile-info-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                    </svg>
+                  </div>
+                  <div className="profile-info-details">
+                    <div className="profile-info-primary">
+                      <span className="info-label">Social Media:</span>
+                      <SocialMediaLinks />
                     </div>
                   </div>
                 </div>
@@ -256,26 +304,13 @@ const ProfilePage = () => {
             <div className="profile-box">
               <div className="profile-box-header">
                 <h2 className="profile-box-title">Friends</h2>
-                <Link to="/friends" className="see-all-link">See all friends</Link>
               </div>
               <div className="profile-box-content">
                 <div className="profile-friends-grid">
-                  {friends.map(friend => (
-                    <div key={friend.id} className="profile-friend-item">
-                      <div className="profile-friend-image">
-                        <img 
-                          src={`/src/assets/images/profile/${friend.image}`} 
-                          alt={friend.name}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/src/assets/images/profile/default-avatar.png';
-                          }}
-                        />
-                      </div>
-                      <div className="profile-friend-name">{friend.name}</div>
-                      <div className="profile-friend-mutual">{friend.mutualFriends} mutual friends</div>
-                    </div>
-                  ))}
+                  {/* Empty placeholder for friends that will come from backend */}
+                  <div className="empty-friends-placeholder">
+                    <p>Friends list will appear here when available.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -288,22 +323,13 @@ const ProfilePage = () => {
             <div className="profile-box">
               <div className="profile-box-header">
                 <h2 className="profile-box-title">Photos</h2>
-                <Link to="/photos" className="see-all-link">See all photos</Link>
               </div>
               <div className="profile-box-content">
                 <div className="profile-photos-grid">
-                  {photos.map(photo => (
-                    <div key={photo.id} className="profile-photo-item">
-                      <img 
-                        src={`/src/assets/images/profile/${photo.src}`} 
-                        alt={`Photo ${photo.id}`}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/src/assets/images/profile/default-avatar.png';
-                        }}
-                      />
-                    </div>
-                  ))}
+                  {/* Empty placeholder for photos that will come from backend */}
+                  <div className="empty-photos-placeholder">
+                    <p>Photos will appear here when available.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -399,11 +425,22 @@ const ProfilePage = () => {
           
           <div className="profile-name-container">
             <h1 className="profile-name">
-              {userData ? `${userData.firstname} ${userData.lastname}` : "User Profile"}
+              {getFullName()}
             </h1>
-            <p className="profile-bio">Community Development Advocate</p>
+            <p className="profile-bio">
+              {profile?.biography || "Community Development Advocate"}
+            </p>
+            
             <div className="profile-buttons">
-              <Button variant="primary">Edit Profile</Button>
+              <Button 
+                variant="primary" 
+                onClick={() => { 
+                  // Implement edit profile functionality
+                  console.log("Edit profile clicked");
+                }}
+              >
+                Edit Profile
+              </Button>
             </div>
           </div>
         </div>
@@ -447,49 +484,75 @@ const ProfilePage = () => {
           {/* Left column for info boxes */}
           <div className="profile-column-left">
             <div className="profile-box">
-              <div className="profile-box-header">
+            <div className="profile-box-header">
                 <h2 className="profile-box-title">Intro</h2>
               </div>
               <div className="profile-box-content">
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      {userInfo.workplaces[0].position} at {userInfo.workplaces[0].company}
+                {/* Biography if available */}
+                {profile?.biography && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z" />
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary bio-text">
+                        {profile.biography}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      Lives in {userInfo.location}
+                {/* Employment from real data */}
+                {profile?.employmentStatus && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        {profile.employmentStatus.replace(/_/g, ' ')}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      From {userInfo.hometown}
+                {/* Location from real data */}
+                {profile?.country && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        Lives in {profile.country}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 
+                {/* Date of Birth */}
+                {profile?.dateOfBirth && (
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                      </svg>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-primary">
+                        Born on {profile.dateOfBirth}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Join date from real data */}
                 <div className="profile-info-item">
                   <div className="profile-info-icon">
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -498,9 +561,16 @@ const ProfilePage = () => {
                   </div>
                   <div className="profile-info-details">
                     <div className="profile-info-primary">
-                      Joined {userInfo.joined}
+                      {profile?.createdAt ? 
+                        `Joined ${new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : 
+                        'Recently joined'}
                     </div>
                   </div>
+                </div>
+                
+                {/* Social Media Icons */}
+                <div className="profile-social-links-container">
+                  <SocialMediaLinks />
                 </div>
               </div>
             </div>
@@ -508,22 +578,11 @@ const ProfilePage = () => {
             <div className="profile-box">
               <div className="profile-box-header">
                 <h2 className="profile-box-title">Photos</h2>
-                <Link to="/photos" className="see-all-link">See all photos</Link>
+                <Link to="#" className="see-all-link">See all</Link>
               </div>
               <div className="profile-box-content">
-                <div className="profile-photos-grid">
-                  {photos.slice(0, 9).map(photo => (
-                    <div key={photo.id} className="profile-photo-item">
-                      <img 
-                        src={`/src/assets/images/profile/${photo.src}`} 
-                        alt={`Photo ${photo.id}`}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/src/assets/images/profile/default-avatar.png';
-                        }}
-                      />
-                    </div>
-                  ))}
+                <div className="empty-photos-placeholder">
+                  <p>Photos will appear here</p>
                 </div>
               </div>
             </div>
@@ -531,25 +590,11 @@ const ProfilePage = () => {
             <div className="profile-box">
               <div className="profile-box-header">
                 <h2 className="profile-box-title">Friends</h2>
-                <Link to="/friends" className="see-all-link">See all friends</Link>
+                <Link to="#" className="see-all-link">See all</Link>
               </div>
               <div className="profile-box-content">
-                <div className="profile-friends-grid">
-                  {friends.slice(0, 9).map(friend => (
-                    <div key={friend.id} className="profile-friend-item">
-                      <div className="profile-friend-image">
-                        <img 
-                          src={`/src/assets/images/profile/${friend.image}`} 
-                          alt={friend.name}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/src/assets/images/profile/default-avatar.png';
-                          }}
-                        />
-                      </div>
-                      <div className="profile-friend-name">{friend.name}</div>
-                    </div>
-                  ))}
+                <div className="empty-friends-placeholder">
+                  <p>Friends will appear here</p>
                 </div>
               </div>
             </div>
@@ -571,7 +616,7 @@ const ProfilePage = () => {
         }}
         onSubmit={handleCreatePost}
         editPost={editingPost}
-        userName={userData ? `${userData.firstname} ${userData.lastname}` : ''}
+        userName={getFullName()}
       />
     </div>
   );
