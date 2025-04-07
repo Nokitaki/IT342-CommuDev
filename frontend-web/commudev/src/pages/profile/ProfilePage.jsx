@@ -16,9 +16,10 @@ import ProfileEditor from '../../components/modals/ProfileEditor';
 
 const ProfilePage = () => {
   // Authentication and user data
-  const { userData, profilePicture, handleLogout } = useAuth();
+  const { handleLogout } = useAuth(); 
   const { profile, loading: profileLoading, error: profileError, fetchProfile, updateProfile } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
+  
   // Post related state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
@@ -34,19 +35,15 @@ const ProfilePage = () => {
 
   // Debug user data
   useEffect(() => {
-    console.log("User data:", userData);
     console.log("Profile data:", profile);
-  }, [userData, profile]);
+  }, [profile]);
 
   // Helper function for getting full name
   const getFullName = () => {
-    
-    // If userData doesn't have the name, check profile (from useProfile)
     if (profile && profile.firstname && profile.lastname) {
       return `${profile.firstname} ${profile.lastname}`;
     }
-    // If neither has the name, return default
-    return 'User Profile';
+    return '';
   };
 
   // Filter posts for the current user
@@ -55,14 +52,14 @@ const ProfilePage = () => {
       try {
         setIsLoading(true);
         const allPosts = await fetchAllPosts();
-        // Get current user ID from userData
-        const userId = userData?.id;
+        // Get current user ID from profile
+        const userId = profile?.id;
         
         if (userId) {
           // Filter posts by creator_id or creator name
           const filtered = allPosts.filter(post => 
             post.creator_id === userId || 
-            post.creator === `${userData.firstname} ${userData.lastname}`
+            post.creator === `${profile.firstname} ${profile.lastname}`
           );
           setUserPosts(filtered);
         }
@@ -73,10 +70,10 @@ const ProfilePage = () => {
       }
     };
 
-    if (userData) {
+    if (profile) {
       loadUserPosts();
     }
-  }, [userData]);
+  }, [profile]);
 
   // Social media icons
   const SocialMediaLinks = () => (
@@ -114,10 +111,8 @@ const ProfilePage = () => {
             <div className="profile-create-post">
               <div className="profile-create-post-header">
                 <Avatar 
-                  src={profilePicture || '/src/assets/images/profile/default-avatar.png'} 
-                  alt={(userData?.firstname && userData?.lastname) ? 
-                      `${userData.firstname} ${userData.lastname}'s profile` : 
-                      "User profile"} 
+                  src={profile?.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
+                  alt={getFullName()} 
                   size="medium" 
                 />
                 <div 
@@ -371,14 +366,12 @@ const ProfilePage = () => {
         <div className="profile-top-right">
           <div className="profile-user-menu">
             <Avatar 
-              src={profilePicture || '/src/assets/images/profile/default-avatar.png'} 
-              alt={(userData?.firstname && userData?.lastname) ? 
-                  `${userData.firstname} ${userData.lastname}'s profile` : 
-                  ""} 
+              src={profile?.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
+              alt={getFullName()} 
               size="small" 
             />
             <span className="profile-username">
-              {userData ? userData.firstname : "User"}
+              {profile ? profile.firstname : "User"}
             </span>
             <button className="profile-menu-button" onClick={handleLogout}>
               <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
@@ -392,9 +385,8 @@ const ProfilePage = () => {
       <div className="profile-main">
         {/* Cover photo section */}
         <div className="profile-cover">
-          <img 
-            src={coverImage} 
-            alt="Cover" 
+          <img  
+            /*src={profile?.coverImage || coverImage} do not change yet!*/
             className="profile-cover-image"
             onError={(e) => {
               e.target.onerror = null;
@@ -411,10 +403,8 @@ const ProfilePage = () => {
           <div className="profile-avatar-container">
             <div className="profile-avatar-wrapper">
               <img 
-                src={profilePicture || '/src/assets/images/profile/default-avatar.png'} 
-                alt={(userData?.firstname && userData?.lastname) ? 
-                    `${userData.firstname} ${userData.lastname}'s profile` : 
-                    "User profile"} 
+                src={profile?.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
+                alt={getFullName()} 
                 className="profile-avatar-image"
               />
             </div>
@@ -435,12 +425,12 @@ const ProfilePage = () => {
             </p>
             
             <div className="profile-buttons">
-            <Button 
-              variant="primary" 
-              onClick={() => setIsEditing(true)}
-            >
-              Edit Profile
-            </Button>
+              <Button 
+                variant="primary" 
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Profile
+              </Button>
             </div>
           </div>
         </div>
@@ -484,7 +474,7 @@ const ProfilePage = () => {
           {/* Left column for info boxes */}
           <div className="profile-column-left">
             <div className="profile-box">
-            <div className="profile-box-header">
+              <div className="profile-box-header">
                 <h2 className="profile-box-title">Intro</h2>
               </div>
               <div className="profile-box-content">
@@ -498,143 +488,143 @@ const ProfilePage = () => {
                     </div>
                     <div className="profile-info-details">
                       <div className="profile-info-primary bio-text">
-                        {profile.biography}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Employment from real data */}
-                {profile?.employmentStatus && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        {profile.employmentStatus.replace(/_/g, ' ')}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Location from real data */}
-                {profile?.country && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        Lives in {profile.country}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Date of Birth */}
-                {profile?.dateOfBirth && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        Born on {profile.dateOfBirth}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Join date from real data */}
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      {profile?.createdAt ? 
-                        `Joined ${new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : 
-                        'Recently joined'}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Social Media Icons */}
-                <div className="profile-social-links-container">
-                  <SocialMediaLinks />
-                </div>
-              </div>
-            </div>
-            
-            <div className="profile-box">
-              <div className="profile-box-header">
-                <h2 className="profile-box-title">Photos</h2>
-                <Link to="#" className="see-all-link">See all</Link>
-              </div>
-              <div className="profile-box-content">
-                <div className="empty-photos-placeholder">
-                  <p>Photos will appear here</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="profile-box">
-              <div className="profile-box-header">
-                <h2 className="profile-box-title">Friends</h2>
-                <Link to="#" className="see-all-link">See all</Link>
-              </div>
-              <div className="profile-box-content">
-                <div className="empty-friends-placeholder">
-                  <p>Friends will appear here</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Right column for posts and tab content */}
-          <div className="profile-column-right">
-            {renderTabContent()}
-          </div>
-        </div>
-      </div>
-      
-      {/* Post creation modal */}
-      <PostFormModal 
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingPost(null);
-        }}
-        onSubmit={handleCreatePost}
-        editPost={editingPost}
-        userName={getFullName()}
-      />
+                      {profile.biography}
+                     </div>
+                   </div>
+                 </div>
+               )}
+               
+               {/* Employment from real data */}
+               {profile?.employmentStatus && (
+                 <div className="profile-info-item">
+                   <div className="profile-info-icon">
+                     <svg viewBox="0 0 24 24" fill="currentColor">
+                       <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
+                     </svg>
+                   </div>
+                   <div className="profile-info-details">
+                     <div className="profile-info-primary">
+                       {profile.employmentStatus.replace(/_/g, ' ')}
+                     </div>
+                   </div>
+                 </div>
+               )}
+               
+               {/* Location from real data */}
+               {profile?.country && (
+                 <div className="profile-info-item">
+                   <div className="profile-info-icon">
+                     <svg viewBox="0 0 24 24" fill="currentColor">
+                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                     </svg>
+                   </div>
+                   <div className="profile-info-details">
+                     <div className="profile-info-primary">
+                       Lives in {profile.country}
+                     </div>
+                   </div>
+                 </div>
+               )}
+               
+               {/* Date of Birth */}
+               {profile?.dateOfBirth && (
+                 <div className="profile-info-item">
+                   <div className="profile-info-icon">
+                     <svg viewBox="0 0 24 24" fill="currentColor">
+                       <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                     </svg>
+                   </div>
+                   <div className="profile-info-details">
+                     <div className="profile-info-primary">
+                       Born on {profile.dateOfBirth}
+                     </div>
+                   </div>
+                 </div>
+               )}
+               
+               {/* Join date from real data */}
+               <div className="profile-info-item">
+                 <div className="profile-info-icon">
+                   <svg viewBox="0 0 24 24" fill="currentColor">
+                     <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                   </svg>
+                 </div>
+                 <div className="profile-info-details">
+                   <div className="profile-info-primary">
+                     {profile?.createdAt ? 
+                       `Joined ${new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : 
+                       'Recently joined'}
+                   </div>
+                 </div>
+               </div>
+               
+               {/* Social Media Icons */}
+               <div className="profile-social-links-container">
+                 <SocialMediaLinks />
+               </div>
+             </div>
+           </div>
+           
+           <div className="profile-box">
+             <div className="profile-box-header">
+               <h2 className="profile-box-title">Photos</h2>
+               <Link to="#" className="see-all-link">See all</Link>
+             </div>
+             <div className="profile-box-content">
+               <div className="empty-photos-placeholder">
+                 <p>Photos will appear here</p>
+               </div>
+             </div>
+           </div>
+           
+           <div className="profile-box">
+             <div className="profile-box-header">
+               <h2 className="profile-box-title">Friends</h2>
+               <Link to="#" className="see-all-link">See all</Link>
+             </div>
+             <div className="profile-box-content">
+               <div className="empty-friends-placeholder">
+                 <p>Friends will appear here</p>
+               </div>
+             </div>
+           </div>
+         </div>
+         
+         {/* Right column for posts and tab content */}
+         <div className="profile-column-right">
+           {renderTabContent()}
+         </div>
+       </div>
+     </div>
+     
+     {/* Post creation modal */}
+     <PostFormModal 
+       isOpen={isModalOpen}
+       onClose={() => {
+         setIsModalOpen(false);
+         setEditingPost(null);
+       }}
+       onSubmit={handleCreatePost}
+       editPost={editingPost}
+       userName={getFullName()}
+     />
 
-      {isEditing && profile && (
-        <div className="profile-editor-overlay">
-          <div className="profile-editor-container">
-            <ProfileEditor 
-              profile={profile} 
-              onCancel={() => setIsEditing(false)} 
-              onSave={(formData) => { // Changed from onSuccess to onSave
-                updateProfile(formData);
-                setIsEditing(false);
-              }} 
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
+     {isEditing && profile && (
+       <div className="profile-editor-overlay">
+         <div className="profile-editor-container">
+           <ProfileEditor 
+             profile={profile} 
+             onCancel={() => setIsEditing(false)} 
+             onSave={(formData) => {
+               updateProfile(formData);
+               setIsEditing(false);
+             }} 
+           />
+         </div>
+       </div>
+     )}
+   </div>
+ );
 };
 
 export default ProfilePage;
