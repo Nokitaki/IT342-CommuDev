@@ -1,0 +1,78 @@
+/* src/styles/components/modal.css */
+/* Add these styles to your existing modal.css file */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #1c1e21;
+  }
+  
+  .modal-input,
+  .modal-textarea,
+  .modal-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #dddfe2;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .modal-textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .modal-select {
+    background-color: white;
+    height: 40px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1c1e21;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  /* Make sure buttons in modal have consistent styling */
+  .modal-actions button {
+    min-width: 80px;
+  }

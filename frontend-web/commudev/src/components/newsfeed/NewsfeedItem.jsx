@@ -6,7 +6,7 @@ import { formatTimeAgo } from '../../utils/dateUtils';
 import ReactMarkdown from 'react-markdown';
 import '../../styles/components/newsfeed.css';
 
-const NewsfeedItem = ({ post, onUpdate, onDelete, onLike }) => {
+const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPost, setEditedPost] = useState(post);
   const [isLiked, setIsLiked] = useState(false);
@@ -21,7 +21,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike }) => {
   };
 
   const handleSave = () => {
-    if (editedPost.post_description.trim()) {
+    if (editedPost.post_description && editedPost.post_description.trim()) {
       onUpdate(editedPost);
       setIsEditing(false);
     }
@@ -33,17 +33,38 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike }) => {
     setTimeout(() => setIsLiked(false), 1000);
   };
 
+  // Get the username from the user object if available
+  const getUsername = () => {
+    if (post.user && post.user.username) {
+      return post.user.username;
+    }
+    return post.creator || 'User';
+  };
+
+  // Get profile picture
+  const getProfilePicture = () => {
+    if (post.user && post.user.profilePicture) {
+      return post.user.profilePicture.startsWith('http') 
+        ? post.user.profilePicture 
+        : `http://localhost:8080${post.user.profilePicture}`;
+    }
+    return post.creator_profile_picture || '/src/assets/images/profile/default-avatar.png';
+  };
+
+  // Check if the current user can edit this post
+  const canEdit = isCurrentUser;
+
   return (
     <article className="feed-item">
       <header className="post-header">
-      <Avatar 
-        src={post.creator_profile_picture || '/src/assets/images/profile/default-avatar.png'} 
-        alt={`${post.creator || 'User'}'s profile`} 
-        size="medium" 
-      />
+        <Avatar 
+          src={getProfilePicture()} 
+          alt={`${getUsername()}'s profile`} 
+          size="medium" 
+        />
         <div className="user-info">
           <div className="user-meta">
-            <h3 className="username">{post.creator || 'User'}</h3>
+            <h3 className="username">{getUsername()}</h3>
             <span className="post-meta">•</span>
             <span className="post-meta">{formatTimeAgo(post.post_date)}</span>
           </div>
@@ -104,26 +125,30 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike }) => {
         </button>
 
         <div className="action-buttons">
-          <Button 
-            variant="icon" 
-            onClick={() => setIsEditing(true)}
-            className="btn-edit"
-          >
-            <svg className="edit-icon" viewBox="0 0 24 24">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-            </svg>
-            Edit
-          </Button>
-          <Button 
-            variant="icon" 
-            onClick={() => onDelete(post.newsfeed_id)}
-            className="btn-delete"
-          >
-            <svg className="delete-icon" viewBox="0 0 24 24">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-            </svg>
-            Delete
-          </Button>
+          {canEdit && (
+            <>
+              <Button 
+                variant="icon" 
+                onClick={() => setIsEditing(true)}
+                className="btn-edit"
+              >
+                <svg className="edit-icon" viewBox="0 0 24 24">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+                Edit
+              </Button>
+              <Button 
+                variant="icon" 
+                onClick={() => onDelete(post.newsfeed_id)}
+                className="btn-delete"
+              >
+                <svg className="delete-icon" viewBox="0 0 24 24">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                </svg>
+                Delete
+              </Button>
+            </>
+          )}
         </div>
       </footer>
     </article>

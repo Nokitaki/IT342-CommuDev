@@ -11,12 +11,14 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
+import ProfileEditor from '../../components/profile/ProfileEditor';
+
 
 const ProfilePage = () => {
   // Authentication and user data
   const { userData, profilePicture, handleLogout } = useAuth();
-  const { profile, loading: profileLoading, error: profileError, updateProfile } = useProfile();
-  
+  const { profile, loading: profileLoading, error: profileError, fetchProfile, updateProfile } = useProfile();
+  const [isEditing, setIsEditing] = useState(false);
   // Post related state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
@@ -341,6 +343,7 @@ const ProfilePage = () => {
     }
   };
 
+  
   return (
     <div className="profile-container">
       {/* Top navigation bar */}
@@ -432,15 +435,12 @@ const ProfilePage = () => {
             </p>
             
             <div className="profile-buttons">
-              <Button 
-                variant="primary" 
-                onClick={() => { 
-                  // Implement edit profile functionality
-                  console.log("Edit profile clicked");
-                }}
-              >
-                Edit Profile
-              </Button>
+            <Button 
+              variant="primary" 
+              onClick={() => setIsEditing(true)}
+            >
+              Edit Profile
+            </Button>
             </div>
           </div>
         </div>
@@ -618,6 +618,21 @@ const ProfilePage = () => {
         editPost={editingPost}
         userName={getFullName()}
       />
+
+      {isEditing && profile && (
+        <div className="profile-editor-overlay">
+          <div className="profile-editor-container">
+            <ProfileEditor 
+              profile={profile} 
+              onCancel={() => setIsEditing(false)} 
+              onSave={(formData) => { // Changed from onSuccess to onSave
+                updateProfile(formData);
+                setIsEditing(false);
+              }} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,17 +5,23 @@ import {
   createPost, 
   updatePost, 
   deletePost, 
-  likePost 
+  likePost,
+  fetchMyPosts,
+  fetchUserPosts
 } from '../services/newsfeedService';
 
-const useNewsfeed = () => {
+const useNewsfeed = (initialUsername = null) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    if (initialUsername) {
+      loadUserPosts(initialUsername);
+    } else {
+      loadPosts();
+    }
+  }, [initialUsername]);
 
   const loadPosts = async () => {
     setLoading(true);
@@ -32,12 +38,49 @@ const useNewsfeed = () => {
     }
   };
 
+  const loadMyPosts = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const postsData = await fetchMyPosts();
+      setPosts(postsData);
+    } catch (error) {
+      console.error('Error loading my posts:', error);
+      setError('Failed to load your posts. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUserPosts = async (username) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const postsData = await fetchUserPosts(username);
+      setPosts(postsData);
+    } catch (error) {
+      console.error('Error loading user posts:', error);
+      setError(`Failed to load posts for ${username}. Please try again later.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreatePost = async (postData) => {
     setLoading(true);
     setError(null);
     
     try {
-      const newPost = await createPost(postData);
+      // Format the data to match what the backend expects
+      const formattedData = {
+        post_description: postData.post_description || postData.description,
+        post_type: postData.post_type || postData.type || 'General',
+        post_status: postData.post_status || 'active'
+      };
+      
+      const newPost = await createPost(formattedData);
       setPosts(prevPosts => [newPost, ...prevPosts]);
       return newPost;
     } catch (error) {
@@ -54,7 +97,14 @@ const useNewsfeed = () => {
     setError(null);
     
     try {
-      const updatedPost = await updatePost(postId, postData);
+      // Format the data to match what the backend expects
+      const formattedData = {
+        post_description: postData.post_description || postData.description,
+        post_type: postData.post_type || postData.type || 'General',
+        post_status: postData.post_status || 'active'
+      };
+      
+      const updatedPost = await updatePost(postId, formattedData);
       setPosts(prevPosts => 
         prevPosts.map(post => post.newsfeed_id === postId ? updatedPost : post)
       );
@@ -85,9 +135,9 @@ const useNewsfeed = () => {
     }
   };
 
-  const handleLikePost = async (postId, currentLikes) => {
+  const handleLikePost = async (postId) => {
     try {
-      const updatedPost = await likePost(postId, currentLikes);
+      const updatedPost = await likePost(postId);
       setPosts(prevPosts => 
         prevPosts.map(post => post.newsfeed_id === postId ? updatedPost : post)
       );
@@ -103,6 +153,8 @@ const useNewsfeed = () => {
     loading,
     error,
     loadPosts,
+    loadMyPosts,
+    loadUserPosts,
     handleCreatePost,
     handleUpdatePost,
     handleDeletePost,

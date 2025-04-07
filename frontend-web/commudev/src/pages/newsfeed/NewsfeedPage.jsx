@@ -7,21 +7,25 @@ import PostFormModal from '../../components/modals/PostFormModal';
 import UserCarousel from '../../components/newsfeed/UserCarousel';
 import Calendar from '../../components/common/Calendar';
 import NotificationItem from '../../components/newsfeed/NotificationItem';
-import { 
-  fetchAllPosts, 
-  createPost, 
-  updatePost, 
-  deletePost, 
-  likePost 
-} from '../../services/newsfeedService';
+import useNewsfeed from '../../hooks/useNewsfeed';
 import useAuth from '../../hooks/useAuth';
 import '../../styles/pages/newsfeed.css';
 
 const NewsfeedPage = () => {
-  const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const { userData, profilePicture } = useAuth();
+  
+  const {
+    posts,
+    loading,
+    error,
+    loadPosts,
+    handleCreatePost,
+    handleUpdatePost,
+    handleDeletePost,
+    handleLikePost
+  } = useNewsfeed();
 
   // Mock notifications for now
   const notifications = [
@@ -48,39 +52,14 @@ const NewsfeedPage = () => {
     },
   ];
 
-  useEffect(() => {
-    loadPosts();
-  }, []);
-
-  const loadPosts = async () => {
+  const handleSubmitPost = async (formData) => {
     try {
-      const postsData = await fetchAllPosts();
-      setPosts(postsData);
-    } catch (error) {
-      console.error('Error loading posts:', error);
-    }
-  };
-
-  const handleCreatePost = async (formData) => {
-    try {
-      // Add user info to form data
-      const postData = {
-        ...formData,
-        creator: userData ? `${userData.firstname} ${userData.lastname}` : '',
-        creator_id: userData?.id,
-        creator_profile_picture: profilePicture,
-      };
-
       // If editing, update the post
       if (editingPost) {
-        const updatedPost = await updatePost(editingPost.newsfeed_id, postData);
-        setPosts(posts.map(post => 
-          post.newsfeed_id === editingPost.newsfeed_id ? updatedPost : post
-        ));
+        await handleUpdatePost(editingPost.newsfeed_id, formData);
       } else {
         // Otherwise create a new post
-        const newPost = await createPost(postData);
-        setPosts([newPost, ...posts]);
+        await handleCreatePost(formData);
       }
 
       // Close modal and reset editing state
@@ -91,37 +70,19 @@ const NewsfeedPage = () => {
     }
   };
 
-  const handleUpdatePost = async (updatedPost) => {
-    try {
-      const result = await updatePost(updatedPost.newsfeed_id, updatedPost);
-      setPosts(posts.map(post => 
-        post.newsfeed_id === updatedPost.newsfeed_id ? result : post
-      ));
-    } catch (error) {
-      console.error('Error updating post:', error);
-    }
-  };
-
-  const handleDeletePost = async (postId) => {
+  const onDeletePost = async (postId) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        await deletePost(postId);
-        setPosts(posts.filter(post => post.newsfeed_id !== postId));
-      } catch (error) {
-        console.error('Error deleting post:', error);
-      }
+      await handleDeletePost(postId);
     }
   };
 
-  const handleLikePost = async (post) => {
-    try {
-      const updatedPost = await likePost(post.newsfeed_id, post.like_count);
-      setPosts(posts.map(p => 
-        p.newsfeed_id === post.newsfeed_id ? updatedPost : p
-      ));
-    } catch (error) {
-      console.error('Error liking post:', error);
-    }
+  const onEditPost = (post) => {
+    setEditingPost(post);
+    setIsModalOpen(true);
+  };
+
+  const onLikePost = async (post) => {
+    await handleLikePost(post.newsfeed_id);
   };
 
   // Right sidebar content
@@ -159,17 +120,29 @@ const NewsfeedPage = () => {
             }} 
           />
           
-          <div className="newsfeed-items">
-            {posts.map(post => (
-              <NewsfeedItem 
-                key={post.newsfeed_id}
-                post={post}
-                onUpdate={handleUpdatePost}
-                onDelete={handleDeletePost}
-                onLike={handleLikePost}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="loading-indicator">Loading posts...</div>
+          ) : error ? (
+            <div className="error-message">{error}</div>
+          ) : (
+            <div className="newsfeed-items">
+              {posts.length > 0 ? (
+                posts.map(post => (
+                  <NewsfeedItem 
+                    key={post.newsfeed_id}
+                    post={post}
+                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeed_id, updatedPost)}
+                    onDelete={() => onDeletePost(post.newsfeed_id)}
+                    onLike={() => onLikePost(post)}
+                    onEdit={() => onEditPost(post)}
+                    isCurrentUser={userData?.id === post.user?.id}
+                  />
+                ))
+              ) : (
+                <div className="no-posts-message">No posts to display.</div>
+              )}
+            </div>
+          )}
         </div>
         
         <PostFormModal 
@@ -178,9 +151,9 @@ const NewsfeedPage = () => {
             setIsModalOpen(false);
             setEditingPost(null);
           }}
-          onSubmit={handleCreatePost}
+          onSubmit={handleSubmitPost}
           editPost={editingPost}
-          userName={userData ? `${userData.firstname} ${userData.lastname}` : ''}
+          userName={userData ? `${userData.firstname || ''} ${userData.lastname || ''}`.trim() : ''}
         />
       </div>
     </MainLayout>
