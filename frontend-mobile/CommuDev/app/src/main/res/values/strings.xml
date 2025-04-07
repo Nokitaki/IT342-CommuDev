@@ -1,0 +1,60 @@
+<resources>
+    <string name="app_name">CommuDev</string>
+    <string name="login">LOGIN</string>
+    <string name="logging_in">LOGGING IN...</string>
+
+    <string name="back_to_home">Back to home</string>
+    <string name="profile">Profile</string>
+    <string name="bio">Bio</string>
+    <string name="sample_bio">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</string>
+    <string name="personal_info">Personal Info</string>
+
+    <!-- Navigation and Button Labels -->
+    <string name="home_button_description">Home</string>
+    <string name="chat_button_description">Chat</string>
+    <string name="resources_button_description">Resources</string>
+    <string name="weather_button_description">Weather</string>
+    <string name="news_button_description">News</string>
+    <string name="profile_button_description">View your profile</string>
+    <string name="profile_image_description">Your profile picture</string>
+
+    <!-- Left Panel -->
+    <string name="your_community">YOUR COMMUNITY</string>
+    <string name="municipality_community">Municipality Community</string>
+    <string name="barangay_community">Barangay Community</string>
+    <string name="municipality_icon_description">Municipality icon</string>
+    <string name="barangay_icon_description">Barangay icon</string>
+    <string name="people_you_may_know">PEOPLE YOU MAY KNOW</string>
+
+    <!-- Right Panel -->
+    <string name="calendar">Calendar</string>
+    <string name="notifications">Notifications</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search users…</string>
+
+    <!-- Home Fragment -->
+    <string name="create_post">Create a post</string>
+    <string name="post_hint">What\'s on your mind?</string>
+    <string name="post_button">POST</string>
+    <string name="news">News</string>
+    <string name="read_more">READ MORE</string>
+    <string name="news_title">MIT students are eager to know how things work.</string>
+    <string name="news_content">MIT people are eager to know how things work and inspired to make them work better.</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="send_message">Send Message</string>
+    <string name="age">Age</string>
+    <string name="email">Email</string>
+    <string name="country">Country</string>
+    <string name="employment">Employment</string>
+    <string name="languages">Languages</string>
+    <string name="hobbies">Hobbies</string>
+    <string name="goals">Goals</string>
+    <string name="recent_activity">Recent Activity</string>
+
+
+    <string name="logout">Logout</string>
+</resources>

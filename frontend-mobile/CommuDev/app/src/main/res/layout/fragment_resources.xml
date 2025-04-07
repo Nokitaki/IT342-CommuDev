@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ResourcesFragment">
+
+    <!-- Header with tabs -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="16dp">
+
+        <TextView
+            android:id="@+id/allResourcesTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/tab_active"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="All"
+            android:textColor="@color/black"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/documentsTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/tab_inactive"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Documents"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/mediaTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/tab_inactive"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Media"
+            android:textColor="@color/black" />
+    </LinearLayout>
+
+    <!-- Create Resource Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/createResourceButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/light_green"
+        android:text="Create New Resource"
+        android:textAllCaps="false"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_add"
+        app:iconGravity="textStart" />
+
+    <!-- Resources List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/resourcesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"
+        tools:listitem="@layout/item_resource" />
+
+</LinearLayout>
