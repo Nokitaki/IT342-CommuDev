@@ -11,7 +11,7 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
-import ProfileEditor from '../../components/profile/ProfileEditor';
+import ProfileEditor from '../../components/modals/ProfileEditor';
 
 
 const ProfilePage = () => {
@@ -374,7 +374,7 @@ const ProfilePage = () => {
               src={profilePicture || '/src/assets/images/profile/default-avatar.png'} 
               alt={(userData?.firstname && userData?.lastname) ? 
                   `${userData.firstname} ${userData.lastname}'s profile` : 
-                  "User profile"} 
+                  ""} 
               size="small" 
             />
             <span className="profile-username">
@@ -431,7 +431,7 @@ const ProfilePage = () => {
               {getFullName()}
             </h1>
             <p className="profile-bio">
-              {profile?.biography || "Community Development Advocate"}
+              {profile?.biography || ""}
             </p>
             
             <div className="profile-buttons">
