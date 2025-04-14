@@ -56,13 +56,19 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints
-                        .requestMatchers("/auth/**", "/public/**", "/error").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        
-                        // Public newsfeed endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/newsfeed/all", "/api/newsfeed/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/newsfeed/user/**").permitAll()
+        // Public endpoints
+        .requestMatchers("/auth/**", "/public/**", "/error").permitAll()
+        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        
+        // Add these lines for public image access
+        .requestMatchers("/profile-pictures/**", "/cover-photos/**").permitAll()
+        
+        // Public newsfeed endpoints
+        .requestMatchers(HttpMethod.GET, "/api/newsfeed/all", "/api/newsfeed/{id}").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/newsfeed/user/**").permitAll()
+        
+        // Add this line for public profile access
+        .requestMatchers("/users/profiles/**").permitAll()
                         
                         // Add this line for public profile access
                         .requestMatchers("/users/profiles/**").permitAll()

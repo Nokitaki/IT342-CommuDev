@@ -29,7 +29,9 @@ public class UserDto {
     private List<String> roles;
     private LocalDateTime createdAt;
     private String profileVisibility;
+    private String coverPhoto;
 
+    
     // Basic constructor for simple responses
     public UserDto(Long id, String username, String email, boolean enabled) {
         this.id = id;

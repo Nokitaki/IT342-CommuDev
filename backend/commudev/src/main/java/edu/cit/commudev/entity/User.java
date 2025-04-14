@@ -63,6 +63,9 @@ public class User implements UserDetails {
     @Column(name = "biography", columnDefinition = "TEXT")
     private String biography;
 
+
+    @Column(name = "cover_photo")
+    private String coverPhoto;
     // Security related fields
     @Column(name = "verification_code")
     @JsonIgnore
@@ -373,6 +376,14 @@ public class User implements UserDetails {
 
     public void setProfileVisibility(ProfileVisibility profileVisibility) {
         this.profileVisibility = profileVisibility;
+    }
+
+    public String getCoverPhoto() {
+        return coverPhoto;
+    }
+    
+    public void setCoverPhoto(String coverPhoto) {
+        this.coverPhoto = coverPhoto;
     }
 
     

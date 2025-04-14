@@ -1,4 +1,3 @@
-// src/pages/profile/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
@@ -6,19 +5,39 @@ import Button from '../../components/common/Button';
 import NewsfeedItem from '../../components/newsfeed/NewsfeedItem';
 import PostFormModal from '../../components/modals/PostFormModal';
 import NavigationBar from '../../components/navigation/NavigationBar';
+import ProfileEditor from '../../components/modals/ProfileEditor';
 import useAuth from '../../hooks/useAuth';
 import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
-import ProfileEditor from '../../components/modals/ProfileEditor';
+// In your ProfilePage.jsx
+import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
+import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
+
 
 
 const ProfilePage = () => {
   // Authentication and user data
   const { handleLogout } = useAuth(); 
-  const { profile, loading: profileLoading, error: profileError, fetchProfile, updateProfile } = useProfile();
+  const { 
+    profile, 
+    loading: profileLoading, 
+    error: profileError, 
+    fetchProfile, 
+    refreshProfile,
+    updateProfile,
+    updatePicture,
+    updateCoverPhoto
+  } = useProfile();
+  
+  // UI state for editing
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
+  
+  // State for forcing image refresh
+  const [imageKey, setImageKey] = useState(Date.now());
   
   // Post related state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,22 +47,20 @@ const ProfilePage = () => {
   
   // UI state
   const [activeTab, setActiveTab] = useState('posts');
-  const [coverImage, setCoverImage] = useState('/src/assets/images/profile/cover-default.jpg');
   
   // Newsfeed hooks
   const { handleCreatePost, handleUpdatePost, handleDeletePost, handleLikePost } = useNewsfeed();
-
-  // Debug user data
-  useEffect(() => {
-    console.log("Profile data:", profile);
-  }, [profile]);
 
   // Helper function for getting full name
   const getFullName = () => {
     if (profile && profile.firstname && profile.lastname) {
       return `${profile.firstname} ${profile.lastname}`;
+    } else if (profile && profile.firstname) {
+      return profile.firstname;
+    } else if (profile && profile.username) {
+      return profile.username;
     }
-    return '';
+    return 'User';
   };
 
   // Filter posts for the current user
@@ -75,7 +92,67 @@ const ProfilePage = () => {
     }
   }, [profile]);
 
-  // Social media icons
+  // Handle profile picture click
+  const handleProfilePictureClick = () => {
+    setIsUploadingProfilePic(true);
+  };
+
+  // Handle profile picture upload
+  const handleProfilePictureUpload = async (formData) => {
+    if (formData) {
+      try {
+        const success = await updatePicture(formData);
+        if (success) {
+          // Refresh profile data from server
+          await fetchProfile();
+          
+          // Close the upload modal
+          setIsUploadingProfilePic(false);
+          
+          // Force image refresh by updating the key
+          setImageKey(Date.now());
+        }
+      } catch (error) {
+        console.error('Failed to upload profile picture:', error);
+      }
+    }
+  };
+
+  // Handle cover photo upload button click
+  const handleCoverPhotoClick = () => {
+    setIsUploadingCover(true);
+  };
+
+  // Handle cover photo upload
+  const handleCoverPhotoUpload = async (formData) => {
+    if (formData) {
+      try {
+        const success = await updateCoverPhoto(formData);
+        if (success) {
+          // Refresh profile data from server
+          await fetchProfile();
+          
+          // Close the upload modal
+          setIsUploadingCover(false);
+          
+          // Force image refresh by updating the key
+          setImageKey(Date.now());
+        }
+      } catch (error) {
+        console.error('Failed to upload cover photo:', error);
+      }
+    }
+  };
+
+  // Handle profile update from editor
+  const handleProfileUpdate = async (formData) => {
+    const success = await updateProfile(formData);
+    if (success) {
+      setIsEditing(false);
+    }
+  };
+
+  // Social media icons component
   const SocialMediaLinks = () => (
     <div className="social-media-links">
       {/* Facebook icon */}
@@ -111,7 +188,12 @@ const ProfilePage = () => {
             <div className="profile-create-post">
               <div className="profile-create-post-header">
                 <Avatar 
-                  src={profile?.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
+                 src={profile?.profilePicture ? 
+                  (profile.profilePicture.startsWith('http') ? 
+                    profile.profilePicture : 
+                    `http://localhost:8080${profile.profilePicture}`) : 
+                  '/src/assets/images/profile/default-avatar.png'
+                }
                   alt={getFullName()} 
                   size="medium" 
                 />
@@ -154,15 +236,23 @@ const ProfilePage = () => {
             {/* Posts list */}
             <div className="profile-posts">
               {isLoading ? (
-                <div className="loading-message">Loading posts...</div>
+                <div className="loading-message">
+                  <div className="loading-spinner"></div>
+                  Loading posts...
+                </div>
               ) : userPosts.length > 0 ? (
                 userPosts.map(post => (
                   <NewsfeedItem 
                     key={post.newsfeed_id}
                     post={post}
-                    onUpdate={handleUpdatePost}
-                    onDelete={handleDeletePost}
-                    onLike={handleLikePost}
+                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeed_id, updatedPost)}
+                    onDelete={() => handleDeletePost(post.newsfeed_id)}
+                    onLike={() => handleLikePost(post)}
+                    onEdit={() => {
+                      setEditingPost(post);
+                      setIsModalOpen(true);
+                    }}
+                    isCurrentUser={true}
                   />
                 ))
               ) : (
@@ -338,7 +428,6 @@ const ProfilePage = () => {
     }
   };
 
-  
   return (
     <div className="profile-container">
       {/* Top navigation bar */}
@@ -366,7 +455,10 @@ const ProfilePage = () => {
         <div className="profile-top-right">
           <div className="profile-user-menu">
             <Avatar 
-              src={profile?.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
+              src={profile?.profilePicture ? 
+                `http://localhost:8080${profile.profilePicture}` : 
+                '/src/assets/images/profile/default-avatar.png'
+              } 
               alt={getFullName()} 
               size="small" 
             />
@@ -386,26 +478,48 @@ const ProfilePage = () => {
         {/* Cover photo section */}
         <div className="profile-cover">
           <img  
-            /*src={profile?.coverImage || coverImage} do not change yet!*/
+            key={`cover-image-${imageKey}`}
+            src={profile?.coverPhoto ? 
+              (profile.coverPhoto.startsWith('http') ? 
+                profile.coverPhoto : 
+                `http://localhost:8080${profile.coverPhoto}`) : 
+              '/src/assets/images/profile/prof4.jpg'
+            }
+            alt="Cover"
             className="profile-cover-image"
             onError={(e) => {
+              console.log("Error loading cover photo:", profile?.coverPhoto);
               e.target.onerror = null;
-              e.target.src = '/src/assets/images/profile/default-cover.jpg';
+              e.target.src = '/src/assets/images/profile/prof3.jpg';
             }}
           />
           <div className="profile-cover-buttons">
-            <Button variant="primary">Edit Cover Photo</Button>
+            <Button 
+              variant="primary" 
+              onClick={handleCoverPhotoClick}
+            >
+              Edit Cover Photo
+            </Button>
           </div>
         </div>
         
         {/* Profile header with avatar and user info */}
         <div className="profile-header">
-          <div className="profile-avatar-container">
+          <div className="profile-avatar-container" onClick={handleProfilePictureClick}>
             <div className="profile-avatar-wrapper">
               <img 
-                src={profile?.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
+                key={`profile-image-${imageKey}`}
+                src={profile?.profilePicture ? 
+                  `http://localhost:8080${profile.profilePicture}` : 
+                  '/src/assets/images/profile/default-avatar.png'
+                } 
                 alt={getFullName()} 
                 className="profile-avatar-image"
+                onError={(e) => {
+                  console.log("Error loading profile picture:", profile?.profilePicture);
+                  e.target.onerror = null;
+                  e.target.src = '/src/assets/images/profile/default-avatar.png';
+                }}
               />
             </div>
             <div className="profile-camera-icon">
@@ -604,25 +718,42 @@ const ProfilePage = () => {
          setIsModalOpen(false);
          setEditingPost(null);
        }}
-       onSubmit={handleCreatePost}
+       onSubmit={editingPost ? 
+         (formData) => handleUpdatePost(editingPost.newsfeed_id, formData) : 
+         handleCreatePost
+       }
        editPost={editingPost}
        userName={getFullName()}
      />
 
+     {/* Profile Editor Modal */}
      {isEditing && profile && (
        <div className="profile-editor-overlay">
          <div className="profile-editor-container">
            <ProfileEditor 
              profile={profile} 
              onCancel={() => setIsEditing(false)} 
-             onSave={(formData) => {
-               updateProfile(formData);
-               setIsEditing(false);
-             }} 
+             onSave={handleProfileUpdate} 
            />
          </div>
        </div>
      )}
+
+     {/* Cover Photo Upload Modal */}
+     <CoverPhotoUpload 
+       isOpen={isUploadingCover}
+       currentCoverPhoto={profile?.coverPhoto ? `http://localhost:8080${profile.coverPhoto}` : null}
+       onSave={handleCoverPhotoUpload}
+       onCancel={() => setIsUploadingCover(false)}
+     />
+
+     {/* Profile Picture Upload Modal */}
+     <ProfilePictureUpload 
+       isOpen={isUploadingProfilePic}
+       currentProfilePicture={profile?.profilePicture ? `http://localhost:8080${profile.profilePicture}` : null}
+       onSave={handleProfilePictureUpload}
+       onCancel={() => setIsUploadingProfilePic(false)}
+     />
    </div>
  );
 };

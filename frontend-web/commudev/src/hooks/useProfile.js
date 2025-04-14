@@ -1,6 +1,12 @@
 // src/hooks/useProfile.js
 import { useState, useEffect } from 'react';
-import { getUserProfile, updateUserProfile, uploadProfilePicture } from '../services/authService';
+import { 
+  getUserProfile, 
+  updateUserProfile, 
+  uploadProfilePicture,
+  uploadCoverPhoto,
+  removeProfilePicture
+} from '../services/authService';
 
 const useProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -30,6 +36,7 @@ const useProfile = () => {
       setLoading(true);
       setError(null);
       setSuccess(null);
+      
       const updatedProfile = await updateUserProfile(profileData);
       setProfile(updatedProfile);
       setSuccess('Profile updated successfully!');
@@ -47,12 +54,81 @@ const useProfile = () => {
       setLoading(true);
       setError(null);
       setSuccess(null);
-      const updatedProfile = await uploadProfilePicture(file);
+      
+      // Handle both FormData objects and File objects
+      let formData;
+      if (file instanceof FormData) {
+        formData = file;
+      } else {
+        formData = new FormData();
+        formData.append('file', file);
+      }
+      
+      const updatedProfile = await uploadProfilePicture(formData);
       setProfile(updatedProfile);
       setSuccess('Profile picture updated successfully!');
       return true;
     } catch (err) {
       setError(err.message || 'Failed to upload picture');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCoverPhoto = async (file) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      // Handle both FormData objects and File objects
+      let formData;
+      if (file instanceof FormData) {
+        formData = file;
+      } else {
+        formData = new FormData();
+        formData.append('file', file);
+      }
+      
+      const updatedProfile = await uploadCoverPhoto(formData);
+      setProfile(updatedProfile);
+      setSuccess('Cover photo updated successfully!');
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to upload cover photo');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePicture = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      const updatedProfile = await removeProfilePicture();
+      setProfile(updatedProfile);
+      setSuccess('Profile picture removed successfully!');
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to remove profile picture');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshProfile = async () => {
+    try {
+      setLoading(true);
+      const freshData = await getUserProfile();
+      setProfile(freshData);
+      return true;
+    } catch (err) {
+      console.error('Failed to refresh profile:', err);
       return false;
     } finally {
       setLoading(false);
@@ -76,8 +152,13 @@ const useProfile = () => {
     error,
     success,
     fetchProfile,
+    refreshProfile,
     updateProfile,
-    updatePicture
+    updatePicture,
+    updateCoverPhoto,
+    deletePicture,
+    setError,
+    setSuccess
   };
 };
 

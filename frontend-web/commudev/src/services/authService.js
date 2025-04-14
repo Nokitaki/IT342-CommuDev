@@ -195,31 +195,110 @@ export const updateUserProfile = async (profileData) => {
 
 /**
  * Upload profile picture
- * @param {File} file Profile picture file
+ * @param {File|FormData} file Profile picture file or FormData with file
  * @returns {Promise} Promise with updated user profile
  */
 export const uploadProfilePicture = async (file) => {
   try {
     const token = localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('file', file);
+    let formData;
+    
+    // Handle both FormData objects and File objects
+    if (file instanceof FormData) {
+      formData = file;
+    } else {
+      formData = new FormData();
+      formData.append('file', file);
+    }
     
     const response = await fetch(`${USERS_URL}/me/picture`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
+        // Do NOT set Content-Type here, browser will set it with correct boundary
       },
       credentials: 'include',
       body: formData
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server response:', response.status, errorText);
       throw new Error('Failed to upload profile picture');
     }
     
     return await response.json();
   } catch (error) {
     console.error('Error uploading profile picture:', error);
+    throw error;
+  }
+};
+
+/**
+ * Upload cover photo
+ * @param {File|FormData} file Cover photo file or FormData with file
+ * @returns {Promise} Promise with updated user profile
+ */
+export const uploadCoverPhoto = async (file) => {
+  try {
+    const token = localStorage.getItem('token');
+    let formData;
+    
+    // Handle both FormData objects and File objects
+    if (file instanceof FormData) {
+      formData = file;
+    } else {
+      formData = new FormData();
+      formData.append('file', file);
+    }
+    
+    const response = await fetch(`${USERS_URL}/me/cover`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+        // Do NOT set Content-Type here, browser will set it with correct boundary
+      },
+      credentials: 'include',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server response:', response.status, errorText);
+      throw new Error('Failed to upload cover photo');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error uploading cover photo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Remove profile picture
+ * @returns {Promise} Promise with updated user profile
+ */
+export const removeProfilePicture = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${USERS_URL}/me/picture`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to remove profile picture');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing profile picture:', error);
     throw error;
   }
 };

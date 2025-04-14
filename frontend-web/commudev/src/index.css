@@ -4,7 +4,7 @@
 @import './styles/global.css';
 
 /* Import layout styles */
-@import './styles/layouts/mainLayout.css';
+
 @import './styles/layouts/authLayout.css';
 
 /* Import component styles */
