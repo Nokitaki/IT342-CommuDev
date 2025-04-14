@@ -309,6 +309,39 @@ public class UserService implements UserDetailsService {
         String fileUrl = "/profile-pictures/" + newFilename;
         currentUser.setProfilePicture(fileUrl);
         
+
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        System.out.println("File saved to: " + filePath.toAbsolutePath());
         return userRepository.save(currentUser);
     }
+
+
+
+
+    @Transactional
+public User updateCoverPhoto(MultipartFile file) throws IOException {
+    User currentUser = getCurrentUser();
+    
+    // Create directory for user uploads if it doesn't exist
+    String uploadDir = "uploads/cover-photos/";
+    Path uploadPath = Paths.get(uploadDir);
+    if (!Files.exists(uploadPath)) {
+        Files.createDirectories(uploadPath);
+    }
+    
+    // Generate a unique filename
+    String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+    String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+    String newFilename = currentUser.getId() + "_cover_" + System.currentTimeMillis() + fileExtension;
+    
+    // Save the file
+    Path filePath = uploadPath.resolve(newFilename);
+    Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+    
+    // Update user cover photo path
+    String fileUrl = "/cover-photos/" + newFilename;
+    currentUser.setCoverPhoto(fileUrl);
+    
+    return userRepository.save(currentUser);
+}
 }

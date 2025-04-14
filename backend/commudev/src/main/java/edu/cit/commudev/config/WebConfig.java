@@ -17,7 +17,15 @@ public class WebConfig implements WebMvcConfigurer {
         // Register resource handler for profile pictures
         registry.addResourceHandler("/profile-pictures/**")
                 .addResourceLocations("file:uploads/profile-pictures/");
+                
+        // Add this line for cover photos
+        registry.addResourceHandler("/cover-photos/**")
+                .addResourceLocations("file:uploads/cover-photos/");
+
     }
+
+
+    
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -39,5 +47,6 @@ public class WebConfig implements WebMvcConfigurer {
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
+
     }
 }

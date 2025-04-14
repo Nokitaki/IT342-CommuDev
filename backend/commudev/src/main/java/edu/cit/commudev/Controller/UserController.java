@@ -30,6 +30,7 @@ public class UserController {
     public ResponseEntity<UserDto> getCurrentUserProfile() {
         User currentUser = userService.getCurrentUser();
         return ResponseEntity.ok(convertToDetailedDto(currentUser));
+        
     }
 
     // Update current user's profile
@@ -106,6 +107,10 @@ public class UserController {
         dto.setEmploymentStatus(user.getEmploymentStatus() != null ? 
                 user.getEmploymentStatus().name() : null);
         dto.setProfilePicture(user.getProfilePicture());
+        
+        // Add this line to include cover photo
+        dto.setCoverPhoto(user.getCoverPhoto());
+        
         dto.setBiography(user.getBiography());
         dto.setEnabled(user.isEnabled());
         dto.setCreatedAt(user.getCreatedAt());
@@ -127,10 +132,30 @@ public class UserController {
         dto.setFirstname(user.getFirstname());
         dto.setLastname(user.getLastname());
         dto.setProfilePicture(user.getProfilePicture());
+        
+        // Add this line to include cover photo
+        dto.setCoverPhoto(user.getCoverPhoto());
+        
         dto.setBiography(user.getBiography());
         dto.setCountry(user.getCountry() != null ? user.getCountry().getDisplayName() : null);
         dto.setProfileVisibility(user.getProfileVisibility() != null ? 
                 user.getProfileVisibility().name() : "PUBLIC");
         return dto;
     }
+
+
+    @PostMapping("/me/cover")
+public ResponseEntity<?> uploadCoverPhoto(@RequestParam("file") MultipartFile file) {
+    try {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Please select a file to upload");
+        }
+        
+        User updatedUser = userService.updateCoverPhoto(file);
+        return ResponseEntity.ok(convertToDetailedDto(updatedUser));
+    } catch (IOException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to upload file: " + e.getMessage());
+    }
+}
 }

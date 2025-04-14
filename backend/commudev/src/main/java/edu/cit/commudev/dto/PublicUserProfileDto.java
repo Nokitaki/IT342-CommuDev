@@ -15,5 +15,7 @@ public class PublicUserProfileDto {
     private String biography;
     private String country;
     private String profileVisibility;
+    private String coverPhoto;
+    
     // You can add more fields that should be publicly visible
 }
