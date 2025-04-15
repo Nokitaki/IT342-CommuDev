@@ -1,5 +1,6 @@
 // src/components/profile/ProfileEditor.jsx
 import React, { useState, useEffect } from 'react';
+import Button from '../common/Button';
 import '../../styles/components/profileEditor.css';
 
 const ProfileEditor = ({ profile, onSave, onCancel }) => {
@@ -32,10 +33,10 @@ const ProfileEditor = ({ profile, onSave, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value
-    });
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -52,7 +53,22 @@ const ProfileEditor = ({ profile, onSave, onCancel }) => {
     { value: 'PK', label: 'Pakistan' },
     { value: 'BR', label: 'Brazil' },
     { value: 'NG', label: 'Nigeria' },
-    // Add more countries as needed
+    { value: 'BD', label: 'Bangladesh' },
+    { value: 'RU', label: 'Russia' },
+    { value: 'MX', label: 'Mexico' },
+    { value: 'JP', label: 'Japan' },
+    { value: 'PH', label: 'Philippines' },
+    { value: 'EG', label: 'Egypt' },
+    { value: 'VN', label: 'Vietnam' },
+    { value: 'TR', label: 'Turkey' },
+    { value: 'IR', label: 'Iran' },
+    { value: 'DE', label: 'Germany' },
+    { value: 'TH', label: 'Thailand' },
+    { value: 'GB', label: 'United Kingdom' },
+    { value: 'FR', label: 'France' },
+    { value: 'IT', label: 'Italy' },
+    { value: 'ZA', label: 'South Africa' },
+    { value: 'OTHER', label: 'Other' }
   ];
 
   // Employment status options - matches your EmploymentStatus enum
@@ -193,8 +209,12 @@ const ProfileEditor = ({ profile, onSave, onCancel }) => {
         </div>
         
         <div className="form-actions">
-          <button type="submit" className="btn-save">Save Changes</button>
-          <button type="button" className="btn-cancel" onClick={onCancel}>Cancel</button>
+          <Button type="submit" variant="primary" className="btn-save">
+            Save Changes
+          </Button>
+          <Button type="button" variant="secondary" className="btn-cancel" onClick={onCancel}>
+            Cancel
+          </Button>
         </div>
       </form>
     </div>

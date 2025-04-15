@@ -809,3 +809,502 @@
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Add this to your src/styles/pages/profile.css file */
+
+.profile-box {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.profile-box:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.profile-box-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f2f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-box-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.profile-box-content {
+  padding: 15px 20px;
+}
+
+.profile-info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.profile-info-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.profile-info-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+  border-radius: 50%;
+  margin-right: 15px;
+  color: #65676B;
+  flex-shrink: 0;
+}
+
+.profile-info-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.profile-info-details {
+  flex: 1;
+}
+
+.profile-info-primary {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: #1c1e21;
+  line-height: 1.3;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #65676B;
+  margin-right: 6px;
+}
+
+.bio-text {
+  line-height: 1.5;
+  color: #1c1e21;
+}
+
+.profile-social-links-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.social-media-links {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  padding: 10px 0;
+  align-items: center;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #f0f2f5;
+  border-radius: 50%;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  background-color: #e4e6eb;
+}
+
+.social-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Additional CSS for emojis and colorful design - add to your profile.css file */
+
+.profile-box {
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #ebedf0;
+}
+
+.profile-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.profile-box-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #f0f2f5;
+  background: linear-gradient(135deg, #f8f9fa, #f0f2f5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-box-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-box-content {
+  padding: 20px 24px;
+}
+
+.profile-info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f2f5;
+  transition: transform 0.2s ease;
+}
+
+.profile-info-item:hover {
+  transform: translateX(5px);
+}
+
+.profile-info-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.profile-info-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f8ff;
+  border-radius: 12px;
+  margin-right: 16px;
+  color: #65676B;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.profile-info-details {
+  flex: 1;
+}
+
+.profile-info-primary {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #1c1e21;
+  line-height: 1.5;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #4267B2;
+  margin-right: 6px;
+}
+
+.bio-text {
+  line-height: 1.6;
+  color: #1c1e21;
+  font-style: italic;
+  padding-left: 8px;
+  border-left: 3px solid #e6f2ff;
+}
+
+.profile-social-links-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 16px;
+  background-color: #f9fafb;
+  margin: 8px -24px -20px;
+  padding: 20px;
+  border-top: 1px solid #ebedf0;
+  border-radius: 0 0 16px 16px;
+}
+
+.social-media-header {
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.social-media-links {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 10px 0;
+  align-items: center;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.social-icon.facebook {
+  background-color: #e7f3ff;
+}
+
+.social-icon.instagram {
+  background: linear-gradient(45deg, #f9ed32, #ee2a7b, #002aff);
+  background-size: 200% 200%;
+  animation: gradient 5s ease infinite, bounce 8s infinite; /* Apply both animations */
+  animation-delay: 0.5s; /* Set delay directly instead of using CSS variables */
+  position: relative; /* Ensure the position is set for the animation to work */
+}
+
+.social-icon.linkedin {
+  background-color: #e6f7ff;
+}
+
+.social-icon:hover {
+  transform: scale(1.15) rotate(5deg);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.social-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Add these styles for the GitHub icon */
+
+.social-icon.github {
+  background-color: #f6f8fa;
+}
+
+/* Add these animations to make the icons more lively */
+.social-icon {
+  animation: bounce 8s infinite;
+  animation-delay: calc(var(--i, 0) * 0.5s);
+}
+
+.social-icon.facebook {
+  --i: 0;
+}
+
+.social-icon.instagram {
+  --i: 1;
+}
+
+.social-icon.linkedin {
+  --i: 2;
+}
+
+.social-icon.github {
+  --i: 3;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Add this hover effect for the info items */
+.profile-info-item:hover .info-emoji {
+  animation: tada 1s ease;
+}
+
+@keyframes tada {
+  0% {
+    transform: scale(1);
+  }
+  10%, 20% {
+    transform: scale(0.9) rotate(-3deg);
+  }
+  30%, 50%, 70%, 90% {
+    transform: scale(1.1) rotate(3deg);
+  }
+  40%, 60%, 80% {
+    transform: scale(1.1) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Add these styles to your profile.css file for the About section */
+
+.profile-about .profile-box {
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 1px solid #e8eaed;
+}
+
+.profile-about .profile-box-header {
+  background: linear-gradient(135deg, #e8f5fe, #d4e9fc);
+  padding: 20px 24px;
+}
+
+.profile-about .profile-box-title {
+  color: #1a73e8;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.profile-about .profile-info-item {
+  padding: 16px 0;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.profile-about .profile-info-item:last-child {
+  border-bottom: none;
+}
+
+.profile-about .profile-info-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background-color: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.07);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.profile-about .profile-info-item:hover .profile-info-icon {
+  transform: scale(1.1) rotate(5deg);
+  background-color: #e8f0fe;
+}
+
+.profile-about .info-emoji {
+  font-size: 28px;
+}
+
+.profile-about .profile-info-details {
+  flex: 1;
+}
+
+.profile-about .profile-info-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5f6368;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.profile-about .profile-info-primary {
+  font-size: 1.05rem;
+  color: #202124;
+  line-height: 1.5;
+}
+
+.profile-about .bio-text {
+  font-style: italic;
+  background-color: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.profile-about .bio-text::before {
+  content: '"';
+  font-size: 2.5rem;
+  position: absolute;
+  top: -10px;
+  left: 5px;
+  color: #dadce0;
+  font-family: Georgia, serif;
+}
+
+.profile-about .bio-text::after {
+  content: '"';
+  font-size: 2.5rem;
+  position: absolute;
+  bottom: -30px;
+  right: 5px;
+  color: #dadce0;
+  font-family: Georgia, serif;
+}
+
+.profile-social-links-item {
+  padding: 16px 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.about-social {
+  padding: 12px 0;
+  background: none;
+  margin: 0;
+  border-top: none;
+}
+
+.about-social .social-media-links {
+  justify-content: flex-start;
+  padding: 8px 0;
+}
+
+/* Add card background for each social icon in about section */
+.about-social .social-icon {
+  margin-right: 12px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.about-social .social-icon:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+}
