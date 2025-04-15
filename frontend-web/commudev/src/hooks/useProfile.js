@@ -37,7 +37,14 @@ const useProfile = () => {
       setError(null);
       setSuccess(null);
       
-      const updatedProfile = await updateUserProfile(profileData);
+      // Clean empty values to prevent overwrites with empty strings
+      const cleanProfileData = Object.fromEntries(
+        Object.entries(profileData).filter(([_, value]) => 
+          value !== '' && value !== null && value !== undefined
+        )
+      );
+      
+      const updatedProfile = await updateUserProfile(cleanProfileData);
       setProfile(updatedProfile);
       setSuccess('Profile updated successfully!');
       return true;

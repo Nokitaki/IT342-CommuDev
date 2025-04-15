@@ -171,21 +171,24 @@ export const getUserProfile = async () => {
 export const updateUserProfile = async (profileData) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${USERS_URL}/me`, {
+    if (!token) {
+      throw new Error('You must be logged in to update your profile');
+    }
+
+    const response = await fetch('http://localhost:8080/users/me', {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Authorization': `Bearer ${token}`
       },
-      credentials: 'include',
       body: JSON.stringify(profileData)
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to update profile');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update profile');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error updating profile:', error);

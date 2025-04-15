@@ -146,9 +146,21 @@ const ProfilePage = () => {
 
   // Handle profile update from editor
   const handleProfileUpdate = async (formData) => {
-    const success = await updateProfile(formData);
-    if (success) {
-      setIsEditing(false);
+    // Ensure the numeric values are properly parsed
+    const updatedFormData = {
+      ...formData,
+      age: formData.age ? parseInt(formData.age, 10) : undefined
+    };
+  
+    try {
+      const success = await updateProfile(updatedFormData);
+      if (success) {
+        setIsEditing(false);
+        // Refresh profile data
+        await fetchProfile();
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
     }
   };
 
@@ -164,7 +176,7 @@ const ProfilePage = () => {
       
       {/* Instagram icon */}
       <a href="#" className="social-icon instagram" title="Instagram">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#E4405F">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
           <path d="M12 2C14.717 2 15.056 2.01 16.122 2.06C17.187 2.11 17.912 2.277 18.55 2.525C19.21 2.779 19.766 3.123 20.322 3.678C20.8305 4.1779 21.224 4.78259 21.475 5.45C21.722 6.087 21.89 6.813 21.94 7.878C21.987 8.944 22 9.283 22 12C22 14.717 21.99 15.056 21.94 16.122C21.89 17.187 21.722 17.912 21.475 18.55C21.2247 19.2178 20.8311 19.8226 20.322 20.322C19.822 20.8303 19.2173 21.2238 18.55 21.475C17.913 21.722 17.187 21.89 16.122 21.94C15.056 21.987 14.717 22 12 22C9.283 22 8.944 21.99 7.878 21.94C6.813 21.89 6.088 21.722 5.45 21.475C4.78233 21.2245 4.17753 20.8309 3.678 20.322C3.16941 19.8222 2.77593 19.2175 2.525 18.55C2.277 17.913 2.11 17.187 2.06 16.122C2.013 15.056 2 14.717 2 12C2 9.283 2.01 8.944 2.06 7.878C2.11 6.812 2.277 6.088 2.525 5.45C2.77524 4.78218 3.1688 4.17732 3.678 3.678C4.17767 3.16923 4.78243 2.77573 5.45 2.525C6.088 2.277 6.812 2.11 7.878 2.06C8.944 2.013 9.283 2 12 2ZM12 7C10.6739 7 9.40215 7.52678 8.46447 8.46447C7.52678 9.40215 7 10.6739 7 12C7 13.3261 7.52678 14.5979 8.46447 15.5355C9.40215 16.4732 10.6739 17 12 17C13.3261 17 14.5979 16.4732 15.5355 15.5355C16.4732 14.5979 17 13.3261 17 12C17 10.6739 16.4732 9.40215 15.5355 8.46447C14.5979 7.52678 13.3261 7 12 7ZM18.5 6.75C18.5 6.41848 18.3683 6.10054 18.1339 5.86612C17.8995 5.6317 17.5815 5.5 17.25 5.5C16.9185 5.5 16.6005 5.6317 16.3661 5.86612C16.1317 6.10054 16 6.41848 16 6.75C16 7.08152 16.1317 7.39946 16.3661 7.63388C16.6005 7.8683 16.9185 8 17.25 8C17.5815 8 17.8995 7.8683 18.1339 7.63388C18.3683 7.39946 18.5 7.08152 18.5 6.75ZM12 9C12.7956 9 13.5587 9.31607 14.1213 9.87868C14.6839 10.4413 15 11.2044 15 12C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 15 12 15C11.2044 15 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 12C9 11.2044 9.31607 10.4413 9.87868 9.87868C10.4413 9.31607 11.2044 9 12 9Z"/>
         </svg>
       </a>
@@ -175,9 +187,16 @@ const ProfilePage = () => {
           <path d="M20.447 20.452H16.893V14.883C16.893 13.555 16.866 11.846 15.041 11.846C13.188 11.846 12.905 13.291 12.905 14.785V20.452H9.351V9H12.765V10.561H12.811C13.288 9.661 14.448 8.711 16.181 8.711C19.782 8.711 20.448 11.081 20.448 14.166V20.452H20.447ZM5.337 7.433C4.193 7.433 3.274 6.507 3.274 5.368C3.274 4.23 4.194 3.305 5.337 3.305C6.477 3.305 7.401 4.23 7.401 5.368C7.401 6.507 6.476 7.433 5.337 7.433ZM7.119 20.452H3.555V9H7.119V20.452Z"/>
         </svg>
       </a>
+      
+      {/* Added GitHub icon */}
+      <a href="#" className="social-icon github" title="GitHub">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#24292e">
+          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/>
+        </svg>
+      </a>
     </div>
   );
-
+  
   // Get content based on active tab
   const renderTabContent = () => {
     switch(activeTab) {
@@ -262,128 +281,179 @@ const ProfilePage = () => {
           </>
         );
       
-      case 'about':
-        return (
-          <div className="profile-about">
-            <div className="profile-box">
-              <div className="profile-box-header">
-                <h2 className="profile-box-title">About</h2>
-              </div>
-              <div className="profile-box-content">
-                {/* Biography */}
-                {profile?.biography && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z" />
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary bio-text">
-                        {profile.biography}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Date of Birth */}
-                {profile?.dateOfBirth && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        <span className="info-label">Date of Birth:</span> {profile.dateOfBirth}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Age */}
-                {profile?.age !== undefined && profile?.age > 0 && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13 9h-2v2h2V9zm4 0h-2v2h2V9zm3 6.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.58l2.2-2.21c.28-.27.36-.66.25-1.01C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 9v2h2V9h-2z"/>
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        <span className="info-label">Age:</span> {profile.age} years
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Employment info from actual profile data */}
-                {profile?.employmentStatus && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        <span className="info-label">Employment:</span> {profile.employmentStatus.replace(/_/g, ' ')}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Location from actual profile data */}
-                {profile?.country && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary">
-                        <span className="info-label">Location:</span> {profile.country}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Joined date from actual profile data */}
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                    </svg>
-                  </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      <span className="info-label">Joined:</span> {profile?.createdAt ? 
-                        new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 
-                        'Recently joined'}
-                    </div>
-                  </div>
+        case 'about':
+          return (
+            <div className="profile-about">
+              <div className="profile-box">
+                <div className="profile-box-header">
+                  <h2 className="profile-box-title">✨ About Me</h2>
                 </div>
-                
-                {/* Social Media Links */}
-                <div className="profile-info-item">
-                  <div className="profile-info-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
-                    </svg>
+                <div className="profile-box-content">
+                  {/* Biography */}
+                  {profile?.biography && (
+                    <div className="profile-info-item">
+                      <div className="profile-info-icon">
+                        <span className="info-emoji">📖</span>
+                      </div>
+                      <div className="profile-info-details">
+                        <div className="profile-info-label">Bio</div>
+                        <div className="profile-info-primary bio-text">
+                          {profile.biography}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Date of Birth */}
+                  {profile?.dateOfBirth && (
+                    <div className="profile-info-item">
+                      <div className="profile-info-icon">
+                        <span className="info-emoji">🎂</span>
+                      </div>
+                      <div className="profile-info-details">
+                        <div className="profile-info-label">Birthday</div>
+                        <div className="profile-info-primary">
+                          {new Date(profile.dateOfBirth).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Age */}
+                  {profile?.age !== undefined && profile?.age > 0 && (
+                    <div className="profile-info-item">
+                      <div className="profile-info-icon">
+                        <span className="info-emoji">🔢</span>
+                      </div>
+                      <div className="profile-info-details">
+                        <div className="profile-info-label">Age</div>
+                        <div className="profile-info-primary">
+                          {profile.age} years old
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Employment info from actual profile data */}
+                  {profile?.employmentStatus && (
+                    <div className="profile-info-item">
+                      <div className="profile-info-icon">
+                        <span className="info-emoji">
+                          {profile.employmentStatus === 'STUDENT' ? '🎓' :
+                           profile.employmentStatus === 'EMPLOYED_FULL_TIME' ? '💼' :
+                           profile.employmentStatus === 'EMPLOYED_PART_TIME' ? '⏱️' :
+                           profile.employmentStatus === 'SELF_EMPLOYED' ? '🚀' :
+                           profile.employmentStatus === 'UNEMPLOYED' ? '🔍' :
+                           profile.employmentStatus === 'RETIRED' ? '🏖️' :
+                           profile.employmentStatus === 'HOMEMAKER' ? '🏠' :
+                           profile.employmentStatus === 'UNABLE_TO_WORK' ? '🙏' :
+                           '👔'}
+                        </span>
+                      </div>
+                      <div className="profile-info-details">
+                        <div className="profile-info-label">Employment</div>
+                        <div className="profile-info-primary">
+                          {profile.employmentStatus === 'EMPLOYED_FULL_TIME' ? 'Employed Full-Time' :
+                           profile.employmentStatus === 'EMPLOYED_PART_TIME' ? 'Employed Part-Time' :
+                           profile.employmentStatus === 'SELF_EMPLOYED' ? 'Self-Employed' :
+                           profile.employmentStatus === 'UNEMPLOYED' ? 'Seeking Opportunities' :
+                           profile.employmentStatus === 'STUDENT' ? 'Student' :
+                           profile.employmentStatus === 'RETIRED' ? 'Retired' :
+                           profile.employmentStatus === 'HOMEMAKER' ? 'Homemaker' :
+                           profile.employmentStatus === 'UNABLE_TO_WORK' ? 'Unable to Work' :
+                           profile.employmentStatus === 'PREFER_NOT_TO_SAY' ? 'Prefer Not to Say' :
+                           profile.employmentStatus.replace(/_/g, ' ')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Location from actual profile data */}
+                  {profile?.country && (
+                    <div className="profile-info-item">
+                      <div className="profile-info-icon">
+                        <span className="info-emoji">
+                          {profile.country === 'US' ? '🇺🇸' :
+                           profile.country === 'CA' ? '🇨🇦' :
+                           profile.country === 'UK' ? '🇬🇧' :
+                           profile.country === 'AU' ? '🇦🇺' :
+                           profile.country === 'PH' ? '🇵🇭' :
+                           profile.country === 'IN' ? '🇮🇳' :
+                           profile.country === 'JP' ? '🇯🇵' :
+                           profile.country === 'CN' ? '🇨🇳' :
+                           profile.country === 'BR' ? '🇧🇷' :
+                           profile.country === 'DE' ? '🇩🇪' :
+                           profile.country === 'FR' ? '🇫🇷' :
+                           profile.country === 'IT' ? '🇮🇹' :
+                           profile.country === 'ES' ? '🇪🇸' :
+                           profile.country === 'RU' ? '🇷🇺' :
+                           profile.country === 'MX' ? '🇲🇽' :
+                           '🌎'}
+                        </span>
+                      </div>
+                      <div className="profile-info-details">
+                        <div className="profile-info-label">Country</div>
+                        <div className="profile-info-primary">
+                          {profile.country === 'US' ? 'United States' :
+                           profile.country === 'CA' ? 'Canada' :
+                           profile.country === 'UK' ? 'United Kingdom' :
+                           profile.country === 'AU' ? 'Australia' :
+                           profile.country === 'PH' ? 'Philippines' :
+                           profile.country === 'IN' ? 'India' :
+                           profile.country === 'JP' ? 'Japan' :
+                           profile.country === 'CN' ? 'China' :
+                           profile.country === 'BR' ? 'Brazil' :
+                           profile.country === 'DE' ? 'Germany' :
+                           profile.country === 'FR' ? 'France' :
+                           profile.country === 'IT' ? 'Italy' :
+                           profile.country === 'ES' ? 'Spain' :
+                           profile.country === 'RU' ? 'Russia' :
+                           profile.country === 'MX' ? 'Mexico' :
+                           profile.country}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Joined date from actual profile data */}
+                  <div className="profile-info-item">
+                    <div className="profile-info-icon">
+                      <span className="info-emoji">📅</span>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-label">Member Since</div>
+                      <div className="profile-info-primary">
+                        {profile?.createdAt ? 
+                          new Date(profile.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          }) : 
+                          'Recently joined'} 🎉
+                      </div>
+                    </div>
                   </div>
-                  <div className="profile-info-details">
-                    <div className="profile-info-primary">
-                      <span className="info-label">Social Media:</span>
-                      <SocialMediaLinks />
+                  
+                  {/* Social Media Links */}
+                  <div className="profile-social-links-item">
+                    <div className="profile-info-icon">
+                      <span className="info-emoji">🌐</span>
+                    </div>
+                    <div className="profile-info-details">
+                      <div className="profile-info-label">Social Media</div>
+                      <div className="profile-social-links-container about-social">
+                        <SocialMediaLinks />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        );
+          );
       
       case 'friends':
         return (
@@ -587,97 +657,103 @@ const ProfilePage = () => {
         <div className="profile-content">
           {/* Left column for info boxes */}
           <div className="profile-column-left">
-            <div className="profile-box">
-              <div className="profile-box-header">
-                <h2 className="profile-box-title">Intro</h2>
-              </div>
-              <div className="profile-box-content">
-                {/* Biography if available */}
-                {profile?.biography && (
-                  <div className="profile-info-item">
-                    <div className="profile-info-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z" />
-                      </svg>
-                    </div>
-                    <div className="profile-info-details">
-                      <div className="profile-info-primary bio-text">
-                      {profile.biography}
-                     </div>
-                   </div>
-                 </div>
-               )}
+          <div className="profile-box">
+  <div className="profile-box-header">
+    <h2 className="profile-box-title">✨ Information</h2>
+  </div>
+  <div className="profile-box-content">
+    {/* Biography if available */}
+    {profile?.biography && (
+      <div className="profile-info-item">
+        <div className="profile-info-icon">
+          <span className="info-emoji">📝</span>
+        </div>
+        <div className="profile-info-details">
+          <div className="profile-info-primary bio-text">
+            {profile.biography}
+          </div>
+        </div>
+      </div>
+    )}
                
                {/* Employment from real data */}
                {profile?.employmentStatus && (
-                 <div className="profile-info-item">
-                   <div className="profile-info-icon">
-                     <svg viewBox="0 0 24 24" fill="currentColor">
-                       <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z" />
-                     </svg>
-                   </div>
-                   <div className="profile-info-details">
-                     <div className="profile-info-primary">
-                       {profile.employmentStatus.replace(/_/g, ' ')}
-                     </div>
-                   </div>
-                 </div>
-               )}
+      <div className="profile-info-item">
+        <div className="profile-info-icon">
+          <span className="info-emoji">💼</span>
+        </div>
+        <div className="profile-info-details">
+          <div className="profile-info-primary">
+            <span className="info-label">Status:</span> 
+            {profile.employmentStatus === 'STUDENT' ? '🎓 Student' : 
+             profile.employmentStatus === 'EMPLOYED_FULL_TIME' ? '👔 Employed Full-Time' :
+             profile.employmentStatus === 'EMPLOYED_PART_TIME' ? '👔 Employed Part-Time' :
+             profile.employmentStatus === 'SELF_EMPLOYED' ? '🚀 Self-Employed' :
+             profile.employmentStatus === 'UNEMPLOYED' ? '🔍 Seeking Opportunities' :
+             profile.employmentStatus === 'RETIRED' ? '🏖️ Retired' :
+             profile.employmentStatus.replace(/_/g, ' ')}
+          </div>
+        </div>
+      </div>
+    )}
                
                {/* Location from real data */}
                {profile?.country && (
-                 <div className="profile-info-item">
-                   <div className="profile-info-icon">
-                     <svg viewBox="0 0 24 24" fill="currentColor">
-                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                     </svg>
-                   </div>
-                   <div className="profile-info-details">
-                     <div className="profile-info-primary">
-                       Lives in {profile.country}
-                     </div>
-                   </div>
-                 </div>
-               )}
+      <div className="profile-info-item">
+        <div className="profile-info-icon">
+          <span className="info-emoji">📍</span>
+        </div>
+        <div className="profile-info-details">
+          <div className="profile-info-primary">
+            <span className="info-label">Location:</span> Lives in 
+            {profile.country === 'US' ? ' 🇺🇸 United States' :
+             profile.country === 'PH' ? ' 🇵🇭 Philippines' :
+             profile.country === 'CA' ? ' 🇨🇦 Canada' :
+             profile.country === 'GB' ? ' 🇬🇧 United Kingdom' :
+             profile.country === 'AU' ? ' 🇦🇺 Australia' :
+             ` ${profile.country}`}
+          </div>
+        </div>
+      </div>
+    )}
                
                {/* Date of Birth */}
                {profile?.dateOfBirth && (
-                 <div className="profile-info-item">
-                   <div className="profile-info-icon">
-                     <svg viewBox="0 0 24 24" fill="currentColor">
-                       <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-                     </svg>
-                   </div>
-                   <div className="profile-info-details">
-                     <div className="profile-info-primary">
-                       Born on {profile.dateOfBirth}
-                     </div>
-                   </div>
-                 </div>
-               )}
+      <div className="profile-info-item">
+        <div className="profile-info-icon">
+          <span className="info-emoji">🎂</span>
+        </div>
+        <div className="profile-info-details">
+          <div className="profile-info-primary">
+            <span className="info-label">Birthday:</span> Born on {profile.dateOfBirth}
+          </div>
+        </div>
+      </div>
+    )}
                
                {/* Join date from real data */}
                <div className="profile-info-item">
-                 <div className="profile-info-icon">
-                   <svg viewBox="0 0 24 24" fill="currentColor">
-                     <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                   </svg>
-                 </div>
-                 <div className="profile-info-details">
-                   <div className="profile-info-primary">
-                     {profile?.createdAt ? 
-                       `Joined ${new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : 
-                       'Recently joined'}
-                   </div>
-                 </div>
-               </div>
-               
-               {/* Social Media Icons */}
-               <div className="profile-social-links-container">
-                 <SocialMediaLinks />
-               </div>
-             </div>
-           </div>
+      <div className="profile-info-icon">
+        <span className="info-emoji">🏆</span>
+      </div>
+      <div className="profile-info-details">
+        <div className="profile-info-primary">
+          <span className="info-label">Member Since:</span> {profile?.createdAt ? 
+            `Joined ${new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : 
+            'Recently joined'} 🎉
+        </div>
+      </div>
+    </div>
+    
+    {/* Social Media Icons */}
+    <div className="profile-social-links-container">
+      <div className="social-media-header">
+        <span className="info-emoji">🌐</span> Connect with me
+      </div>
+      <SocialMediaLinks />
+    </div>
+  </div>
+</div>
            
            <div className="profile-box">
              <div className="profile-box-header">
