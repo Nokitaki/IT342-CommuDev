@@ -45,9 +45,19 @@ public class NewsfeedController {
 
     // Get all posts (could be admin-only or paginated in production)
     @GetMapping("/all")
-    public ResponseEntity<List<NewsfeedEntity>> getAllNewsfeeds() {
-        List<NewsfeedEntity> newsfeeds = newsfeedService.getAllNewsfeeds();
-        return new ResponseEntity<>(newsfeeds, HttpStatus.OK);
+    public ResponseEntity<?> getAllNewsfeeds() {
+        try {
+            List<NewsfeedEntity> newsfeeds = newsfeedService.getAllNewsfeeds();
+            return new ResponseEntity<>(newsfeeds, HttpStatus.OK);
+        } catch (Exception e) {
+            // Log the exception
+            e.printStackTrace();
+            
+            // Return a more informative error response
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve posts: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // Get current user's posts (requires authentication)

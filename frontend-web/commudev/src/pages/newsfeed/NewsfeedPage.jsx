@@ -8,19 +8,22 @@ import UserCarousel from '../../components/newsfeed/UserCarousel';
 import Calendar from '../../components/common/Calendar';
 import NotificationItem from '../../components/newsfeed/NotificationItem';
 import useNewsfeed from '../../hooks/useNewsfeed';
-import useAuth from '../../hooks/useAuth';
+import useProfile from '../../hooks/useProfile';
 import '../../styles/pages/newsfeed.css';
 
 const NewsfeedPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const { userData, profilePicture } = useAuth();
+  
+  // Use profile hook to get user data
+  const { profile, loading: profileLoading } = useProfile();
   
   const {
     posts,
     loading,
     error,
     loadPosts,
+    loadMyPosts,
     handleCreatePost,
     handleUpdatePost,
     handleDeletePost,
@@ -56,7 +59,23 @@ const NewsfeedPage = () => {
     try {
       // If editing, update the post
       if (editingPost) {
-        await handleUpdatePost(editingPost.newsfeed_id, formData);
+        // Get the correct ID
+        const postId = editingPost.newsfeedId || editingPost.newsfeed_id;
+        console.log("Updating post with ID:", postId);
+        console.log("Post data:", formData);
+        
+        // Make sure to pass the original post object with the ID
+        const updatedData = {
+          ...editingPost, // Keep all original properties including ID
+          post_description: formData.post_description,
+          postDescription: formData.post_description, // Add both formats
+          post_type: formData.post_type,
+          postType: formData.post_type, // Add both formats
+          post_status: formData.post_status || 'active',
+          postStatus: formData.post_status || 'active', // Add both formats
+        };
+        
+        await handleUpdatePost(postId, updatedData);
       } else {
         // Otherwise create a new post
         await handleCreatePost(formData);
@@ -71,18 +90,47 @@ const NewsfeedPage = () => {
   };
 
   const onDeletePost = async (postId) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      await handleDeletePost(postId);
-    }
+    await handleDeletePost(postId);
   };
 
   const onEditPost = (post) => {
-    setEditingPost(post);
+    // Log the post to see its structure
+    console.log("Editing post:", post);
+    
+    // Make a copy of the post object
+    const postForEditing = { ...post };
+    
+    // Ensure the post has the expected properties for the form
+    if (postForEditing.postDescription && !postForEditing.post_description) {
+      postForEditing.post_description = postForEditing.postDescription;
+    }
+    
+    if (postForEditing.postType && !postForEditing.post_type) {
+      postForEditing.post_type = postForEditing.postType;
+    }
+    
+    if (postForEditing.postStatus && !postForEditing.post_status) {
+      postForEditing.post_status = postForEditing.postStatus;
+    }
+    
+    setEditingPost(postForEditing);
     setIsModalOpen(true);
   };
 
-  const onLikePost = async (post) => {
-    await handleLikePost(post.newsfeed_id);
+  const onLikePost = async (postId) => {
+    await handleLikePost(postId);
+  };
+
+  // Get user's full name
+  const getUserName = () => {
+    if (profile?.firstname && profile?.lastname) {
+      return `${profile.firstname} ${profile.lastname}`;
+    } else if (profile?.firstname) {
+      return profile.firstname;
+    } else if (profile?.username) {
+      return profile.username;
+    }
+    return '';
   };
 
   // Right sidebar content
@@ -126,16 +174,22 @@ const NewsfeedPage = () => {
             <div className="error-message">{error}</div>
           ) : (
             <div className="newsfeed-items">
+              {/* Remove this debug line in production */}
+              {/*<div style={{padding: '10px', background: '#f5f5f5', margin: '10px 0', borderRadius: '5px'}}>
+                <p>Debug info: Found {posts.length} posts</p>
+                {posts.length === 0 && <p>No posts to show. Try creating a new post.</p>}
+              </div>*/}
+              
               {posts.length > 0 ? (
                 posts.map(post => (
                   <NewsfeedItem 
-                    key={post.newsfeed_id}
+                    key={post.newsfeedId || post.newsfeed_id}
                     post={post}
-                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeed_id, updatedPost)}
-                    onDelete={() => onDeletePost(post.newsfeed_id)}
-                    onLike={() => onLikePost(post)}
-                    onEdit={() => onEditPost(post)}
-                    isCurrentUser={userData?.id === post.user?.id}
+                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeedId || post.newsfeed_id, updatedPost)}
+                    onDelete={onDeletePost}
+                    onLike={onLikePost}
+                    onEdit={onEditPost}
+                    isCurrentUser={profile?.id === post.user?.id}
                   />
                 ))
               ) : (
@@ -153,7 +207,7 @@ const NewsfeedPage = () => {
           }}
           onSubmit={handleSubmitPost}
           editPost={editingPost}
-          userName={userData ? `${userData.firstname || ''} ${userData.lastname || ''}`.trim() : ''}
+          userName={getUserName()}
         />
       </div>
     </MainLayout>

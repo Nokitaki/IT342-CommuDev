@@ -21,6 +21,10 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   };
 
   const handleSave = () => {
+    // Log the post object for debugging
+    console.log('Saving edited post:', editedPost);
+    
+    // Check for post_description (snake_case) which is what our DB uses
     if (editedPost.post_description && editedPost.post_description.trim()) {
       onUpdate(editedPost);
       setIsEditing(false);
@@ -28,9 +32,32 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   };
 
   const handleLike = () => {
-    onLike(post);
+    // Get the correct post ID
+    const postId = post.newsfeed_id || post.newsfeedId;
+    console.log('Liking post with ID:', postId);
+    
+    onLike(postId);
     setIsLiked(true);
     setTimeout(() => setIsLiked(false), 1000);
+  };
+
+  const handleEdit = () => {
+    // Get the correct post ID and log it
+    const postId = post.newsfeed_id || post.newsfeedId;
+    console.log('Editing post with ID:', postId);
+    console.log('Post object:', post);
+    
+    onEdit(post);
+  };
+
+  const handleDelete = () => {
+    // Get the correct post ID and log it
+    const postId = post.newsfeed_id || post.newsfeedId;
+    console.log('Deleting post with ID:', postId);
+    
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      onDelete(postId);
+    }
   };
 
   // Get the username from the user object if available
@@ -51,6 +78,32 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
     return post.creator_profile_picture || '/src/assets/images/profile/default-avatar.png';
   };
 
+  // Format post date with proper fallback
+  const getFormattedDate = () => {
+    // Use either property name
+    const postDate = post.post_date || post.postDate;
+    
+    if (!postDate) {
+      return 'Just now'; // Default to "Just now" if no date is provided
+    }
+    return formatTimeAgo(postDate);
+  };
+
+  // Get post description (check both naming styles)
+  const getPostDescription = () => {
+    return post.post_description || post.postDescription || '';
+  };
+
+  // Get post type (check both naming styles)
+  const getPostType = () => {
+    return post.post_type || post.postType || 'General';
+  };
+
+  // Get post status (check both naming styles)
+  const getPostStatus = () => {
+    return post.post_status || post.postStatus || 'active';
+  };
+
   // Check if the current user can edit this post
   const canEdit = isCurrentUser;
 
@@ -66,18 +119,18 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
           <div className="user-meta">
             <h3 className="username">{getUsername()}</h3>
             <span className="post-meta">•</span>
-            <span className="post-meta">{formatTimeAgo(post.post_date)}</span>
+            <span className="post-meta">{getFormattedDate()}</span>
           </div>
           <div className="status-badges">
-            {post.post_status && (
-              <span className={`status-badge ${post.post_status.toLowerCase() === 'active' ? 'status-badge-active' : 'status-badge-inactive'}`}>
-                {post.post_status}
+            {getPostStatus() && (
+              <span className={`status-badge ${getPostStatus().toLowerCase() === 'active' ? 'status-badge-active' : 'status-badge-inactive'}`}>
+                {getPostStatus()}
               </span>
             )}
             
-            {post.post_type && (
-              <span className={`post-type-value post-type-${post.post_type.toLowerCase()}`}>
-                {post.post_type}
+            {getPostType() && (
+              <span className={`post-type-value post-type-${getPostType().toLowerCase()}`}>
+                {getPostType()}
               </span>
             )}
           </div>
@@ -90,7 +143,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
             <textarea
               className="edit-textarea"
               name="post_description"
-              value={editedPost.post_description}
+              value={editedPost.post_description || ''}
               onChange={handleChange}
             />
             <div className="edit-actions">
@@ -109,7 +162,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
             </div>
           </div>
         ) : (
-          <ReactMarkdown>{post.post_description}</ReactMarkdown>
+          <ReactMarkdown>{getPostDescription()}</ReactMarkdown>
         )}
       </div>
 
@@ -121,7 +174,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
           <svg className="heart-icon" viewBox="0 0 24 24">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
-          {post.like_count || 0} Likes
+          {post.like_count || post.likeCount || 0} Likes
         </button>
 
         <div className="action-buttons">
@@ -129,7 +182,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
             <>
               <Button 
                 variant="icon" 
-                onClick={() => setIsEditing(true)}
+                onClick={handleEdit}
                 className="btn-edit"
               >
                 <svg className="edit-icon" viewBox="0 0 24 24">
@@ -139,7 +192,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
               </Button>
               <Button 
                 variant="icon" 
-                onClick={() => onDelete(post.newsfeed_id)}
+                onClick={handleDelete}
                 className="btn-delete"
               >
                 <svg className="delete-icon" viewBox="0 0 24 24">

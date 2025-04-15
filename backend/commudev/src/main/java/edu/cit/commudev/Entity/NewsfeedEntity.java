@@ -3,6 +3,8 @@ package edu.cit.commudev.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "newsfeed")
 public class NewsfeedEntity {
@@ -27,7 +29,8 @@ public class NewsfeedEntity {
     @Column(name = "post_status")
     private String postStatus;
     
-    // Add relationship to User entity
+
+    @JsonManagedReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
