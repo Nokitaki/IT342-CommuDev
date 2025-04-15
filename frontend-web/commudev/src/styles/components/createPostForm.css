@@ -1,0 +1,57 @@
+/* src/pages/styles/components/createPostForm.css */
+.create-post-section {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .feed-title {
+    margin-top: 0;
+    font-size: 1.5rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .create-post-container {
+    display: flex;
+    align-items: center;
+    background-color: #f0f2f5;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .create-post-container:hover {
+    background-color: #e4e6eb;
+  }
+  
+  .create-post-avatar {
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  
+  .post-input-container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+  }
+  
+  .post-input {
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid #e4e6eb;
+    border-radius: 20px;
+    font-size: 1rem;
+    color: #65676b;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .post-input:hover {
+    background-color: #f5f5f5;
+  }

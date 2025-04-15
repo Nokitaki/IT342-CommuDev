@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -122,8 +124,8 @@ public class User implements UserDetails {
     private ProfileVisibility profileVisibility = ProfileVisibility.PUBLIC;
 
     // Add the posts relationship
+    @JsonBackReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore // Prevent circular references in JSON serialization
     private List<NewsfeedEntity> posts = new ArrayList<>();
 
     // Default constructor

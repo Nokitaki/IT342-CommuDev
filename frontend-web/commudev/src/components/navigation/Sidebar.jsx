@@ -3,43 +3,37 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import UserSearch from '../common/UserSearch';
 import Avatar from '../common/Avatar';
-import PeopleYouMayKnow from '../newsfeed/PeopleYouMayKnow';
-//import { getUserData } from '../../services/authService';
+import useProfile from '../../hooks/useProfile';
 import '../../styles/components/sidebar.css';
 
 const Sidebar = () => {
-  const [userData, setUserData] = useState(null);
+  // Use profile hook to get the current user data
+  const { profile, loading } = useProfile();
   const [profilePicture, setProfilePicture] = useState(null);
   
+  // API URL
+  const API_URL = 'http://localhost:8080';
+  
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // COMMENTED: Real API call for user data
-        /*
-        const data = await getUserData();
-        setUserData(data);
-        
-        if (data?.profilePicture) {
-          setProfilePicture(`http://localhost:8080${data.profilePicture}`);
-        }
-        */
-        
-        // Mock user data
-        const mockData = {
-          id: 1,
-          username: 'testuser',
-          firstname: 'John',
-          lastname: 'Doe',
-          profilePicture: null
-        };
-        setUserData(mockData);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
+    // When profile is loaded, update the profile picture
+    if (profile?.profilePicture) {
+      setProfilePicture(`${API_URL}${profile.profilePicture}`);
+    }
+  }, [profile]);
 
-    fetchUserData();
-  }, []);
+  // Get user full name
+  const getFullName = () => {
+    if (profile) {
+      if (profile.firstname && profile.lastname) {
+        return `${profile.firstname} ${profile.lastname}`;
+      } else if (profile.firstname) {
+        return profile.firstname;
+      } else if (profile.username) {
+        return profile.username;
+      }
+    }
+    return 'Loading...';
+  };
 
   // Mock community data
   const communities = [
@@ -76,15 +70,11 @@ const Sidebar = () => {
         <div className="profile-sidebar">
           <Avatar 
             src={profilePicture || '/src/assets/images/profile/default-avatar.png'} 
-            alt={userData ? `${userData.firstname} ${userData.lastname}` : "Profile"} 
+            alt={getFullName()} 
             size="medium"
           />
           <div className="profile-info">
-            <h4>
-              {userData
-                ? `${userData.firstname} ${userData.lastname}`
-                : "Loading..."}
-            </h4>
+            <h4>{loading ? "Loading..." : getFullName()}</h4>
           </div>
         </div>
       </Link>
