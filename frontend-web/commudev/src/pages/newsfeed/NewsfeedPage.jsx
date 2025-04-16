@@ -30,6 +30,23 @@ const NewsfeedPage = () => {
     handleLikePost
   } = useNewsfeed();
 
+
+// Modified useEffect to avoid the refresh loop issue
+useEffect(() => {
+  // Explicitly load all posts
+  loadPosts();
+  
+  // Set up auto-refresh every 30 seconds
+  const intervalId = setInterval(() => {
+    loadPosts(); // Just call loadPosts directly instead of using refreshTrigger
+  }, 30000);
+  
+  // Clean up interval on unmount
+  return () => clearInterval(intervalId);
+}, [loadPosts]); // Remove refreshTrigger from dependencies
+
+
+
   // Mock notifications for now
   const notifications = [
     {
@@ -84,6 +101,9 @@ const NewsfeedPage = () => {
       // Close modal and reset editing state
       setIsModalOpen(false);
       setEditingPost(null);
+      
+      // Refresh posts after creating/updating
+      loadPosts();
     } catch (error) {
       console.error('Error saving post:', error);
     }
@@ -91,6 +111,9 @@ const NewsfeedPage = () => {
 
   const onDeletePost = async (postId) => {
     await handleDeletePost(postId);
+    
+    // Refresh posts after deletion
+    loadPosts();
   };
 
   const onEditPost = (post) => {
@@ -119,9 +142,12 @@ const NewsfeedPage = () => {
 
   const onLikePost = async (postId) => {
     await handleLikePost(postId);
+    
+    // After liking, refresh posts to get updated like count
+    loadPosts();
   };
 
-  // Get user's full name
+
   const getUserName = () => {
     if (profile?.firstname && profile?.lastname) {
       return `${profile.firstname} ${profile.lastname}`;
@@ -174,12 +200,6 @@ const NewsfeedPage = () => {
             <div className="error-message">{error}</div>
           ) : (
             <div className="newsfeed-items">
-              {/* Remove this debug line in production */}
-              {/*<div style={{padding: '10px', background: '#f5f5f5', margin: '10px 0', borderRadius: '5px'}}>
-                <p>Debug info: Found {posts.length} posts</p>
-                {posts.length === 0 && <p>No posts to show. Try creating a new post.</p>}
-              </div>*/}
-              
               {posts.length > 0 ? (
                 posts.map(post => (
                   <NewsfeedItem 
@@ -193,7 +213,7 @@ const NewsfeedPage = () => {
                   />
                 ))
               ) : (
-                <div className="no-posts-message">No posts to display.</div>
+                <div className="no-posts-message">No posts to display. Be the first to create a post!</div>
               )}
             </div>
           )}

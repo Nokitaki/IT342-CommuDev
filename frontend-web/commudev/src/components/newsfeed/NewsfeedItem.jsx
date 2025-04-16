@@ -2,18 +2,45 @@
 import React, { useState, useEffect } from 'react';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
+import CommentSection from './CommentSection';
 import { formatTimeAgo } from '../../utils/dateUtils';
 import ReactMarkdown from 'react-markdown';
+import useComments from '../../hooks/useComments';
 import '../../styles/components/newsfeed.css';
 
 const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPost, setEditedPost] = useState(post);
   const [isLiked, setIsLiked] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  
+  // Get the post ID in the correct format
+  const postId = post.newsfeed_id || post.newsfeedId;
+  
+  // Use our custom hook for comments
+  const { 
+    comments, 
+    loading: commentsLoading, 
+    error: commentsError, 
+    fetchComments,
+    handleAddComment,
+    getCommentCountForPost
+  } = useComments();
 
   useEffect(() => {
     setEditedPost(post);
-  }, [post]);
+    
+    // Get initial comment count
+    const getInitialCommentCount = async () => {
+      if (postId) {
+        const count = await getCommentCountForPost(postId);
+        setCommentCount(count);
+      }
+    };
+    
+    getInitialCommentCount();
+  }, [post, postId, getCommentCountForPost]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,8 +59,6 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   };
 
   const handleLike = () => {
-    // Get the correct post ID
-    const postId = post.newsfeed_id || post.newsfeedId;
     console.log('Liking post with ID:', postId);
     
     onLike(postId);
@@ -42,8 +67,6 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   };
 
   const handleEdit = () => {
-    // Get the correct post ID and log it
-    const postId = post.newsfeed_id || post.newsfeedId;
     console.log('Editing post with ID:', postId);
     console.log('Post object:', post);
     
@@ -51,12 +74,28 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   };
 
   const handleDelete = () => {
-    // Get the correct post ID and log it
-    const postId = post.newsfeed_id || post.newsfeedId;
     console.log('Deleting post with ID:', postId);
     
     if (window.confirm('Are you sure you want to delete this post?')) {
       onDelete(postId);
+    }
+  };
+  
+  const handleCommentsClick = () => {
+    // Toggle comments visibility
+    setShowComments(!showComments);
+    
+    // If we're showing comments and haven't loaded them yet, fetch them
+    if (!showComments && postId) {
+      fetchComments(postId);
+    }
+  };
+  
+  const handleAddNewComment = async (postId, commentText) => {
+    const newComment = await handleAddComment(postId, commentText);
+    if (newComment) {
+      // Update comment count after adding a new comment
+      setCommentCount(prev => prev + 1);
     }
   };
 
@@ -167,15 +206,27 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
       </div>
 
       <footer className="post-actions">
-        <button
-          className={`like-button ${isLiked ? 'active' : ''}`}
-          onClick={handleLike}
-        >
-          <svg className="heart-icon" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-          {post.like_count || post.likeCount || 0} Likes
-        </button>
+        <div className="post-actions-buttons">
+          <button
+            className={`like-button ${isLiked ? 'active' : ''}`}
+            onClick={handleLike}
+          >
+            <svg className="heart-icon" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+            {post.like_count || post.likeCount || 0} Likes
+          </button>
+          
+          <button
+            className="comment-button"
+            onClick={handleCommentsClick}
+          >
+            <svg className="comment-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+            </svg>
+            {commentCount} Comments
+          </button>
+        </div>
 
         <div className="action-buttons">
           {canEdit && (
@@ -204,6 +255,16 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
           )}
         </div>
       </footer>
+      
+      {/* Comments section */}
+      {showComments && (
+        <CommentSection 
+          postId={postId}
+          comments={comments}
+          onAddComment={handleAddNewComment}
+          expanded={true}
+        />
+      )}
     </article>
   );
 };

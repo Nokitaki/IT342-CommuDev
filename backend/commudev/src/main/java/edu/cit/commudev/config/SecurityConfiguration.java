@@ -67,12 +67,12 @@ public class SecurityConfiguration {
         .requestMatchers(HttpMethod.GET, "/api/newsfeed/all", "/api/newsfeed/{id}").permitAll()
         .requestMatchers(HttpMethod.GET, "/api/newsfeed/user/**").permitAll()
         
+        // Public comment endpoints
+        .requestMatchers(HttpMethod.GET, "/api/comments/post/**", "/api/comments/count/**").permitAll()
+        
         // Add this line for public profile access
         .requestMatchers("/users/profiles/**").permitAll()
                         
-                        // Add this line for public profile access
-                        .requestMatchers("/users/profiles/**").permitAll()
-
                         // Admin endpoints
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
@@ -89,6 +89,12 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/newsfeed/delete/**").authenticated()
                         .requestMatchers("/api/newsfeed/like/**").authenticated()
                         .requestMatchers("/api/newsfeed/can-edit/**").authenticated()
+                        
+                        // Authenticated comment endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/comments").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
+                        .requestMatchers("/api/comments/my-comments").authenticated()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()

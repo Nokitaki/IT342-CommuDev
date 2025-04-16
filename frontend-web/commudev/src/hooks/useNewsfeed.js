@@ -119,12 +119,17 @@ const useNewsfeed = (initialUsername = null) => {
   // Load posts based on initialUsername or use fallback
   useEffect(() => {
     if (initialUsername) {
+      // If username is provided, load that user's posts
       loadUserPosts(initialUsername);
     } else {
-      // Use myPosts as a fallback until the all posts endpoint is fixed
-      loadMyPosts();
+      // Otherwise try to load all posts
+      loadPosts().catch(err => {
+        console.error("Error loading all posts, falling back to user posts:", err);
+        // Fall back to user posts if all posts fails
+        loadMyPosts();
+      });
     }
-  }, [initialUsername, loadUserPosts, loadMyPosts, lastRefresh]);
+  }, [initialUsername, loadPosts, loadUserPosts, loadMyPosts, lastRefresh]);
 
   // Function to refresh posts
   const refreshPosts = () => {
