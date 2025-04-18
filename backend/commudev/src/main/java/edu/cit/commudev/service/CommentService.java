@@ -23,6 +23,9 @@ public class CommentService {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private NotificationService notificationService; // Added NotificationService
 
     // Create a new comment
     public CommentEntity createComment(String commentText, int postId) {
@@ -39,7 +42,12 @@ public class CommentService {
         comment.setUser(currentUser);
         comment.setPost(post);
         
-        return commentRepository.save(comment);
+        CommentEntity savedComment = commentRepository.save(comment);
+        
+        // Create notification for the post owner
+        notificationService.createCommentNotification(savedComment, post);
+        
+        return savedComment;
     }
 
     // Get all comments for a post

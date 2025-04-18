@@ -25,6 +25,11 @@ const useComments = (initialPostId = null) => {
       console.log(`Fetching comments for post ${postId}`);
       const commentsData = await getCommentsByPostId(postId);
       
+      // Log the actual structure of the first comment if available
+      if (commentsData.length > 0) {
+        console.log('First comment structure:', commentsData[0]);
+      }
+      
       // Sort comments by date (oldest first for a natural conversation flow)
       const sortedComments = commentsData.sort((a, b) => {
         return new Date(a.createdAt) - new Date(b.createdAt);
@@ -54,11 +59,15 @@ const useComments = (initialPostId = null) => {
     setError(null);
     
     try {
+      console.log(`Adding comment to post ${postId}: "${commentText}"`);
       const newComment = await addComment(postId, commentText);
       console.log('New comment added:', newComment);
       
       // Add the new comment to the existing comments
       setComments(prevComments => [...prevComments, newComment]);
+      
+      // Refresh comments from the server to ensure we have the latest data
+      fetchComments(postId);
       
       return newComment;
     } catch (err) {
@@ -76,13 +85,14 @@ const useComments = (initialPostId = null) => {
     setError(null);
     
     try {
+      console.log(`Updating comment ${commentId} with text: "${commentText}"`);
       const updatedComment = await updateComment(commentId, commentText);
       console.log('Comment updated:', updatedComment);
       
       // Update the comment in the state
       setComments(prevComments => 
         prevComments.map(comment => 
-          comment.commentId === commentId ? updatedComment : comment
+          (comment.commentId === commentId) ? updatedComment : comment
         )
       );
       
@@ -102,6 +112,7 @@ const useComments = (initialPostId = null) => {
     setError(null);
     
     try {
+      console.log(`Deleting comment ${commentId}`);
       const success = await deleteComment(commentId);
       console.log('Comment deletion success:', success);
       
@@ -134,8 +145,12 @@ const useComments = (initialPostId = null) => {
   };
 
   // Function to refresh comments
-  const refreshComments = () => {
-    setLastRefresh(Date.now());
+  const refreshComments = (postId) => {
+    if (postId) {
+      fetchComments(postId);
+    } else {
+      setLastRefresh(Date.now());
+    }
   };
 
   return {

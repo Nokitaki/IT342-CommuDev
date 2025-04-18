@@ -8,6 +8,9 @@ import ResourcesPage from '../pages/resources/ResourcesPage';
 import MessagesPage from '../pages/messages/MessagesPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 import PublicProfilePage from '../pages/profile/PublicProfilePage';
+import NotificationsPage from '../components/notifications/NotificationsPage';
+import PostPage from '../pages/post/PostPage';
+import AllUsersPage from '../pages/users/AllUsersPage';
 import { isLoggedIn } from '../services/authService';
 
 // Protected route component
@@ -86,6 +89,36 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* New route for All Users page */}
+        <Route 
+          path="/users" 
+          element={
+            <ProtectedRoute>
+              <AllUsersPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* New notification routes */}
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Individual post route */}
+        <Route 
+          path="/post/:postId" 
+          element={
+            <ProtectedRoute>
+              <PostPage />
             </ProtectedRoute>
           } 
         />

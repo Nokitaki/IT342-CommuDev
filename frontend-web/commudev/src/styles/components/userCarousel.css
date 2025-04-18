@@ -1,9 +1,13 @@
 /* src/styles/components/userCarousel.css */
 .user-carousel {
   display: flex;
-  align-items: left;
+  align-items: center;
   position: relative;
   padding: 10px 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .carousel-nav-button {
@@ -23,6 +27,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.carousel-nav-button:hover {
+  background-color: #A5D6A7;
 }
 
 .carousel-nav-button.prev {
@@ -36,6 +45,7 @@
 .carousel-nav-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .user-avatars {
@@ -50,19 +60,24 @@
 
 .user-avatar-item {
   text-align: center;
-  font-size: 12px;
   color: #000;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.user-avatar-item:hover {
+  transform: translateY(-3px);
 }
 
 .avatar-wrapper {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  padding: 4.5px;
+  padding: 2px;
   background: linear-gradient(to right, #EB00FF, #7DE8EA);
   display: flex;
   align-items: center;
@@ -77,4 +92,25 @@
   overflow: hidden;
   width: 70px;
   font-size: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+.user-carousel-loading {
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+  color: #65676b;
+  font-size: 14px;
+}
+
+/* Animation for loading state */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.user-carousel-loading {
+  animation: pulse 1.5s infinite ease-in-out;
 }

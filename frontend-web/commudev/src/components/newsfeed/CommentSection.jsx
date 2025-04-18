@@ -3,26 +3,58 @@ import React, { useState, useEffect } from 'react';
 import Avatar from '../common/Avatar';
 import useProfile from '../../hooks/useProfile';
 import { formatTimeAgo } from '../../utils/dateUtils';
+import useComments from '../../hooks/useComments';
 import '../../styles/components/comments.css';
 
 const CommentSection = ({ postId, comments = [], onAddComment, expanded = false }) => {
   const [newComment, setNewComment] = useState('');
   const [isExpanded, setIsExpanded] = useState(expanded);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [localComments, setLocalComments] = useState([]);
   const { profile } = useProfile();
+  const { 
+    handleUpdateComment, 
+    handleDeleteComment,
+    fetchComments 
+  } = useComments();
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
 
-  const handleSubmit = (e) => {
+  // Update local comments when props change
+  useEffect(() => {
+    setLocalComments(comments);
+  }, [comments]);
+  
+  // Refresh comments after an edit or delete
+  const refreshComments = async () => {
+    if (postId) {
+      const freshComments = await fetchComments(postId);
+      if (freshComments) {
+        setLocalComments(freshComments);
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (newComment.trim() === '') return;
     
-    onAddComment(postId, newComment);
-    setNewComment('');
+    const success = await onAddComment(postId, newComment);
+    if (success) {
+      setNewComment('');
+      // Refresh comments after adding
+      refreshComments();
+    }
   };
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
+    // Fetch comments when expanding if we haven't already
+    if (!isExpanded && localComments.length === 0) {
+      refreshComments();
+    }
   };
 
   // Get user's profile picture
@@ -57,21 +89,105 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
     return comment.username || 'User';
   };
 
+  // Check if comment belongs to current user
+  const isCurrentUserComment = (comment) => {
+    if (!profile || !comment.user) return false;
+    return profile.id === comment.user.id || profile.username === comment.user.username;
+  };
+
+  // Handle edit comment start
+  const handleEditClick = (comment) => {
+    console.log("Starting edit for comment:", comment);
+    // Always use commentText if available, otherwise try other properties
+    const textToEdit = comment.commentText || comment.content || comment.text || '';
+    setEditingCommentId(comment.commentId);
+    setEditText(textToEdit);
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditText('');
+  };
+
+  // Handle save edit
+  const handleSaveEdit = async (commentId) => {
+    if (!commentId || editText.trim() === '') {
+      console.error("Invalid comment ID or empty text");
+      return;
+    }
+    
+    console.log(`Saving edit for comment ${commentId} with text: ${editText}`);
+    
+    try {
+      const result = await handleUpdateComment(commentId, editText);
+      console.log("Update result:", result);
+      
+      if (result) {
+        // Update the comment locally to avoid needing a refresh
+        setLocalComments(prevComments => 
+          prevComments.map(c => 
+            c.commentId === commentId ? { ...c, commentText: editText } : c
+          )
+        );
+        
+        // Also refresh from server
+        refreshComments();
+      }
+      
+      setEditingCommentId(null);
+      setEditText('');
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      alert("Failed to update comment. Please try again.");
+    }
+  };
+
+  // Handle delete comment
+  const handleDelete = async (commentId) => {
+    if (!commentId) {
+      console.error("Invalid comment ID for deletion");
+      return;
+    }
+    
+    console.log(`Attempting to delete comment ${commentId}`);
+    
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      try {
+        const success = await handleDeleteComment(commentId);
+        console.log("Delete result:", success);
+        
+        if (success) {
+          // Remove the comment locally
+          setLocalComments(prevComments => 
+            prevComments.filter(c => c.commentId !== commentId)
+          );
+          
+          // Also refresh from server
+          refreshComments();
+        }
+      } catch (error) {
+        console.error("Error deleting comment:", error);
+        alert("Failed to delete comment. Please try again.");
+      }
+    }
+  };
+
   return (
     <div className="comments-section">
-      {comments.length > 0 && (
+      {localComments.length > 0 && (
         <button 
           className="comments-toggle" 
           onClick={toggleExpanded}
         >
-          {isExpanded ? 'Hide' : 'Show'} {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+          {isExpanded ? 'Hide' : 'Show'} {localComments.length} {localComments.length === 1 ? 'comment' : 'comments'}
         </button>
       )}
       
-      {isExpanded && comments.length > 0 && (
+      {isExpanded && localComments.length > 0 && (
         <div className="comments-list">
-          {comments.map((comment, index) => (
-            <div key={comment.id || index} className="comment-item">
+          {localComments.map((comment, index) => (
+            <div key={comment.commentId || `comment-${index}`} className="comment-item">
               <Avatar
                 src={getCommenterPicture(comment)}
                 alt={`${getCommenterName(comment)}'s profile`}
@@ -84,7 +200,57 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
                     {formatTimeAgo(comment.createdAt || comment.created_at)}
                   </span>
                 </div>
-                <div className="comment-text">{comment.content || comment.text}</div>
+                
+                {editingCommentId === comment.commentId ? (
+                  <div className="comment-edit-form">
+                    <textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="comment-edit-textarea"
+                    />
+                    <div className="comment-edit-actions">
+                      <button
+                        type="button"
+                        className="comment-edit-btn save-btn"
+                        onClick={() => handleSaveEdit(comment.commentId)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="comment-edit-btn cancel-btn"
+                        onClick={handleCancelEdit}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="comment-text-container">
+                    <div className="comment-text">
+                      {comment.commentText || comment.content || comment.text || ''}
+                    </div>
+                    
+                    {isCurrentUserComment(comment) && (
+                      <div className="comment-actions">
+                        <button
+                          type="button"
+                          className="comment-action-btn edit-btn"
+                          onClick={() => handleEditClick(comment)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="comment-action-btn delete-btn"
+                          onClick={() => handleDelete(comment.commentId)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}

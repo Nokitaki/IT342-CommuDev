@@ -30,7 +30,9 @@ export const getCommentsByPostId = async (postId) => {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
     
-    return await response.json();
+    const comments = await response.json();
+    console.log('Raw comments from API:', comments);
+    return comments;
   } catch (error) {
     console.error('Error fetching comments:', error);
     throw new Error('Failed to fetch comments');
@@ -49,6 +51,8 @@ export const addComment = async (postId, commentText) => {
     if (!token) {
       throw new Error('Authentication required to add a comment');
     }
+    
+    console.log('Adding comment:', { postId, commentText });
     
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -69,7 +73,9 @@ export const addComment = async (postId, commentText) => {
       throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
     }
     
-    return await response.json();
+    const newComment = await response.json();
+    console.log('Comment added successfully:', newComment);
+    return newComment;
   } catch (error) {
     console.error('Error adding comment:', error);
     throw new Error(error.message || 'Failed to add comment');

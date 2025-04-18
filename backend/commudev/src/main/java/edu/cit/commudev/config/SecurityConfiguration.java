@@ -72,7 +72,11 @@ public class SecurityConfiguration {
         
         // Add this line for public profile access
         .requestMatchers("/users/profiles/**").permitAll()
-                        
+        
+        
+        .requestMatchers("/users/all").permitAll()
+
+        
                         // Admin endpoints
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 

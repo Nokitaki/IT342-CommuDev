@@ -1,0 +1,68 @@
+/* src/styles/components/userList.css */
+.user-list {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  
+  .user-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .user-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .user-list::-webkit-scrollbar-thumb {
+    background-color: #e0e0e0;
+    border-radius: 20px;
+  }
+  
+  .user-list::-webkit-scrollbar-thumb:hover {
+    background-color: #bdbdbd;
+  }
+  
+  .user-list-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.2s ease;
+  }
+  
+  .user-list-item:hover {
+    background-color: #f0f2f5;
+  }
+  
+  .user-list-name {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .user-list-loading,
+  .user-list-empty {
+    padding: 12px;
+    text-align: center;
+    color: #65676b;
+    font-size: 13px;
+  }
+  
+  /* Add animation for loading state */
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  
+  .user-list-loading {
+    animation: pulse 1.5s infinite ease-in-out;
+  }

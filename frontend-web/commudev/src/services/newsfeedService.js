@@ -411,3 +411,45 @@ export const updatePost = async (postId, postData) => {
     throw new Error(error.message || 'Failed to update post');
   }
 };
+
+// Add this function to src/services/newsfeedService.js
+
+/**
+ * Get a post by ID
+ * @param {number} postId - ID of the post to get
+ * @returns {Promise<Object>} Post object
+ */
+export const getPostById = async (postId) => {
+  try {
+    console.log(`Fetching post with ID: ${postId}`);
+    
+    const response = await fetch(`http://localhost:8080/api/newsfeed/${postId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    
+    console.log(`Get post response status: ${response.status}`);
+    
+    if (!response.ok) {
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || `Error getting post: ${response.status}`;
+      } catch (e) {
+        errorMessage = `Error getting post: ${response.status}`;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const post = await response.json();
+    console.log('Post retrieved successfully:', post);
+    return post;
+  } catch (error) {
+    console.error('Error getting post:', error);
+    throw new Error(error.message || 'Failed to get post');
+  }
+};
