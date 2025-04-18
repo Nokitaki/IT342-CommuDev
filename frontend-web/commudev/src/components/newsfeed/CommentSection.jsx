@@ -71,7 +71,7 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
       {isExpanded && comments.length > 0 && (
         <div className="comments-list">
           {comments.map((comment, index) => (
-            <div key={comment.id || index} className="comment-item">
+            <div key={comment.commentId || index} className="comment-item">
               <Avatar
                 src={getCommenterPicture(comment)}
                 alt={`${getCommenterName(comment)}'s profile`}
@@ -84,7 +84,9 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
                     {formatTimeAgo(comment.createdAt || comment.created_at)}
                   </span>
                 </div>
-                <div className="comment-text">{comment.content || comment.text}</div>
+                <div className="comment-text">
+                  {comment.commentText || comment.content || comment.text || ''}
+                </div>
               </div>
             </div>
           ))}
