@@ -62,7 +62,24 @@
 .friends-section h3 {
   font-size: 14px;
   color: #65676b;
+  margin: 0;
+}
+
+.friends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
+}
+
+.see-all-link {
+  font-size: 12px;
+  color: #1877f2;
+  text-decoration: none;
+}
+
+.see-all-link:hover {
+  text-decoration: underline;
 }
 
 .community-item,
@@ -75,6 +92,8 @@
   border-radius: 8px;
   cursor: pointer;
   color: #000;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
 }
 
 .community-item:hover,
@@ -139,6 +158,32 @@
 
 .status-indicator.online {
   background-color: #31a24c;
+}
+
+/* Loading and empty states */
+.friends-loading,
+.no-friends-message {
+  padding: 10px;
+  text-align: center;
+  color: #65676b;
+  font-size: 13px;
+}
+
+.friends-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Add animation for loading state */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.friends-loading {
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
 @media (max-width: 768px) {
