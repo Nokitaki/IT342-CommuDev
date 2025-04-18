@@ -85,6 +85,7 @@ const useComments = (initialPostId = null) => {
     setError(null);
     
     try {
+      console.log(`Updating comment ${commentId} with text: "${commentText}"`);
       const updatedComment = await updateComment(commentId, commentText);
       console.log('Comment updated:', updatedComment);
       
@@ -111,6 +112,7 @@ const useComments = (initialPostId = null) => {
     setError(null);
     
     try {
+      console.log(`Deleting comment ${commentId}`);
       const success = await deleteComment(commentId);
       console.log('Comment deletion success:', success);
       

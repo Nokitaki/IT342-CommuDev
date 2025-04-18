@@ -19,6 +19,9 @@ public class NewsfeedService {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private NotificationService notificationService; // Added NotificationService
 
     // Create post with authenticated user
     public NewsfeedEntity createNewsfeed(NewsfeedEntity newsfeed) {
@@ -81,6 +84,13 @@ public class NewsfeedService {
     public NewsfeedEntity likePost(int id) {
         NewsfeedEntity newsfeed = getNewsfeedById(id);
         newsfeed.setLikeCount(newsfeed.getLikeCount() + 1);
+        
+        // Get current user for the notification
+        User currentUser = userService.getCurrentUser();
+        
+        // Create a notification
+        notificationService.createLikeNotification(newsfeed, currentUser);
+        
         return newsfeedRepo.save(newsfeed);
     }
 
