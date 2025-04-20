@@ -5,6 +5,8 @@ import edu.cit.commudev.dto.UserDto;
 import edu.cit.commudev.dto.UserProfileUpdateDto;
 import edu.cit.commudev.entity.User;
 import edu.cit.commudev.service.UserService;
+
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -171,4 +174,26 @@ public class UserController {
         
         return dto;
     }
+
+
+
+
+
+    @GetMapping("/{userId}")
+public ResponseEntity<?> getUserById(@PathVariable Long userId) {
+    try {
+        Optional<User> userOpt = userService.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "User not found with ID: " + userId));
+        }
+        
+        User user = userOpt.get();
+        UserDto userDto = convertToDto(user);
+        return ResponseEntity.ok(userDto);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "Failed to fetch user: " + e.getMessage()));
+    }
+}
 }
