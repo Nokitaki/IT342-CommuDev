@@ -9,11 +9,31 @@ import Avatar from "../../components/common/Avatar";
 import NewMessageModal from '../../components/modals/NewMessageModal';
 import { formatTimeAgo } from "../../utils/dateUtils";
 import "../../styles/pages/messages.css";
+import { auth } from "../../services/firebaseAuth";
+import { debugFirestore } from "../../services/firebaseService";
 
 // Import your logo
 import LogoIcon from "../../assets/images/logo.png";
 
 const MessagesPage = () => {
+  useEffect(() => {
+    // Debug auth state and user ID
+    console.log("MessagesPage - Current auth state:", auth.currentUser);
+    console.log("MessagesPage - localStorage userId:", localStorage.getItem('userId'));
+    
+    // Debug Firestore data
+    const checkFirestore = async () => {
+      try {
+        const allConversations = await debugFirestore();
+        console.log("MessagesPage - All Firestore conversations:", allConversations);
+      } catch (error) {
+        console.error("Error checking Firestore:", error);
+      }
+    };
+    
+    checkFirestore();
+  }, []);
+  
   const { 
     conversations, 
     messages, 
@@ -26,7 +46,7 @@ const MessagesPage = () => {
     sendNewMessage, 
     handleTypingInput,
     startConversation,
-    setLastRefresh
+    setLastRefresh  // Add this
   } = useMessages();  // Start a new conversation with a user
 
   
@@ -86,8 +106,6 @@ const MessagesPage = () => {
   // Start a new conversation with a user
   const handleStartConversation = async (user) => {
     try {
-      console.log('Starting conversation with user:', user);
-      
       if (!user || !user.id) {
         console.error('Invalid user object:', user);
         return;
@@ -96,25 +114,47 @@ const MessagesPage = () => {
       // Show loading state
       setIsSending(true);
       
-      // Convert user.id to string to ensure compatibility
-      const conversationId = await startConversation(user.id.toString());
+      // Check if we have a profile
+      if (!profile || !profile.id) {
+        console.error('Current user profile is not loaded');
+        alert("Please wait while your profile is loading or try refreshing the page.");
+        setIsSending(false);
+        return;
+      }
       
-      if (conversationId) {
-        console.log('Conversation started successfully with ID:', conversationId);
-        setShowNewMessageModal(false);
+      console.log('Starting conversation with user:', user);
+      console.log('Current user:', profile);
+      
+      try {
+        // Convert user.id to string to ensure compatibility
+        const conversationId = await startConversation(user.id.toString());
         
-        // Force refresh conversation list
-        const updatedConversations = [...conversations];
-        setTimeout(() => {
-          // This will trigger a re-render and hopefully show our new conversation
-          setLastRefresh(Date.now());
-        }, 500);
-      } else {
-        console.error('Failed to start conversation, no ID returned');
-        alert("There was a problem starting the conversation. Please try again.");
+        if (conversationId) {
+          console.log('Conversation started successfully with ID:', conversationId);
+          setShowNewMessageModal(false);
+          
+          // Force refresh conversation list
+          setTimeout(() => {
+            setLastRefresh(Date.now());
+          }, 500);
+        } else {
+          console.error('Failed to start conversation, no ID returned');
+          alert("There was a problem starting the conversation. Please try again later.");
+        }
+      } catch (error) {
+        console.error("Error from startConversation:", error);
+        
+        // Check for specific errors to provide better user feedback
+        if (error.message && error.message.includes('not authenticated')) {
+          alert("You need to log in again to use messaging. Please log out and log back in.");
+        } else if (error.message && error.message.includes('not initialized')) {
+          alert("The messaging system is currently unavailable. Please try again later.");
+        } else {
+          alert("Could not start the conversation. Please try again later.");
+        }
       }
     } catch (error) {
-      console.error("Error starting conversation:", error);
+      console.error("Error in handleStartConversation:", error);
       alert("Error starting conversation: " + (error.message || "Unknown error"));
     } finally {
       setIsSending(false);
