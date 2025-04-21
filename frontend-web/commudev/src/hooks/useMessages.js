@@ -9,10 +9,12 @@ import {
   subscribeToUserPresence,
   markMessagesAsRead,
   updateTypingStatus,
-  subscribeToTypingStatus
+  subscribeToTypingStatus,
+  debugFirestore // Add this import
 } from '../services/firebaseService';
 import useProfile from './useProfile';
 import { getUserById } from '../services/userService';
+import { auth } from '../services/firebaseAuth'; // Add this import
 
 const useMessages = () => {
   const [conversations, setConversations] = useState([]);
@@ -25,32 +27,78 @@ const useMessages = () => {
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
   const { profile } = useProfile();
+  const userId = profile?.id ? profile.id.toString() : localStorage.getItem('userId');
+  
   const [lastRefresh, setLastRefresh] = useState(Date.now());
 
+  // Debug Firebase auth state
+  useEffect(() => {
+    console.log("Current Firebase auth state:", auth.currentUser);
+    
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      console.log("Auth state changed:", user ? `User ${user.uid} logged in` : "User logged out");
+    });
+    
+    return () => unsubscribe();
+  }, []);
+
+  // Debug Firestore conversations
+  useEffect(() => {
+    const checkFirestore = async () => {
+      console.log("Debugging Firestore conversations...");
+      try {
+        const allConversations = await debugFirestore();
+        console.log("All conversations in Firestore:", allConversations);
+      } catch (err) {
+        console.error("Error debugging Firestore:", err);
+      }
+    };
+    
+    checkFirestore();
+  }, []);
 
   // Set up presence when profile is loaded
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      console.log("No profile ID available for presence setup");
+      return;
+    }
     
     const displayName = `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username;
+    console.log("Setting up presence for user:", profile.id.toString(), displayName);
     setupPresence(profile.id.toString(), displayName);
   }, [profile]);
 
   // Subscribe to user's conversations
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!userId) {
+      console.log("No user ID available, can't subscribe to conversations");
+      return;
+    }
+    
+    console.log("Subscribing to conversations for user ID:", userId);
+    
+    try {
+      const displayName = profile ? 
+        `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username : 
+        'User';
+      setupPresence(userId, displayName);
+    } catch (error) {
+      console.error('Error setting up presence:', error);
+    }
 
     setLoading(true);
     const unsubscribe = subscribeToUserConversations(
-      profile.id.toString(), 
+      userId, 
       (newConversations) => {
+        console.log("Received conversations:", newConversations);
         setConversations(newConversations);
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [profile]);
+  }, [userId, profile]);
 
   // Subscribe to messages when a conversation is selected
   useEffect(() => {
@@ -59,10 +107,12 @@ const useMessages = () => {
       return;
     }
 
+    console.log("Subscribing to messages for conversation:", currentConversation);
     setLoading(true);
     const unsubscribe = subscribeToMessages(
       currentConversation, 
       (newMessages) => {
+        console.log("Received messages:", newMessages.length);
         setMessages(newMessages);
         setLoading(false);
       }
@@ -73,32 +123,40 @@ const useMessages = () => {
 
   // Mark messages as read when conversation is opened
   useEffect(() => {
-    if (!currentConversation || !profile?.id) return;
+    if (!currentConversation || !userId) {
+      return;
+    }
     
-    markMessagesAsRead(currentConversation, profile.id.toString());
-  }, [currentConversation, messages, profile]);
+    console.log("Marking messages as read in conversation:", currentConversation);
+    markMessagesAsRead(currentConversation, userId);
+  }, [currentConversation, messages, userId]);
 
   // Subscribe to typing status
   useEffect(() => {
-    if (!currentConversation || !profile?.id) return;
+    if (!currentConversation || !userId) {
+      return;
+    }
     
+    console.log("Subscribing to typing status for conversation:", currentConversation);
     const unsubscribe = subscribeToTypingStatus(
       currentConversation,
-      profile.id.toString(),
+      userId,
       (typingUserIds) => {
         setTypingUsers(typingUserIds);
       }
     );
     
     return () => unsubscribe();
-  }, [currentConversation, profile]);
+  }, [currentConversation, userId]);
 
   // Handle user typing status
   useEffect(() => {
-    if (!currentConversation || !profile?.id) return;
+    if (!currentConversation || !userId) {
+      return;
+    }
     
     if (isTyping) {
-      updateTypingStatus(currentConversation, profile.id.toString(), true);
+      updateTypingStatus(currentConversation, userId, true);
       
       // Clear any existing timeout
       if (typingTimeoutRef.current) {
@@ -108,10 +166,10 @@ const useMessages = () => {
       // Set timeout to clear typing status after 5 seconds
       typingTimeoutRef.current = setTimeout(() => {
         setIsTyping(false);
-        updateTypingStatus(currentConversation, profile.id.toString(), false);
+        updateTypingStatus(currentConversation, userId, false);
       }, 5000);
     } else {
-      updateTypingStatus(currentConversation, profile.id.toString(), false);
+      updateTypingStatus(currentConversation, userId, false);
     }
     
     return () => {
@@ -119,21 +177,25 @@ const useMessages = () => {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [isTyping, currentConversation, profile]);
+  }, [isTyping, currentConversation, userId]);
 
   // Start or open a conversation with a user
   const startConversation = async (otherUserId) => {
-    if (!profile || !profile.id) {
-      setError('You must be logged in to send messages');
-      return null;
+    if (!userId) {
+      console.error("No user ID available, can't start conversation");
+      throw new Error('You must be logged in to send messages');
     }
   
     try {
-      console.log(`Starting conversation with user ID: ${otherUserId}`);
+      console.log(`Starting conversation between ${userId} and ${otherUserId}`);
+      
+      // Make sure both IDs are strings
+      const myUserId = userId;
+      const otherUserIdStr = otherUserId.toString();
       
       // First check if we already have a conversation with this user
       const existingConversation = conversations.find(conv => 
-        conv.otherUserId === otherUserId.toString()
+        conv.otherUserId === otherUserIdStr
       );
       
       if (existingConversation) {
@@ -142,10 +204,10 @@ const useMessages = () => {
         
         // Set the selected user from existing data
         setSelectedUser({
-          id: otherUserId,
+          id: otherUserIdStr,
           name: existingConversation.otherUserName || 'User',
           avatar: existingConversation.otherUserAvatar,
-          username: existingConversation.userData?.[otherUserId]?.username || ''
+          username: existingConversation.userData?.[otherUserIdStr]?.username || ''
         });
         
         return existingConversation.id;
@@ -154,54 +216,56 @@ const useMessages = () => {
       // If no existing conversation, get other user's data
       let otherUserData;
       try {
-        otherUserData = await getUserById(otherUserId);
+        otherUserData = await getUserById(otherUserIdStr);
         console.log('Found other user:', otherUserData);
       } catch (err) {
         console.error('Error getting other user:', err);
-        setError('User not found');
-        return null;
+        throw new Error('User not found');
       }
       
       if (!otherUserData) {
         console.error('Other user data is null or undefined');
-        setError('User not found');
-        return null;
+        throw new Error('User not found');
       }
       
       // Create current user data object for Firebase
       const currentUserData = {
-        id: profile.id,
-        username: profile.username || '',
-        firstname: profile.firstname || '',
-        lastname: profile.lastname || '',
-        profilePicture: profile.profilePicture || ''
+        id: myUserId,
+        username: profile?.username || '',
+        firstname: profile?.firstname || '',
+        lastname: profile?.lastname || '',
+        profilePicture: profile?.profilePicture || ''
       };
-
+  
       const otherUser = {
-        id: otherUserData.id,
+        id: otherUserIdStr,
         username: otherUserData.username || '',
         firstname: otherUserData.firstname || '',
         lastname: otherUserData.lastname || '',
         profilePicture: otherUserData.profilePicture || ''
       };
-
+  
       console.log('Creating conversation between:', currentUserData, otherUser);
-      
+    
       const conversationId = await getOrCreateConversation(
-        profile.id.toString(), 
-        otherUserId.toString(),
+        myUserId, 
+        otherUserIdStr,
         currentUserData,
         otherUser
       );
-
+  
       console.log('Created/found conversation with ID:', conversationId);
+  
+      if (!conversationId) {
+        throw new Error('Failed to create conversation - no ID returned');
+      }
       
       // Select the conversation
       setCurrentConversation(conversationId);
       
       // Set the selected user for UI
       setSelectedUser({
-        id: otherUserId,
+        id: otherUserIdStr,
         name: `${otherUser.firstname || ''} ${otherUser.lastname || ''}`.trim() || otherUser.username || 'User',
         avatar: otherUser.profilePicture,
         username: otherUser.username
@@ -209,31 +273,31 @@ const useMessages = () => {
       
       // Force reload of conversations
       setTimeout(() => {
-        // This will trigger a re-render of the conversations list
         setLastRefresh(Date.now());
       }, 500);
       
       return conversationId;
     } catch (err) {
       console.error('Error starting conversation:', err);
-      setError('Failed to start conversation');
-      return null;
+      throw err;
     }
   };
 
   // Send a message in the current conversation
   const sendNewMessage = async (text) => {
-    if (!currentConversation || !profile || !profile.id) {
+    if (!currentConversation || !userId) {
       setError('Cannot send message');
       return false;
     }
 
     try {
       await sendMessage(currentConversation, {
-        senderId: profile.id.toString(),
-        senderName: `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username,
-        senderUsername: profile.username,
-        senderAvatar: profile.profilePicture,
+        senderId: userId,
+        senderName: profile ? 
+          `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username : 
+          'User',
+        senderUsername: profile?.username || '',
+        senderAvatar: profile?.profilePicture || '',
         text: text
       });
       
@@ -261,9 +325,9 @@ const useMessages = () => {
     const userData = conversation.userData?.[conversation.otherUserId] || {};
     setSelectedUser({
       id: conversation.otherUserId,
-      name: userData.name || 'User',
-      avatar: userData.avatar,
-      username: userData.username
+      name: userData.name || conversation.otherUserName || 'User',
+      avatar: userData.avatar || conversation.otherUserAvatar,
+      username: userData.username || ''
     });
   }, []);
 

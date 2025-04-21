@@ -1,4 +1,11 @@
 // src/services/authService.js
+import { 
+  registerWithEmailAndPassword, 
+  signInWithEmail, 
+  signOutUser,
+  getCurrentUser,
+  auth
+} from './firebaseAuth';
 
 const API_URL = 'http://localhost:8080';
 const AUTH_URL = `${API_URL}/auth`;
@@ -12,6 +19,34 @@ const USERS_URL = `${API_URL}/users`;
  */
 export const login = async (email, password) => {
   try {
+    // First try to authenticate with Firebase
+    let firebaseUser;
+    try {
+      // Extract email from the response or use the provided email
+      const userEmail = email.includes('@') ? email : `${email}@example.com`;
+      console.log("Signing in to Firebase with:", userEmail);
+      
+      const userCredential = await signInWithEmail(userEmail, password);
+      firebaseUser = userCredential.user;
+      console.log("Firebase sign-in successful:", firebaseUser.uid);
+    } catch (firebaseError) {
+      console.error("Firebase auth error:", firebaseError);
+      // If the user doesn't exist in Firebase, create them
+      if (firebaseError.code === 'auth/user-not-found') {
+        console.log("Creating new Firebase user");
+        try {
+          const emailToUse = email.includes('@') ? email : `${email}@example.com`;
+          const userCredential = await registerWithEmailAndPassword(emailToUse, password);
+          console.log("Firebase user creation successful:", userCredential.user.uid);
+          firebaseUser = userCredential;
+        } catch (createError) {
+          console.error("Failed to create Firebase user:", createError);
+        }
+      }
+      // Continue with backend auth even if Firebase auth fails
+    }
+
+    // Now authenticate with your backend
     const response = await fetch(`${AUTH_URL}/login`, {
       method: 'POST',
       headers: {
@@ -39,6 +74,11 @@ export const login = async (email, password) => {
     const expirationTime = new Date().getTime() + data.expiresIn * 1000;
     localStorage.setItem('expirationTime', expirationTime);
     
+    // Extract and store user ID if available
+    if (data.userId) {
+      localStorage.setItem('userId', data.userId.toString());
+    }
+    
     return data;
   } catch (error) {
     console.error('Login error:', error);
@@ -53,6 +93,7 @@ export const login = async (email, password) => {
  */
 export const register = async (userData) => {
   try {
+    // Register with your backend
     const response = await fetch(`${AUTH_URL}/signup`, {
       method: 'POST',
       headers: {
@@ -68,12 +109,28 @@ export const register = async (userData) => {
       throw new Error(errorData.error || 'Registration failed');
     }
 
-    return await response.json();
+    const backendResponse = await response.json();
+    
+    // Register with Firebase
+    try {
+      // Make sure we have an email to use with Firebase
+      const emailToUse = userData.email || `${userData.username}@example.com`;
+      
+      const userCredential = await registerWithEmailAndPassword(emailToUse, userData.password);
+      console.log("Firebase registration successful:", userCredential.user.uid);
+    } catch (firebaseError) {
+      console.error("Firebase registration error:", firebaseError);
+      // Continue anyway since backend registration succeeded
+    }
+
+    return backendResponse;
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
   }
 };
+
+// The remaining functions are unchanged
 
 /**
  * Verify user email with code
@@ -350,4 +407,9 @@ export const isLoggedIn = () => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('expirationTime');
+  
+  // Also sign out from Firebase
+  signOutUser().catch(error => {
+    console.error("Firebase signout error:", error);
+  });
 };

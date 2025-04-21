@@ -12,6 +12,9 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@firebase/auth": "^1.10.0",
+    "@firebase/database": "^1.0.14",
+    "@firebase/firestore": "^4.7.10",
     "@mui/icons-material": "^7.0.1",
     "@mui/material": "^7.0.1",
     "axios": "^1.8.4",
