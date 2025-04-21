@@ -21,10 +21,17 @@ const firebaseConfig = {
 // Initialize Firebase
 let firebaseApp;
 try {
-  firebaseApp = initializeApp(firebaseConfig);
+  // Check if Firebase is already initialized
+  if (!firebase.apps.length) {
+    firebaseApp = initializeApp(firebaseConfig);
+  } else {
+    firebaseApp = firebase.apps[0]; // Use the existing app
+  }
   console.log("Firebase app initialized successfully");
 } catch (error) {
   console.error("Firebase initialization error:", error);
+  // Initialize with a basic config to prevent app crashes
+  firebaseApp = { auth: () => null };
 }
 
 // Initialize Firestore
