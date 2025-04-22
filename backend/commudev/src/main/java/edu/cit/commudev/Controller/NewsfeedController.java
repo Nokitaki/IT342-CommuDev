@@ -120,17 +120,49 @@ public class NewsfeedController {
         }
     }
 
-    // Like post (any authenticated user can like)
+    // Toggle like on a post (any authenticated user can like)
     @PatchMapping("/like/{id}")
-    public ResponseEntity<?> likePost(@PathVariable int id) {
+    public ResponseEntity<?> toggleLikePost(@PathVariable int id) {
         try {
-            NewsfeedEntity likedPost = newsfeedService.likePost(id);
-            return new ResponseEntity<>(likedPost, HttpStatus.OK);
+            NewsfeedEntity likedPost = newsfeedService.toggleLike(id);
+            
+            // Get additional like status information
+            Map<String, Object> likeStatus = newsfeedService.getLikeStatus(id);
+            
+            // Create response with post and like status
+            Map<String, Object> response = new HashMap<>();
+            response.put("post", likedPost);
+            response.put("liked", likeStatus.get("liked"));
+            response.put("likeCount", likeStatus.get("likeCount"));
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to like post: " + e.getMessage());
+            errorResponse.put("error", "Failed to toggle like: " + e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // Check if user has liked a post
+    @GetMapping("/liked/{id}")
+    public ResponseEntity<?> checkUserLiked(@PathVariable int id) {
+        try {
+            boolean hasLiked = newsfeedService.hasUserLikedPost(id);
+            Map<String, Object> response = new HashMap<>();
+            response.put("liked", hasLiked);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to check like status: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get like status for a post
+    @GetMapping("/like-status/{id}")
+    public ResponseEntity<?> getLikeStatus(@PathVariable int id) {
+        Map<String, Object> likeStatus = newsfeedService.getLikeStatus(id);
+        return new ResponseEntity<>(likeStatus, HttpStatus.OK);
     }
 
     // Delete post (requires authentication and ownership)

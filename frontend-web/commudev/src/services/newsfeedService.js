@@ -452,4 +452,135 @@ export const getPostById = async (postId) => {
     console.error('Error getting post:', error);
     throw new Error(error.message || 'Failed to get post');
   }
+
+};
+
+
+
+
+
+
+
+/**
+ * Toggle like on a post
+ * @param {number} postId - ID of the post to like/unlike
+ * @returns {Promise<Object>} Updated post and like status
+ */
+export const toggleLikePost = async (postId) => {
+  try {
+    // Ensure postId is a number
+    const numericPostId = parseInt(postId, 10);
+    
+    if (isNaN(numericPostId)) {
+      throw new Error(`Invalid post ID: ${postId}`);
+    }
+    
+    console.log(`Making API request to toggle like for post with ID: ${numericPostId}`);
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required. Please log in.');
+    }
+    
+    const response = await fetch(`http://localhost:8080/api/newsfeed/like/${numericPostId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    
+    console.log(`Like API response status: ${response.status}`);
+    
+    if (!response.ok) {
+      let errorMessage = `Error toggling like: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch (e) {
+        // Ignore parsing errors
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const responseData = await response.json();
+    console.log('Like API response data:', responseData);
+    
+    // Ensure we have a consistent response format
+    return {
+      post: responseData.post || {},
+      liked: responseData.liked || false,
+      likeCount: responseData.likeCount || responseData.post?.likeCount || responseData.post?.like_count || 0
+    };
+  } catch (error) {
+    console.error('Error in toggleLikePost service:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check if current user has liked a post
+ * @param {number} postId - ID of the post to check
+ * @returns {Promise<boolean>} True if user has liked the post
+ */
+export const checkUserLiked = async (postId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return false; // Not authenticated
+    }
+    
+    const response = await fetch(`http://localhost:8080/api/newsfeed/liked/${postId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      console.error(`Error checking like status: ${response.status}`);
+      return false;
+    }
+    
+    const data = await response.json();
+    return data.liked;
+  } catch (error) {
+    console.error('Error checking like status:', error);
+    return false;
+  }
+};
+
+/**
+ * Get like status for a post
+ * @param {number} postId - ID of the post
+ * @returns {Promise<Object>} Like status with liked flag and count
+ */
+export const getLikeStatus = async (postId) => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`http://localhost:8080/api/newsfeed/like-status/${postId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      return { liked: false, likeCount: 0 };
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting like status:', error);
+    return { liked: false, likeCount: 0 };
+  }
 };
