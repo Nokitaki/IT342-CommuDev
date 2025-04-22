@@ -1,15 +1,21 @@
 package edu.cit.commudev.service;
 
 import edu.cit.commudev.entity.NewsfeedEntity;
+import edu.cit.commudev.entity.PostLike;
 import edu.cit.commudev.entity.User;
 import edu.cit.commudev.repository.NewsfeedRepo;
+import edu.cit.commudev.repository.PostLikeRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class NewsfeedService {
@@ -21,7 +27,10 @@ public class NewsfeedService {
     private UserService userService;
     
     @Autowired
-    private NotificationService notificationService; // Added NotificationService
+    private NotificationService notificationService;
+    
+    @Autowired
+    private PostLikeRepository postLikeRepository;
 
     // Create post with authenticated user
     public NewsfeedEntity createNewsfeed(NewsfeedEntity newsfeed) {
@@ -80,18 +89,50 @@ public class NewsfeedService {
         return newsfeedRepo.save(existingNewsfeed);
     }
 
-    // Like a post (any user can like)
-    public NewsfeedEntity likePost(int id) {
-        NewsfeedEntity newsfeed = getNewsfeedById(id);
-        newsfeed.setLikeCount(newsfeed.getLikeCount() + 1);
+    // Toggle like a post (any user can like)
+    @Transactional
+public NewsfeedEntity toggleLike(int id) {
+    // Get the existing post
+    NewsfeedEntity post = getNewsfeedById(id);
+    
+    // Get current authenticated user
+    User currentUser = userService.getCurrentUser();
+    
+    // Check if the user has already liked this post
+    boolean hasLiked = postLikeRepository.existsByUserAndPost(currentUser, post);
+    
+    if (hasLiked) {
+        // Unlike: Remove the like
+        Optional<PostLike> existingLike = postLikeRepository.findByUserAndPost(currentUser, post);
+        existingLike.ifPresent(like -> postLikeRepository.delete(like));
         
-        // Get current user for the notification
-        User currentUser = userService.getCurrentUser();
+        // Update like count
+        long likeCount = postLikeRepository.countByPost(post);
+        post.setLikeCount((int) likeCount);
+    } else {
+        // Like: Create a new like
+        PostLike newLike = new PostLike(currentUser, post);
+        postLikeRepository.save(newLike);
         
-        // Create a notification
-        notificationService.createLikeNotification(newsfeed, currentUser);
+        // Create notification for the post owner (only when liking)
+        notificationService.createLikeNotification(post, currentUser);
         
-        return newsfeedRepo.save(newsfeed);
+        // Update like count
+        long likeCount = postLikeRepository.countByPost(post);
+        post.setLikeCount((int) likeCount);
+    }
+    
+    return newsfeedRepo.save(post);
+}
+    
+    // Check if current user has liked a post
+    public boolean hasUserLikedPost(int postId) {
+        try {
+            User currentUser = userService.getCurrentUser();
+            return postLikeRepository.existsByUserIdAndPostNewsfeedId(currentUser.getId(), postId);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Delete post with owner check
@@ -120,6 +161,26 @@ public class NewsfeedService {
             return post.getUser().getId().equals(currentUser.getId());
         } catch (Exception e) {
             return false;
+        }
+    }
+    
+    // Get like status for a post
+    public Map<String, Object> getLikeStatus(int postId) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            NewsfeedEntity post = getNewsfeedById(postId);
+            User currentUser = userService.getCurrentUser();
+            
+            boolean userLiked = postLikeRepository.existsByUserAndPost(currentUser, post);
+            long likeCount = postLikeRepository.countByPost(post);
+            
+            result.put("liked", userLiked);
+            result.put("likeCount", likeCount);
+            return result;
+        } catch (Exception e) {
+            result.put("liked", false);
+            result.put("likeCount", 0);
+            return result;
         }
     }
 }

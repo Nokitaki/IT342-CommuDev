@@ -59,9 +59,20 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   };
 
   const handleLike = () => {
-    console.log('Liking post with ID:', postId);
+    // Extract the numeric ID from post
+    const numericPostId = parseInt(post.newsfeedId || post.newsfeed_id, 10);
     
-    onLike(postId);
+    if (isNaN(numericPostId)) {
+      console.error('Invalid post ID for liking:', post);
+      return;
+    }
+    
+    console.log('Liking post with ID:', numericPostId);
+    
+    // Call the onLike function with the numeric ID
+    onLike(numericPostId);
+    
+    // Set visual feedback immediately
     setIsLiked(true);
     setTimeout(() => setIsLiked(false), 1000);
   };

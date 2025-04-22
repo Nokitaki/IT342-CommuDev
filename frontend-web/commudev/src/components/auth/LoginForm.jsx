@@ -112,7 +112,7 @@ const LoginForm = ({ initialUsername = '' }) => {
             required
             fullWidth
             id="username"
-            label="Email or Username"
+            label="Email"
             value={formData.username}
             onChange={handleChange}
             sx={styles.textField}

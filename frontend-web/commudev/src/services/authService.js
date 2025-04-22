@@ -27,8 +27,12 @@ export const login = async (email, password) => {
       console.log("Signing in to Firebase with:", userEmail);
       
       const userCredential = await signInWithEmail(userEmail, password);
-      firebaseUser = userCredential.user;
-      console.log("Firebase sign-in successful:", firebaseUser.uid);
+      if (userCredential && userCredential.user) {
+        firebaseUser = userCredential.user;
+        console.log("Firebase sign-in successful:", firebaseUser.uid);
+      } else {
+        console.log("Firebase sign-in completed but no user returned");
+      }
     } catch (firebaseError) {
       console.error("Firebase auth error:", firebaseError);
       // If the user doesn't exist in Firebase, create them
@@ -117,7 +121,11 @@ export const register = async (userData) => {
       const emailToUse = userData.email || `${userData.username}@example.com`;
       
       const userCredential = await registerWithEmailAndPassword(emailToUse, userData.password);
-      console.log("Firebase registration successful:", userCredential.user.uid);
+      if (userCredential && userCredential.user) {
+        console.log("Firebase registration successful:", userCredential.user.uid);
+      } else {
+        console.log("Firebase registration completed but no user returned");
+      }
     } catch (firebaseError) {
       console.error("Firebase registration error:", firebaseError);
       // Continue anyway since backend registration succeeded

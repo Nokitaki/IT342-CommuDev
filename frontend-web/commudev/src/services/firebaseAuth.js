@@ -15,18 +15,19 @@ import { auth } from './firebase';
 export const registerWithEmailAndPassword = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    // Return the entire userCredential, not just user
+    return userCredential;
   } catch (error) {
     console.error("Error registering user:", error);
     throw error;
   }
 };
 
-// Sign in with email and password
+// For signInWithEmail
 export const signInWithEmail = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    return userCredential?.user || { uid: null }; // Return a fallback object if user is undefined
   } catch (error) {
     console.error("Error signing in:", error);
     throw error;

@@ -55,17 +55,23 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticate(@RequestBody LoginUserDto loginUserDto) {
         try {
+            // Check if the input is an email
+            if (!loginUserDto.getEmail().contains("@")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Please use your email address to login"));
+            }
+    
             User authenticatedUser = authenticationService.authenticate(loginUserDto);
             String jwtToken = jwtService.generateToken(authenticatedUser);
-
+    
             Map<String, Object> response = new HashMap<>();
             response.put("token", jwtToken);
             response.put("expiresIn", jwtService.getExpirationTime());
-
+    
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error during login process", e);
-
+    
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Authentication failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);

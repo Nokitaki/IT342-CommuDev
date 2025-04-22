@@ -5,9 +5,12 @@ import {
   createPost, 
   updatePost, 
   deletePost, 
-  likePost,
+  toggleLikePost, // Updated import
+  checkUserLiked, // New import
+  getLikeStatus, // New import
   fetchMyPosts,
-  fetchUserPosts
+  fetchUserPosts,
+  getPostById
 } from '../services/newsfeedService';
 
 const useNewsfeed = (initialUsername = null) => {
@@ -15,6 +18,31 @@ const useNewsfeed = (initialUsername = null) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [likeStatuses, setLikeStatuses] = useState({}); // Track like statuses
+
+  // Load like statuses for all posts
+  const loadLikeStatuses = async (postsToCheck) => {
+    try {
+      const statuses = {};
+      
+      // Get like status for each post
+      for (const post of postsToCheck) {
+        const postId = post.newsfeedId || post.newsfeed_id;
+        
+        if (postId) {
+          const status = await getLikeStatus(postId);
+          statuses[postId] = {
+            liked: status.liked,
+            likeCount: status.likeCount
+          };
+        }
+      }
+      
+      setLikeStatuses(statuses);
+    } catch (error) {
+      console.error('Error loading like statuses:', error);
+    }
+  };
 
   // Use useCallback to memoize functions
   const loadPosts = useCallback(async () => {
@@ -37,6 +65,9 @@ const useNewsfeed = (initialUsername = null) => {
         });
         setPosts(sortedPosts);
         console.log('Posts loaded successfully:', sortedPosts.length);
+        
+        // Load like statuses for all posts
+        loadLikeStatuses(sortedPosts);
       } catch (error) {
         console.error('Error loading all posts, falling back to my posts:', error);
         
@@ -53,6 +84,9 @@ const useNewsfeed = (initialUsername = null) => {
         });
         setPosts(sortedPosts);
         console.log('Fallback: My posts loaded successfully:', sortedPosts.length);
+        
+        // Load like statuses for all posts
+        loadLikeStatuses(sortedPosts);
       }
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -81,6 +115,9 @@ const useNewsfeed = (initialUsername = null) => {
       });
       setPosts(sortedPosts);
       console.log('My posts loaded successfully:', sortedPosts.length);
+      
+      // Load like statuses
+      loadLikeStatuses(sortedPosts);
     } catch (error) {
       console.error('Error loading my posts:', error);
       setError('Failed to load your posts. Please try again later.');
@@ -108,6 +145,9 @@ const useNewsfeed = (initialUsername = null) => {
       });
       setPosts(sortedPosts);
       console.log(`User posts loaded successfully:`, sortedPosts.length);
+      
+      // Load like statuses
+      loadLikeStatuses(sortedPosts);
     } catch (error) {
       console.error('Error loading user posts:', error);
       setError(`Failed to load posts for ${username}. Please try again later.`);
@@ -266,44 +306,142 @@ const useNewsfeed = (initialUsername = null) => {
     }
   };
 
+  // Updated to use toggleLikePost
   const handleLikePost = async (postId) => {
     try {
-      console.log(`Attempting to like post with ID: ${postId}`);
+      console.log(`Attempting to like post with ID:`, postId);
       
-      // Similar to delete, find the post to get the actual ID
-      const post = posts.find(p => p.newsfeedId === postId || p.newsfeed_id === postId);
+      // Extract the numeric ID, handling both object and primitive cases
+      let numericPostId;
       
-      if (!post) {
-        console.error('Post not found for liking:', postId);
-        setError('Failed to like post: Post not found');
-        return null;
+      if (typeof postId === 'object' && postId !== null) {
+        // If we received a post object, extract ID
+        numericPostId = postId.newsfeedId || postId.newsfeed_id;
+        console.log('Extracted ID from post object:', numericPostId);
+      } else {
+        // If we received just the ID
+        numericPostId = postId;
+        console.log('Using provided ID directly:', numericPostId);
       }
       
-      // Use the correct ID property
-      const numericPostId = post.newsfeedId || post.newsfeed_id;
-      
-      console.log(`Using numeric ID for liking: ${numericPostId}`);
-      
       if (!numericPostId) {
+        console.error('Invalid post ID for liking:', postId);
         setError('Failed to like post: Invalid post ID');
         return null;
       }
       
-      const updatedPost = await likePost(numericPostId);
+      // Ensure numeric ID is treated as a number
+      numericPostId = parseInt(numericPostId, 10);
       
-      // Update the post in the posts array
+      if (isNaN(numericPostId)) {
+        console.error('Post ID is not a valid number:', postId);
+        setError('Failed to like post: Invalid post ID format');
+        return null;
+      }
+      
+      console.log(`Making API call to like post with ID: ${numericPostId}`);
+      
+      // Use the toggleLikePost function
+      const result = await toggleLikePost(numericPostId);
+      console.log('Like toggle result:', result);
+      
+      // Update local like status
+      setLikeStatuses(prev => ({
+        ...prev,
+        [numericPostId]: {
+          liked: result.liked,
+          likeCount: result.likeCount
+        }
+      }));
+      
+      // Update the post in the posts array with the new like count
       setPosts(prevPosts => 
         prevPosts.map(p => {
-          const postIdentifier = p.newsfeedId || p.newsfeed_id;
-          return postIdentifier === numericPostId ? updatedPost : p;
+          const postIdentifier = parseInt(p.newsfeedId || p.newsfeed_id, 10);
+          if (postIdentifier === numericPostId) {
+            console.log(`Updating post ${postIdentifier} with new like count: ${result.likeCount}`);
+            return {
+              ...p,
+              likeCount: result.likeCount,
+              like_count: result.likeCount
+            };
+          }
+          return p;
         })
       );
       
-      return updatedPost;
+      // Force a refresh of the posts
+      setTimeout(refreshPosts, 500);
+      
+      return result.post;
     } catch (error) {
       console.error('Error liking post:', error);
-      setError('Failed to like post.');
+      setError('Failed to like post. Please try again.');
       return null;
+    }
+  };
+
+  // Check if a user has liked a post
+  const checkIfUserLiked = async (postId) => {
+    try {
+      const numericPostId = typeof postId === 'object' ? 
+        (postId.newsfeedId || postId.newsfeed_id) : 
+        postId;
+      
+      if (!numericPostId) return false;
+      
+      // First check our local state
+      if (likeStatuses[numericPostId]) {
+        return likeStatuses[numericPostId].liked;
+      }
+      
+      // Otherwise check with the server
+      const liked = await checkUserLiked(numericPostId);
+      
+      // Update our local state
+      setLikeStatuses(prev => ({
+        ...prev,
+        [numericPostId]: {
+          ...prev[numericPostId],
+          liked
+        }
+      }));
+      
+      return liked;
+    } catch (error) {
+      console.error('Error checking if user liked post:', error);
+      return false;
+    }
+  };
+
+  // Get a single post by ID
+  const fetchPostById = async (postId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log(`Fetching post with ID: ${postId}`);
+      const post = await getPostById(postId);
+      
+      // Get the like status for this post
+      const likeStatus = await getLikeStatus(postId);
+      
+      // Update local like status
+      setLikeStatuses(prev => ({
+        ...prev,
+        [postId]: {
+          liked: likeStatus.liked,
+          likeCount: likeStatus.likeCount
+        }
+      }));
+      
+      return post;
+    } catch (error) {
+      console.error('Error fetching post by ID:', error);
+      setError('Failed to fetch post. Please try again.');
+      return null;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -311,6 +449,7 @@ const useNewsfeed = (initialUsername = null) => {
     posts,
     loading,
     error,
+    likeStatuses, // Now exposing the like statuses
     loadPosts,
     loadMyPosts,
     loadUserPosts,
@@ -318,7 +457,9 @@ const useNewsfeed = (initialUsername = null) => {
     handleCreatePost,
     handleUpdatePost,
     handleDeletePost,
-    handleLikePost
+    handleLikePost,
+    checkIfUserLiked, // New function to check if a user liked a post
+    fetchPostById     // New function to fetch a single post
   };
 };
 
