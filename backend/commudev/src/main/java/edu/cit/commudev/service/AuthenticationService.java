@@ -103,22 +103,26 @@ public class AuthenticationService {
 
     public User authenticate(LoginUserDto input) {
         logger.info("Authenticating user: " + input.getEmail());
-
-        // Try to find user by email first, then by username
+    
+        // Check if input is an email
+        if (!input.getEmail().contains("@")) {
+            throw new RuntimeException("Please use your email address to login");
+        }
+    
+        // Try to find user by email only, not by username
         User user = userRepository.findByEmail(input.getEmail())
-                .orElseGet(() -> userRepository.findByUsername(input.getEmail())
-                        .orElseThrow(() -> new RuntimeException("User not found")));
-
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    
         // Check verification
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not verified. Please verify your account.");
         }
-
+    
         // Authenticate
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getUsername(), input.getPassword())
         );
-
+    
         logger.info("Authentication successful for user: " + user.getUsername());
         return user;
     }
