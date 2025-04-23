@@ -21,20 +21,21 @@ export const login = async (email, password) => {
   try {
     // First try to authenticate with Firebase
     let firebaseUser;
-    try {
-      // Extract email from the response or use the provided email
-      const userEmail = email.includes('@') ? email : `${email}@example.com`;
-      console.log("Signing in to Firebase with:", userEmail);
-      
-      const userCredential = await signInWithEmail(userEmail, password);
-      if (userCredential && userCredential.user) {
-        firebaseUser = userCredential.user;
-        console.log("Firebase sign-in successful:", firebaseUser.uid);
-      } else {
-        console.log("Firebase sign-in completed but no user returned");
-      }
-    } catch (firebaseError) {
-      console.error("Firebase auth error:", firebaseError);
+try {
+  // Extract email from the response or use the provided email
+  const userEmail = email.includes('@') ? email : `${email}@example.com`;
+  console.log("Signing in to Firebase with:", userEmail);
+  
+  // Modified: The returned value is directly the user from firebaseAuth.js
+  firebaseUser = await signInWithEmail(userEmail, password);
+  
+  if (firebaseUser && firebaseUser.uid) {
+    console.log("Firebase sign-in successful:", firebaseUser.uid);
+  } else {
+    console.log("Firebase sign-in completed but no user returned");
+  }
+} catch (firebaseError) {
+  console.error("Firebase auth error:", firebaseError);
       // If the user doesn't exist in Firebase, create them
       if (firebaseError.code === 'auth/user-not-found') {
         console.log("Creating new Firebase user");
