@@ -14,7 +14,7 @@ const NotificationsPage = () => {
     error,
     fetchNotifications,
     fetchUnreadNotifications,
-    handleMarkAllAsRead
+    handleDeleteAllNotifications
   } = useNotifications();
 
   // Fetch notifications based on active tab
@@ -30,13 +30,13 @@ const NotificationsPage = () => {
     setActiveTab(tab);
   };
 
-  const handleMarkAllRead = async () => {
-    await handleMarkAllAsRead();
-    // Refresh notifications after marking all as read
+  const handleDeleteAll = async () => {
+    await handleDeleteAllNotifications();
+    // Refresh notifications after deleting all
     if (activeTab === 'all') {
       fetchNotifications();
     } else {
-      // If we're on unread tab, there will be no notifications after marking all as read
+      // If we're on unread tab, there will be no notifications after deleting all
       fetchUnreadNotifications();
     }
   };
@@ -48,10 +48,10 @@ const NotificationsPage = () => {
           <h1>Notifications</h1>
           <Button 
             variant="primary" 
-            onClick={handleMarkAllRead}
+            onClick={handleDeleteAll}
             disabled={loading || notifications.length === 0}
           >
-            Mark all as read
+            Delete notifications
           </Button>
         </div>
 

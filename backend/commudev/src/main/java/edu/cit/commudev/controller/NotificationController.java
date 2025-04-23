@@ -72,17 +72,17 @@ public class NotificationController {
         }
     }
 
-    // Mark all notifications as read
-    @PatchMapping("/read-all")
-    public ResponseEntity<?> markAllAsRead() {
+    // Delete all notifications
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<?> deleteAllNotifications() {
         try {
-            int count = notificationService.markAllAsRead();
+            int count = notificationService.deleteAllNotifications();
             Map<String, String> response = new HashMap<>();
-            response.put("message", count + " notifications marked as read");
+            response.put("message", count + " notifications deleted");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to mark all notifications as read: " + e.getMessage());
+            errorResponse.put("error", "Failed to delete notifications: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }

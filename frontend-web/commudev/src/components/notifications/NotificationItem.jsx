@@ -8,7 +8,7 @@ import '../../styles/components/notificationItem.css';
 
 const NotificationItem = ({ notification, onClose }) => {
   const navigate = useNavigate();
-  const { handleMarkAsRead } = useNotifications();
+  const { handleMarkAsRead, handleDeleteNotification } = useNotifications();
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -37,6 +37,14 @@ const NotificationItem = ({ notification, onClose }) => {
         } 
       });
     }
+  };
+  
+  const handleDelete = async (e) => {
+    e.stopPropagation(); // Prevent triggering the parent click handler
+    
+    await handleDeleteNotification(notification.notificationId);
+    
+    // No need to close dropdown here since the item will be removed from the list
   };
   
   // Get actor's profile picture
@@ -96,6 +104,16 @@ const NotificationItem = ({ notification, onClose }) => {
       </div>
       
       {getNotificationIcon()}
+      
+      <button 
+        className="delete-notification-button"
+        onClick={handleDelete}
+        aria-label="Delete notification"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+        </svg>
+      </button>
     </div>
   );
 };
