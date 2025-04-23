@@ -1,14 +1,16 @@
 // src/components/newsfeed/PeopleYouMayKnow.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
 import { getAllUsers } from '../../services/userService';
-import '../../styles/components/search.css';
+import UserProfileModal from '../modals/UserProfileModal';
+import '../../styles/components/peopleYouMayKnow.css';
 
 const PeopleYouMayKnow = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { profile } = useProfile();
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -56,6 +58,17 @@ const PeopleYouMayKnow = () => {
     return '/src/assets/images/profile/default-avatar.png';
   };
 
+  // Open modal with selected user
+  const handleUserClick = (user) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  // Close the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="people-suggestions">
@@ -69,12 +82,16 @@ const PeopleYouMayKnow = () => {
     <div className="people-suggestions">
       <div className="suggestions-header">
         <h3>PEOPLE YOU MAY KNOW</h3>
-        <Link to="/users" className="see-all-link">See All</Link>
+        <button className="see-all-link">See All</button>
       </div>
       <div className="suggestions-list">
         {users.length > 0 ? (
           users.map(user => (
-            <div key={user.id} className="suggestion-item">
+            <div 
+              key={user.id} 
+              className="suggestion-item"
+              onClick={() => handleUserClick(user)}
+            >
               <img 
                 src={getProfilePicture(user)} 
                 alt={`${getUserName(user)}'s profile`}
@@ -85,17 +102,28 @@ const PeopleYouMayKnow = () => {
                 }}
               />
               <span className="suggestion-name">{getUserName(user)}</span>
-              <Link to={`/profiles/${user.username}`} className="suggestion-add-btn">
+              <button className="suggestion-add-btn" onClick={(e) => {
+                e.stopPropagation(); 
+                console.log('Add button clicked for:', user.id);
+                alert(`Friend request sent to ${getUserName(user)}`);
+              }}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                   <path d="M12 11V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2h-6v6a1 1 0 0 1-2 0v-6H6a1 1 0 0 1 0-2h6z"/>
                 </svg>
-              </Link>
+              </button>
             </div>
           ))
         ) : (
           <div className="suggestions-empty">No users found</div>
         )}
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        user={selectedUser} 
+      />
     </div>
   );
 };
