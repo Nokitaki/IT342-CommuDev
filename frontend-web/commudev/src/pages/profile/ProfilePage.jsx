@@ -211,7 +211,7 @@ const ProfilePage = () => {
                   (profile.profilePicture.startsWith('http') ? 
                     profile.profilePicture : 
                     `http://localhost:8080${profile.profilePicture}`) : 
-                  '/src/assets/images/profile/default-avatar.png'
+                  '/src/assets/images/profile/pp.png'
                 }
                   alt={getFullName()} 
                   size="medium" 
@@ -527,7 +527,7 @@ const ProfilePage = () => {
             <Avatar 
               src={profile?.profilePicture ? 
                 `http://localhost:8080${profile.profilePicture}` : 
-                '/src/assets/images/profile/default-avatar.png'
+                '/src/assets/images/profile/pp.png'
               } 
               alt={getFullName()} 
               size="small" 
@@ -553,7 +553,7 @@ const ProfilePage = () => {
               (profile.coverPhoto.startsWith('http') ? 
                 profile.coverPhoto : 
                 `http://localhost:8080${profile.coverPhoto}`) : 
-              '/src/assets/images/profile/prof4.jpg'
+              '/src/assets/images/profile/coverphoto.jpg'
             }
             alt="Cover"
             className="profile-cover-image"
@@ -581,14 +581,14 @@ const ProfilePage = () => {
                 key={`profile-image-${imageKey}`}
                 src={profile?.profilePicture ? 
                   `http://localhost:8080${profile.profilePicture}` : 
-                  '/src/assets/images/profile/default-avatar.png'
+                  '/src/assets/images/profile/pp.png'
                 } 
                 alt={getFullName()} 
                 className="profile-avatar-image"
                 onError={(e) => {
                   console.log("Error loading profile picture:", profile?.profilePicture);
                   e.target.onerror = null;
-                  e.target.src = '/src/assets/images/profile/default-avatar.png';
+                  e.target.src = '/src/assets/images/profile/pp.png';
                 }}
               />
             </div>
