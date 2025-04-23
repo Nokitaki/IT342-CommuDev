@@ -151,9 +151,48 @@ export const deletePost = async (postId) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    console.log(`Attempting to delete post with ID: ${postId}`);
+    // Convert any postId to a number
+    const numericPostId = parseInt(postId, 10);
+    if (isNaN(numericPostId)) {
+      throw new Error('Invalid post ID');
+    }
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/delete/${postId}`, {
+    console.log(`Attempting to delete post with ID: ${numericPostId}`);
+    
+    // Instead of deleting, we'll try to update the status to "deleted"
+    const softDeleteData = {
+      post_status: "deleted",
+      postStatus: "deleted"
+    };
+    
+    // Try soft delete first (update status to "deleted")
+    try {
+      const response = await fetch(`http://localhost:8080/api/newsfeed/update/${numericPostId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(softDeleteData)
+      });
+      
+      console.log(`Soft delete response status: ${response.status}`);
+      
+      if (response.ok) {
+        console.log('Post soft-deleted successfully');
+        return true;
+      }
+      
+      // If soft delete failed, try hard delete as a fallback
+      console.log('Soft delete failed, attempting hard delete');
+    } catch (error) {
+      console.warn('Error during soft delete, attempting hard delete:', error);
+    }
+    
+    // Try hard delete (this may still fail due to foreign key constraints)
+    const deleteResponse = await fetch(`http://localhost:8080/api/newsfeed/delete/${numericPostId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -163,24 +202,30 @@ export const deletePost = async (postId) => {
       credentials: 'include'
     });
     
-    console.log(`Delete post response status: ${response.status}`);
+    console.log(`Hard delete response status: ${deleteResponse.status}`);
     
-    if (!response.ok) {
+    if (!deleteResponse.ok) {
       let errorMessage;
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || `Error deleting post: ${response.status}`;
+        const errorData = await deleteResponse.json();
+        errorMessage = errorData.error || errorData.message || `Error deleting post: ${deleteResponse.status}`;
+        
+        // If the error contains foreign key constraint, suggest an alternative
+        if (errorMessage.includes('foreign key constraint')) {
+          throw new Error('Cannot delete post with comments. Try hiding it instead.');
+        }
+        
+        throw new Error(errorMessage);
       } catch (e) {
-        errorMessage = `Error deleting post: ${response.status}`;
+        throw e; // Re-throw the already formatted error
       }
-      throw new Error(errorMessage);
     }
     
-    console.log('Post deleted successfully');
+    console.log('Post hard-deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting post:', error);
-    throw new Error(error.message || 'Failed to delete post');
+    throw error;
   }
 };
 
@@ -344,25 +389,23 @@ export const updatePost = async (postId, postData) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    // Create data object with BOTH camelCase and snake_case properties
-    // This ensures whichever format your backend expects will be available
+    // Convert any postId to a number
+    const numericPostId = parseInt(postId, 10);
+    if (isNaN(numericPostId)) {
+      throw new Error('Invalid post ID');
+    }
+    
+    // Important: Format the data properly
+    // Make sure we have the essential fields in the right format
     const formattedData = {
-      // snake_case versions (for database columns)
       post_description: postData.post_description || postData.postDescription || '',
       post_type: postData.post_type || postData.postType || 'General',
-      post_status: postData.post_status || postData.postStatus || 'active',
-      post_date: postData.post_date || postData.postDate || new Date().toISOString(),
-      
-      // ALSO include camelCase versions (for Java entity properties)
-      postDescription: postData.post_description || postData.postDescription || '',
-      postType: postData.post_type || postData.postType || 'General',
-      postStatus: postData.post_status || postData.postStatus || 'active',
-      postDate: postData.post_date || postData.postDate || new Date().toISOString()
+      post_status: postData.post_status || postData.postStatus || 'active'
     };
     
-    console.log(`Updating post ${postId} with data:`, formattedData);
+    console.log(`Updating post ${numericPostId} with data:`, formattedData);
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/update/${postId}`, {
+    const response = await fetch(`http://localhost:8080/api/newsfeed/update/${numericPostId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -389,30 +432,10 @@ export const updatePost = async (postId, postData) => {
     const updatedPost = await response.json();
     console.log('Post updated successfully:', updatedPost);
     
-    // Convert returned post to include both property naming styles to ensure compatibility
-    const normalizedPost = {
-      ...updatedPost,
-      // Ensure we have snake_case properties (for frontend)
-      newsfeed_id: updatedPost.newsfeedId || updatedPost.newsfeed_id,
-      post_description: updatedPost.postDescription || updatedPost.post_description || '',
-      post_type: updatedPost.postType || updatedPost.post_type || 'General',
-      post_status: updatedPost.postStatus || updatedPost.post_status || 'active',
-      post_date: updatedPost.postDate || updatedPost.post_date,
-      like_count: updatedPost.likeCount || updatedPost.like_count || 0,
-      
-      // And camelCase properties (for Java)
-      newsfeedId: updatedPost.newsfeedId || updatedPost.newsfeed_id,
-      postDescription: updatedPost.postDescription || updatedPost.post_description || '',
-      postType: updatedPost.postType || updatedPost.post_type || 'General',
-      postStatus: updatedPost.postStatus || updatedPost.post_status || 'active',
-      postDate: updatedPost.postDate || updatedPost.post_date,
-      likeCount: updatedPost.likeCount || updatedPost.like_count || 0
-    };
-    
-    return normalizedPost;
+    return updatedPost;
   } catch (error) {
     console.error('Error updating post:', error);
-    throw new Error(error.message || 'Failed to update post');
+    throw error;
   }
 };
 

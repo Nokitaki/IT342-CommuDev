@@ -1,13 +1,11 @@
 // src/components/modals/UserProfileModal.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import Button from '../common/Button';
 import '../../styles/components/userProfileModal.css';
 
 const UserProfileModal = ({ isOpen, onClose, user }) => {
+  // Check for null/undefined user or not being open
   if (!isOpen || !user) return null;
-
-  // Debugging: Log the user object to inspect properties
-  console.log("User object in modal:", user);
 
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -15,7 +13,9 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
   // Get user's profile picture with fallback
   const getProfilePicture = () => {
     if (user.profilePicture) {
-      return `${API_URL}${user.profilePicture}`;
+      return user.profilePicture.startsWith('http') 
+        ? user.profilePicture 
+        : `${API_URL}${user.profilePicture}`;
     }
     return '/src/assets/images/profile/default-avatar.png';
   };
@@ -23,7 +23,9 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
   // Get user's cover photo with fallback
   const getCoverPhoto = () => {
     if (user.coverPhoto) {
-      return `${API_URL}${user.coverPhoto}`;
+      return user.coverPhoto.startsWith('http') 
+        ? user.coverPhoto 
+        : `${API_URL}${user.coverPhoto}`;
     }
     return '/src/assets/images/profile/coverphoto.jpg';
   };
@@ -42,16 +44,21 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
   const formatJoinDate = () => {
     if (!user.createdAt) return 'Recently joined';
     
-    const date = new Date(user.createdAt);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long'
-    });
+    try {
+      const date = new Date(user.createdAt);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long'
+      });
+    } catch (e) {
+      return 'Recently joined';
+    }
   };
 
-  // Get employment status display text
+  // Handle the employment status display
   const getEmploymentStatusText = () => {
-    if (!user.employmentStatus) return null;
+    const status = user.employmentStatus;
+    if (!status) return '—';
     
     const statusMap = {
       'EMPLOYED_FULL_TIME': '👨‍💼 Employed Full-Time',
@@ -65,16 +72,27 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
       'PREFER_NOT_TO_SAY': '🤐 Prefer Not to Say'
     };
     
-    return statusMap[user.employmentStatus] || user.employmentStatus.replace(/_/g, ' ');
+    // First check if it's in our map
+    if (statusMap[status]) return statusMap[status];
+    
+    // Then check if it's a string that needs formatting
+    if (typeof status === 'string') {
+      return status.replace(/_/g, ' ');
+    }
+    
+    // Last resort
+    return '—';
   };
 
-  // Get country display with emoji
+  // Handle country display with emoji
   const getCountryDisplay = () => {
-    if (!user.country) return null;
+    const country = user.country;
+    if (!country) return '—';
     
     const countryEmojis = {
       'US': '🇺🇸 United States',
       'CA': '🇨🇦 Canada',
+      'GB': '🇬🇧 United Kingdom',
       'UK': '🇬🇧 United Kingdom',
       'AU': '🇦🇺 Australia',
       'PH': '🇵🇭 Philippines',
@@ -90,15 +108,30 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
       'MX': '🇲🇽 Mexico'
     };
     
-    return countryEmojis[user.country] || `🌎 ${user.country}`;
+    // First check if it's in our emoji map
+    if (countryEmojis[country]) return countryEmojis[country];
+    
+    // Otherwise return with global emoji
+    return `🌎 ${country}`;
+  };
+
+  // Get birth info (combining date of birth and age)
+  const getBirthInfo = () => {
+    if (user.dateOfBirth) return `Born on ${user.dateOfBirth}`;
+    if (user.age) return `${user.age} years old`;
+    return '—';
   };
 
   // Handle add friend button click
   const handleAddFriend = () => {
-    // Implement friendship functionality here
     console.log('Adding friend:', user.id);
-    // Show some feedback to the user
     alert(`Friend request sent to ${getFullName()}`);
+  };
+
+  // Handle message button click
+  const handleMessage = () => {
+    console.log('Messaging:', user.id);
+    alert(`Messaging ${getFullName()}`);
   };
 
   return (
@@ -139,15 +172,15 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
           <div className="user-profile-details">
             <div className="profile-header-section">
               <h2 className="user-profile-name">{getFullName()}</h2>
-              <div className="profile-status-badge">
-                {user.employmentStatus === 'STUDENT' ? 
-                  <span className="status-student">Student</span> : 
-                  <span className="status-active">Active</span>}
-              </div>
+              {user.employmentStatus === 'STUDENT' && (
+                <div className="profile-status-badge">
+                  <span className="status-student">Student</span>
+                </div>
+              )}
             </div>
             <p className="user-profile-username">@{user.username}</p>
 
-            {/* About Section - Now the main focus */}
+            {/* About Section */}
             <div className="user-profile-tab-content">
               <div className="user-profile-about">
                 {user.biography && (
@@ -161,43 +194,40 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                 )}
                 
                 <div className="user-profile-details-grid">
-                  {/* Debug info to see what's available */}
-                  {/* Console log moved to the top of the component */}
-
-                  {/* Employment Status - forced to display for debugging */}
+                  {/* Employment Status */}
                   <div className="user-profile-detail-item">
                     <div className="detail-icon-container employment">
                       <span className="detail-icon">💼</span>
                     </div>
                     <div className="detail-content">
-                      <h4>Employment</h4>
-                      <p>{getEmploymentStatusText() || 'Not specified'}</p>
+                      <h4>Status</h4>
+                      <p>{getEmploymentStatusText()}</p>
                     </div>
                   </div>
                   
-                  {/* Country/Location - forced to display for debugging */}
+                  {/* Country/Location */}
                   <div className="user-profile-detail-item">
                     <div className="detail-icon-container location">
                       <span className="detail-icon">📍</span>
                     </div>
                     <div className="detail-content">
                       <h4>Location</h4>
-                      <p>{getCountryDisplay() || 'Not specified'}</p>
+                      <p>{getCountryDisplay()}</p>
                     </div>
                   </div>
                   
-                  {/* Birthday - forced to display for debugging */}
+                  {/* Birthday/Age */}
                   <div className="user-profile-detail-item">
                     <div className="detail-icon-container birthday">
                       <span className="detail-icon">🎂</span>
                     </div>
                     <div className="detail-content">
                       <h4>Birthday</h4>
-                      <p>{user.dateOfBirth || 'Not specified'}</p>
+                      <p>{getBirthInfo()}</p>
                     </div>
                   </div>
                   
-                  {/* Join Date - always displayed */}
+                  {/* Join Date */}
                   <div className="user-profile-detail-item">
                     <div className="detail-icon-container joined">
                       <span className="detail-icon">📆</span>
@@ -205,19 +235,6 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                     <div className="detail-content">
                       <h4>Joined</h4>
                       <p>{formatJoinDate()} 🎉</p>
-                    </div>
-                  </div>
-                  
-                  {/* Profile Visibility - forced to display for debugging */}
-                  <div className="user-profile-detail-item">
-                    <div className="detail-icon-container privacy">
-                      <span className="detail-icon">🔒</span>
-                    </div>
-                    <div className="detail-content">
-                      <h4>Profile</h4>
-                      <p>{user.profileVisibility === 'PUBLIC' ? 'Public Profile' : 
-                          user.profileVisibility === 'FRIENDS' ? 'Friends Only' : 
-                          user.profileVisibility || 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
@@ -237,10 +254,7 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
               <Button 
                 variant="secondary" 
                 className="message-button"
-                onClick={() => {
-                  console.log('Messaging:', user.id);
-                  alert(`Messaging ${getFullName()}`);
-                }}
+                onClick={handleMessage}
               >
                 <span className="message-icon">💬</span>
                 Message

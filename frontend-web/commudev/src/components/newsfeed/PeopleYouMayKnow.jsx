@@ -1,7 +1,7 @@
 // src/components/newsfeed/PeopleYouMayKnow.jsx
 import React, { useState, useEffect } from 'react';
 import useProfile from '../../hooks/useProfile';
-import { getAllUsers } from '../../services/userService';
+import { getAllUsers, getUserById } from '../../services/userService';
 import UserProfileModal from '../modals/UserProfileModal';
 import '../../styles/components/peopleYouMayKnow.css';
 
@@ -11,6 +11,7 @@ const PeopleYouMayKnow = () => {
   const { profile } = useProfile();
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [detailedUser, setDetailedUser] = useState(null);
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -59,14 +60,55 @@ const PeopleYouMayKnow = () => {
   };
 
   // Open modal with selected user
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
+  const handleUserClick = async (user) => {
+    try {
+      // First try to get detailed data from user profile endpoint
+      console.log("Fetching detailed profile for user ID:", user.id);
+      
+      // Try to get detailed user data with custom API call
+      const detailedUserData = await fetch(`${API_URL}/users/${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        credentials: 'include'
+      });
+      
+      if (detailedUserData.ok) {
+        const userData = await detailedUserData.json();
+        console.log("✅ Fetched detailed user data:", userData);
+        
+        // Set the detailed user data for the modal
+        setDetailedUser(userData);
+        setIsModalOpen(true);
+        return;
+      }
+      
+      // If first attempt fails, try the getUserById service
+      const fallbackUserData = await getUserById(user.id);
+      console.log("⚠️ Using fallback user data:", fallbackUserData);
+      
+      // Merge the original user data with fallback data to ensure we have all fields
+      const mergedData = { ...user, ...fallbackUserData };
+      
+      // Set the merged data for the modal
+      setDetailedUser(mergedData);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("❌ Error fetching detailed user data:", error);
+      // Fallback to using the basic user data we already have
+      console.log("Using basic user data as fallback:", user);
+      setDetailedUser(user);
+      setIsModalOpen(true);
+    }
   };
 
   // Close the modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setDetailedUser(null);
   };
 
   if (loading) {
@@ -118,11 +160,11 @@ const PeopleYouMayKnow = () => {
         )}
       </div>
 
-      {/* User Profile Modal */}
+      {/* User Profile Modal - Using the detailed user data */}
       <UserProfileModal 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
-        user={selectedUser} 
+        user={detailedUser} 
       />
     </div>
   );

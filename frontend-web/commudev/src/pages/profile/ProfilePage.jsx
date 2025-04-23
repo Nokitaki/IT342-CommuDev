@@ -1,3 +1,4 @@
+// src/pages/profile/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from '../../components/common/Avatar';
@@ -14,8 +15,6 @@ import '../../styles/pages/profile.css';
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
 import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
-
-
 
 const ProfilePage = () => {
   // Authentication and user data
@@ -48,8 +47,17 @@ const ProfilePage = () => {
   // UI state
   const [activeTab, setActiveTab] = useState('posts');
   
-  // Newsfeed hooks
-  const { handleCreatePost, handleUpdatePost, handleDeletePost, handleLikePost } = useNewsfeed();
+  // Newsfeed hooks with loadMyPosts function
+  const { 
+    posts,
+    loading: postsLoading,
+    error: postsError,
+    loadMyPosts,
+    handleCreatePost, 
+    handleUpdatePost, 
+    handleDeletePost, 
+    handleLikePost 
+  } = useNewsfeed();
 
   // Helper function for getting full name
   const getFullName = () => {
@@ -63,34 +71,25 @@ const ProfilePage = () => {
     return 'User';
   };
 
-  // Filter posts for the current user
+  // Load user's posts when profile loads
   useEffect(() => {
-    const loadUserPosts = async () => {
-      try {
-        setIsLoading(true);
-        const allPosts = await fetchAllPosts();
-        // Get current user ID from profile
-        const userId = profile?.id;
-        
-        if (userId) {
-          // Filter posts by creator_id or creator name
-          const filtered = allPosts.filter(post => 
-            post.creator_id === userId || 
-            post.creator === `${profile.firstname} ${profile.lastname}`
-          );
-          setUserPosts(filtered);
+    const fetchUserPosts = async () => {
+      if (profile) {
+        try {
+          setIsLoading(true);
+          // Use the loadMyPosts function from useNewsfeed hook
+          // This makes a direct API call to get the user's own posts
+          await loadMyPosts();
+        } catch (error) {
+          console.error("Error loading user posts:", error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Error loading user posts:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    if (profile) {
-      loadUserPosts();
-    }
-  }, [profile]);
+    fetchUserPosts();
+  }, [profile, loadMyPosts]);
 
   // Handle profile picture click
   const handleProfilePictureClick = () => {
@@ -252,20 +251,20 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Posts list */}
+            {/* Posts list - Now using the posts from useNewsfeed */}
             <div className="profile-posts">
-              {isLoading ? (
+              {isLoading || postsLoading ? (
                 <div className="loading-message">
                   <div className="loading-spinner"></div>
                   Loading posts...
                 </div>
-              ) : userPosts.length > 0 ? (
-                userPosts.map(post => (
+              ) : posts.length > 0 ? (
+                posts.map(post => (
                   <NewsfeedItem 
-                    key={post.newsfeed_id}
+                    key={post.newsfeedId || post.newsfeed_id}
                     post={post}
-                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeed_id, updatedPost)}
-                    onDelete={() => handleDeletePost(post.newsfeed_id)}
+                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeedId || post.newsfeed_id, updatedPost)}
+                    onDelete={() => handleDeletePost(post.newsfeedId || post.newsfeed_id)}
                     onLike={() => handleLikePost(post)}
                     onEdit={() => {
                       setEditingPost(post);
@@ -795,8 +794,16 @@ const ProfilePage = () => {
          setEditingPost(null);
        }}
        onSubmit={editingPost ? 
-         (formData) => handleUpdatePost(editingPost.newsfeed_id, formData) : 
-         handleCreatePost
+         (formData) => {
+           handleUpdatePost(editingPost.newsfeedId || editingPost.newsfeed_id, formData);
+           // Refresh posts after update
+           loadMyPosts();
+         } : 
+         (formData) => {
+           handleCreatePost(formData);
+           // Refresh posts after creation
+           loadMyPosts();
+         }
        }
        editPost={editingPost}
        userName={getFullName()}

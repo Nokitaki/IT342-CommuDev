@@ -67,43 +67,48 @@ export const getPaginatedUsers = async (page = 0, size = 10) => {
  */
 export const getUserById = async (userId) => {
   try {
-    // Try first with the all users endpoint since it's public
-    const allUsers = await getAllUsers();
-    const user = allUsers.find(u => u.id == userId); // Use loose equality for string/number conversion
-    
-    if (user) {
-      return user;
-    }
-    
-    // If not found in the public list, try with authentication if available
+    // First try the authenticated endpoint for complete data
     const token = localStorage.getItem('token');
     if (token) {
-      try {
-        const response = await fetch(`${API_URL}/users/${userId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const userData = await response.json();
-          return userData;
-        } else {
-          console.log(`Failed to fetch user with status: ${response.status}`);
-          // If we get a 404, try one more approach with the /all endpoint
-          if (response.status === 404) {
-            // Refresh the all users list and try again (they might have been added recently)
-            const refreshedUsers = await getAllUsers();
-            const refreshedUser = refreshedUsers.find(u => u.id == userId);
-            if (refreshedUser) return refreshedUser;
-          }
-        }
-      } catch (err) {
-        console.log('User fetch with token failed:', err);
+      const response = await fetch(`${API_URL}/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        console.log("Fetched full user profile:", userData);
+        return userData;
       }
+    }
+    
+    // Fallback: Try the public profile endpoint
+    const profileResponse = await fetch(`${API_URL}/users/profiles/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    
+    if (profileResponse.ok) {
+      const profileData = await profileResponse.json();
+      console.log("Fetched public profile:", profileData);
+      return profileData;
+    }
+    
+    // Last resort: Use all users endpoint
+    const allUsers = await getAllUsers();
+    const user = allUsers.find(u => u.id == userId);
+    if (user) {
+      console.log("Found user in all users list:", user);
+      return user;
     }
     
     throw new Error('User not found');
