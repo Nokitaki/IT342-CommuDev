@@ -5,7 +5,7 @@ import {
   getUnreadNotifications, 
   getUnreadCount, 
   markAsRead, 
-  markAllAsRead,
+  deleteAllNotifications,
   deleteNotification
 } from '../services/notificationService';
 
@@ -89,26 +89,21 @@ const useNotifications = () => {
     }
   };
 
-  // Mark all notifications as read
-  const handleMarkAllAsRead = async () => {
+  // Delete all notifications
+  const handleDeleteAllNotifications = async () => {
     try {
-      await markAllAsRead();
+      await deleteAllNotifications();
       
-      // Update local state - mark all notifications as read
-      setNotifications(prev => 
-        prev.map(notification => ({ ...notification, isRead: true }))
-      );
+      // Clear local state - remove all notifications
+      setNotifications([]);
       
-      // Update unread count - set to 0 since all are read
+      // Update unread count - set to 0 since all are deleted
       setUnreadCount(0);
-      
-      // Force a refresh of the notifications
-      refreshNotifications();
       
       return true;
     } catch (err) {
-      console.error('Error marking all notifications as read:', err);
-      setError('Failed to mark all notifications as read');
+      console.error('Error deleting all notifications:', err);
+      setError('Failed to delete notifications');
       return false;
     }
   };
@@ -161,7 +156,7 @@ const useNotifications = () => {
     fetchUnreadNotifications,
     fetchUnreadCount,
     handleMarkAsRead,
-    handleMarkAllAsRead,
+    handleDeleteAllNotifications,
     handleDeleteNotification,
     refreshNotifications
   };

@@ -23,6 +23,24 @@ const useNewsfeed = (initialUsername = null) => {
   // Load like statuses for all posts
   const loadLikeStatuses = async (postsToCheck) => {
     try {
+      // Check if the user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // If not authenticated, set default like statuses
+        const defaultStatuses = {};
+        postsToCheck.forEach(post => {
+          const postId = post.newsfeedId || post.newsfeed_id;
+          if (postId) {
+            defaultStatuses[postId] = {
+              liked: false,
+              likeCount: post.likeCount || post.like_count || 0
+            };
+          }
+        });
+        setLikeStatuses(defaultStatuses);
+        return;
+      }
+      
       const statuses = {};
       
       // Get like status for each post

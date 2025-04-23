@@ -11,7 +11,7 @@ const NotificationDropdown = ({ onClose }) => {
     loading, 
     error, 
     fetchNotifications, 
-    handleMarkAllAsRead 
+    handleDeleteAllNotifications 
   } = useNotifications();
   
   // Fetch notifications when component mounts
@@ -19,8 +19,8 @@ const NotificationDropdown = ({ onClose }) => {
     fetchNotifications();
   }, [fetchNotifications]);
   
-  const onMarkAllAsRead = async () => {
-    await handleMarkAllAsRead();
+  const onDeleteAllNotifications = async () => {
+    await handleDeleteAllNotifications();
   };
   
   return (
@@ -28,10 +28,10 @@ const NotificationDropdown = ({ onClose }) => {
       <div className="notification-dropdown-header">
         <h3>Notifications</h3>
         <button 
-          className="mark-all-read-button" 
-          onClick={onMarkAllAsRead}
+          className="delete-all-button" 
+          onClick={onDeleteAllNotifications}
         >
-          Mark all as read
+          Delete notifications
         </button>
       </div>
       

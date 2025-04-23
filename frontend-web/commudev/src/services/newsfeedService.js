@@ -1,5 +1,9 @@
 // src/services/newsfeedService.js
 
+
+const API_URL = 'http://localhost:8080';
+
+
 /**
  * Fetch all posts from the server
  * @returns {Promise<Array>} Array of post objects
@@ -564,12 +568,17 @@ export const getLikeStatus = async (postId) => {
   try {
     const token = localStorage.getItem('token');
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/like-status/${postId}`, {
+    // If there's no token, return default values without making the API call
+    if (!token) {
+      return { liked: false, likeCount: 0 };
+    }
+    
+    const response = await fetch(`${API_URL}/api/newsfeed/like-status/${postId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        'Authorization': `Bearer ${token}`
       },
       credentials: 'include'
     });

@@ -25,11 +25,26 @@ export const registerWithEmailAndPassword = async (email, password) => {
 
 // For signInWithEmail
 export const signInWithEmail = async (email, password) => {
+  console.log("Starting Firebase sign-in process");
+  console.log("Auth object exists:", !!auth);
+  
   try {
+    console.log("Attempting Firebase signInWithEmailAndPassword");
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential?.user || { uid: null }; // Return a fallback object if user is undefined
+    
+    console.log("SignInWithEmailAndPassword returned:", userCredential);
+    console.log("User object exists:", !!userCredential?.user);
+    
+    if (userCredential && userCredential.user) {
+      console.log("User object properties:", Object.keys(userCredential.user));
+      console.log("User UID:", userCredential.user.uid);
+      return userCredential.user;
+    } else {
+      console.error("Firebase returned empty user credential");
+      throw new Error("Authentication failed: empty user credential");
+    }
   } catch (error) {
-    console.error("Error signing in:", error);
+    console.error("Firebase sign-in error:", error.code, error.message);
     throw error;
   }
 };

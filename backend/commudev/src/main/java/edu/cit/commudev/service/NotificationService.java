@@ -69,21 +69,22 @@ public class NotificationService {
     }
 
     /**
-     * Mark all notifications for the current user as read
-     * @return Number of notifications marked as read
+     * Delete all notifications for the current user
+     * @return Number of notifications deleted
      */
     @Transactional
-    public int markAllAsRead() {
+    public int deleteAllNotifications() {
         User currentUser = userService.getCurrentUser();
-        List<NotificationEntity> unreadNotifications = 
-                notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(currentUser);
+        List<NotificationEntity> notifications = 
+                notificationRepository.findByUserOrderByCreatedAtDesc(currentUser);
         
-        for (NotificationEntity notification : unreadNotifications) {
-            notification.setRead(true);
-            notificationRepository.save(notification);
+        int count = notifications.size();
+        
+        for (NotificationEntity notification : notifications) {
+            notificationRepository.delete(notification);
         }
         
-        return unreadNotifications.size();
+        return count;
     }
     
     /**
@@ -120,25 +121,25 @@ public class NotificationService {
      * @param actor The user who liked the post
      */
     @Transactional
-public void createLikeNotification(NewsfeedEntity post, User actor) {
-    // Only create notification if the liker is not the post owner
-    if (!actor.getId().equals(post.getUser().getId())) {
-        User recipient = post.getUser();
-        
-        String notificationText = actor.getUsername() + " liked your post";
-        
-        NotificationEntity notification = new NotificationEntity(
-                "LIKE",
-                notificationText,
-                recipient,
-                actor
-        );
-        
-        notification.setRelatedPostId(post.getNewsfeedId());
-        
-        notificationRepository.save(notification);
+    public void createLikeNotification(NewsfeedEntity post, User actor) {
+        // Only create notification if the liker is not the post owner
+        if (!actor.getId().equals(post.getUser().getId())) {
+            User recipient = post.getUser();
+            
+            String notificationText = actor.getUsername() + " liked your post";
+            
+            NotificationEntity notification = new NotificationEntity(
+                    "LIKE",
+                    notificationText,
+                    recipient,
+                    actor
+            );
+            
+            notification.setRelatedPostId(post.getNewsfeedId());
+            
+            notificationRepository.save(notification);
+        }
     }
-}
     
     /**
      * Delete notification

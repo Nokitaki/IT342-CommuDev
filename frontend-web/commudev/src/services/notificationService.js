@@ -133,18 +133,18 @@ export const markAsRead = async (notificationId) => {
 };
 
 /**
- * Mark all notifications as read
+ * Delete all notifications
  * @returns {Promise<Object>} Response with message
  */
-export const markAllAsRead = async () => {
+export const deleteAllNotifications = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(`${API_URL}/read-all`, {
-      method: 'PATCH',
+    const response = await fetch(`${API_URL}/delete-all`, {
+      method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -159,8 +159,8 @@ export const markAllAsRead = async () => {
     
     return await response.json();
   } catch (error) {
-    console.error('Error marking all notifications as read:', error);
-    throw new Error('Failed to mark all notifications as read');
+    console.error('Error deleting all notifications:', error);
+    throw new Error('Failed to delete all notifications');
   }
 };
 
