@@ -20,4 +20,6 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     
     // Count comments for a post
     long countByPostNewsfeedId(int newsfeedId);
-}
+
+    void deleteByPostNewsfeedId(int postId);
+}                           

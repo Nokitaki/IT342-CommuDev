@@ -14,4 +14,6 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     Optional<PostLike> findByUserAndPost(User user, NewsfeedEntity post);
     long countByPost(NewsfeedEntity post);
     boolean existsByUserIdAndPostNewsfeedId(Long userId, int postId);
+    void deleteByPostNewsfeedId(int postId);
+    
 }

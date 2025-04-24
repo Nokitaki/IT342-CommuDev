@@ -1,8 +1,9 @@
-// src/components/newsfeed/NewsfeedItem.jsx
+// src/components/newsfeed/NewsfeedItem.jsx (Updated version)
 import React, { useState, useEffect } from 'react';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
 import CommentSection from './CommentSection';
+import DeleteConfirmationModal from '../../components/modals/deleteConfirmationModal';
 import { formatTimeAgo } from '../../utils/dateUtils';
 import ReactMarkdown from 'react-markdown';
 import useComments from '../../hooks/useComments';
@@ -14,6 +15,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   const [isLiked, setIsLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // New state for delete modal
   
   // Get the post ID in the correct format
   const postId = post.newsfeed_id || post.newsfeedId;
@@ -84,12 +86,15 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
     onEdit(post);
   };
 
+  // Modified to show the delete confirmation modal instead of the default confirm
   const handleDelete = () => {
     console.log('Deleting post with ID:', postId);
-    
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      onDelete(postId);
-    }
+    setShowDeleteModal(true);
+  };
+  
+  // New function to handle delete confirmation
+  const confirmDelete = () => {
+    onDelete(postId);
   };
   
   const handleCommentsClick = () => {
@@ -276,6 +281,15 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
           expanded={true}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? All comments will also be deleted and this action cannot be undone."
+      />
     </article>
   );
 };

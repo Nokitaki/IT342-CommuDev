@@ -140,7 +140,7 @@ export const createPost = async (postData) => {
 };
 
 /**
- * Delete a post
+ * Delete a post and all its related entities (comments, likes)
  * @param {number} postId - ID of the post to delete
  * @returns {Promise<boolean>} True if successful
  */
@@ -157,10 +157,10 @@ export const deletePost = async (postId) => {
       throw new Error('Invalid post ID');
     }
     
-    console.log(`Attempting to delete post ${numericPostId}`);
+    console.log(`Attempting to delete post ${numericPostId} with all related content`);
     
-    // Direct approach: Try the actual delete endpoint first
-    const response = await fetch(`http://localhost:8080/api/newsfeed/delete/${numericPostId}`, {
+    // Use the new endpoint that handles deleting related entities
+    const response = await fetch(`http://localhost:8080/api/newsfeed/delete-with-related/${numericPostId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -170,45 +170,21 @@ export const deletePost = async (postId) => {
       credentials: 'include'
     });
     
-    // If the delete was successful, return immediately
-    if (response.ok) {
-      console.log('Post deleted successfully');
-      return true;
+    console.log(`Delete with related response status: ${response.status}`);
+    
+    if (!response.ok) {
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || `Error ${response.status}: ${response.statusText}`;
+      } catch (e) {
+        errorMessage = `Error ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
     
-    console.log(`Delete failed with ${response.status}. Attempting to mark as deleted instead.`);
-    
-    // Fallback approach: Try to mark the post as deleted if direct deletion fails
-    const updateData = {
-      postStatus: 'deleted'
-    };
-    
-    const updateResponse = await fetch(`http://localhost:8080/api/newsfeed/update/${numericPostId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(updateData)
-    });
-    
-    if (updateResponse.ok) {
-      console.log('Post marked as deleted successfully');
-      return true;
-    }
-    
-    // If both approaches fail, throw an error
-    let errorMessage = `Failed to delete post (${response.status})`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch (e) {
-      // Ignore parsing errors
-    }
-    
-    throw new Error(errorMessage);
+    console.log('Post deleted successfully with all related content');
+    return true;
   } catch (error) {
     console.error('Error in deletePost:', error);
     throw error;
