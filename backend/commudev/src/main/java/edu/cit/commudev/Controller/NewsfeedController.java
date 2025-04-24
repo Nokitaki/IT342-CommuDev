@@ -103,7 +103,6 @@ public class NewsfeedController {
         }
     }
 
-    // Update post (requires authentication and ownership)
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateNewsfeed(@PathVariable int id, @RequestBody NewsfeedEntity newsfeedDetails) {
         try {
@@ -119,6 +118,35 @@ public class NewsfeedController {
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+    @PutMapping("/update-simple/{id}")
+public ResponseEntity<?> updateNewsfeedSimple(
+        @PathVariable int id,
+        @RequestParam String postDescription,
+        @RequestParam String postType,
+        @RequestParam String postStatus) {
+    try {
+        // Create a new entity with the parameters
+        NewsfeedEntity newsfeedDetails = new NewsfeedEntity();
+        newsfeedDetails.setPostDescription(postDescription);
+        newsfeedDetails.setPostType(postType);
+        newsfeedDetails.setPostStatus(postStatus);
+        
+        // Call the existing service method
+        NewsfeedEntity updatedNewsfeed = newsfeedService.updateNewsfeed(id, newsfeedDetails);
+        return new ResponseEntity<>(updatedNewsfeed, HttpStatus.OK);
+    } catch (AccessDeniedException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Access denied: " + e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    } catch (Exception e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Failed to update post: " + e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
 
     // Toggle like on a post (any authenticated user can like)
     @PatchMapping("/like/{id}")

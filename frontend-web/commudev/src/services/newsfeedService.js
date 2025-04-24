@@ -151,48 +151,16 @@ export const deletePost = async (postId) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    // Convert any postId to a number
+    // Convert postId to number
     const numericPostId = parseInt(postId, 10);
     if (isNaN(numericPostId)) {
       throw new Error('Invalid post ID');
     }
     
-    console.log(`Attempting to delete post with ID: ${numericPostId}`);
+    console.log(`Attempting to delete post ${numericPostId}`);
     
-    // Instead of deleting, we'll try to update the status to "deleted"
-    const softDeleteData = {
-      post_status: "deleted",
-      postStatus: "deleted"
-    };
-    
-    // Try soft delete first (update status to "deleted")
-    try {
-      const response = await fetch(`http://localhost:8080/api/newsfeed/update/${numericPostId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(softDeleteData)
-      });
-      
-      console.log(`Soft delete response status: ${response.status}`);
-      
-      if (response.ok) {
-        console.log('Post soft-deleted successfully');
-        return true;
-      }
-      
-      // If soft delete failed, try hard delete as a fallback
-      console.log('Soft delete failed, attempting hard delete');
-    } catch (error) {
-      console.warn('Error during soft delete, attempting hard delete:', error);
-    }
-    
-    // Try hard delete (this may still fail due to foreign key constraints)
-    const deleteResponse = await fetch(`http://localhost:8080/api/newsfeed/delete/${numericPostId}`, {
+    // Direct approach: Try the actual delete endpoint first
+    const response = await fetch(`http://localhost:8080/api/newsfeed/delete/${numericPostId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -202,32 +170,50 @@ export const deletePost = async (postId) => {
       credentials: 'include'
     });
     
-    console.log(`Hard delete response status: ${deleteResponse.status}`);
-    
-    if (!deleteResponse.ok) {
-      let errorMessage;
-      try {
-        const errorData = await deleteResponse.json();
-        errorMessage = errorData.error || errorData.message || `Error deleting post: ${deleteResponse.status}`;
-        
-        // If the error contains foreign key constraint, suggest an alternative
-        if (errorMessage.includes('foreign key constraint')) {
-          throw new Error('Cannot delete post with comments. Try hiding it instead.');
-        }
-        
-        throw new Error(errorMessage);
-      } catch (e) {
-        throw e; // Re-throw the already formatted error
-      }
+    // If the delete was successful, return immediately
+    if (response.ok) {
+      console.log('Post deleted successfully');
+      return true;
     }
     
-    console.log('Post hard-deleted successfully');
-    return true;
+    console.log(`Delete failed with ${response.status}. Attempting to mark as deleted instead.`);
+    
+    // Fallback approach: Try to mark the post as deleted if direct deletion fails
+    const updateData = {
+      postStatus: 'deleted'
+    };
+    
+    const updateResponse = await fetch(`http://localhost:8080/api/newsfeed/update/${numericPostId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(updateData)
+    });
+    
+    if (updateResponse.ok) {
+      console.log('Post marked as deleted successfully');
+      return true;
+    }
+    
+    // If both approaches fail, throw an error
+    let errorMessage = `Failed to delete post (${response.status})`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch (e) {
+      // Ignore parsing errors
+    }
+    
+    throw new Error(errorMessage);
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error('Error in deletePost:', error);
     throw error;
   }
-};
+}
 
 /**
  * Like a post
@@ -382,6 +368,12 @@ export const fetchUserPosts = async (username) => {
 
 
 
+/**
+ * Update a post (alternative method using URL query parameters)
+ * @param {number} postId - ID of the post to update
+ * @param {Object} postData - Updated post data
+ * @returns {Promise<Object>} Updated post object
+ */
 export const updatePost = async (postId, postData) => {
   try {
     const token = localStorage.getItem('token');
@@ -389,44 +381,42 @@ export const updatePost = async (postId, postData) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    // Convert any postId to a number
+    // Convert postId to number
     const numericPostId = parseInt(postId, 10);
     if (isNaN(numericPostId)) {
       throw new Error('Invalid post ID');
     }
     
-    // Important: Format the data properly
-    // Make sure we have the essential fields in the right format
-    const formattedData = {
-      post_description: postData.post_description || postData.postDescription || '',
-      post_type: postData.post_type || postData.postType || 'General',
-      post_status: postData.post_status || postData.postStatus || 'active'
-    };
+    // Extract the values with fallbacks
+    const description = postData.post_description || postData.postDescription || '';
+    const type = postData.post_type || postData.postType || 'General';
+    const status = postData.post_status || postData.postStatus || 'active';
     
-    console.log(`Updating post ${numericPostId} with data:`, formattedData);
+    // Use URL parameters instead of a JSON body
+    const url = `http://localhost:8080/api/newsfeed/update-simple/${numericPostId}?postDescription=${encodeURIComponent(description)}&postType=${encodeURIComponent(type)}&postStatus=${encodeURIComponent(status)}`;
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/update/${numericPostId}`, {
+    console.log(`Updating post with URL: ${url}`);
+    
+    // Use PUT request with URL parameters
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(formattedData)
+      }
     });
     
     console.log(`Update post response status: ${response.status}`);
     
     if (!response.ok) {
-      let errorMessage;
-      try {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
         const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || `Error updating post: ${response.status}`;
-      } catch (e) {
-        errorMessage = `Error updating post: ${response.status}`;
+        throw new Error(errorData.error || errorData.message || `Error ${response.status}: ${response.statusText}`);
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
       }
-      throw new Error(errorMessage);
     }
     
     const updatedPost = await response.json();
@@ -437,7 +427,7 @@ export const updatePost = async (postId, postData) => {
     console.error('Error updating post:', error);
     throw error;
   }
-};
+}
 
 // Add this function to src/services/newsfeedService.js
 
