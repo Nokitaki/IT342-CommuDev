@@ -956,3 +956,90 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Add these styles to your src/styles/components/newsfeed.css file */
+
+/* Inline delete confirmation */
+.delete-confirmation {
+  background-color: #ffe5e5;
+  border: 1px solid #ffcccc;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.delete-confirmation-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.delete-confirmation-message svg {
+  flex-shrink: 0;
+}
+
+.delete-confirmation-message p {
+  margin: 0;
+  font-size: 15px;
+  color: #e53e3e;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.delete-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Add a delete variant for the Button component */
+.btn-delete {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-delete:hover {
+  background-color: #c53030;
+}
+
+.btn-delete:disabled {
+  background-color: #fab5b5;
+  cursor: not-allowed;
+}
+
+/* Make the delete button more attention-grabbing with a subtle pulse animation */
+.btn-delete:not(:disabled) {
+  animation: subtle-pulse 2s infinite;
+}
+
+@keyframes subtle-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(229, 62, 62, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+  }
+}
