@@ -1,0 +1,221 @@
+/* src/styles/components/friendsSidebar.css */
+
+.friends-section {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 5px;
+  }
+  
+  .friends-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  
+  .friends-header h3 {
+    font-size: 14px;
+    color: #65676b;
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .see-all-link {
+    font-size: 12px;
+    color: #1877f2;
+    text-decoration: none;
+  }
+  
+  .see-all-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* Tab navigation styles */
+  .friends-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .friends-tab {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #65676b;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .friends-tab:hover {
+    background-color: #f0f2f5;
+  }
+  
+  .friends-tab.active {
+    background-color: #e7f3ff;
+    color: #1877f2;
+    font-weight: 500;
+  }
+  
+  .request-count {
+    background-color: #e41e3f;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    height: 18px;
+    min-width: 18px;
+    padding: 0 4px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .scrollable-friends-list {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-right: 5px;
+  }
+  
+  .scrollable-friends-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollable-friends-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollable-friends-list::-webkit-scrollbar-thumb {
+    background-color: #e0e0e0;
+    border-radius: 20px;
+  }
+  
+  .scrollable-friends-list::-webkit-scrollbar-thumb:hover {
+    background-color: #bdbdbd;
+  }
+  
+  .friend-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #000;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+  }
+  
+  .friend-item:hover {
+    background-color: #f0f2f5;
+  }
+  
+  .friend-name {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  /* Friend request item */
+  .friend-request-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background-color: #f7f8fa;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  .friend-request-item:hover {
+    background-color: #f0f2f5;
+    transform: translateY(-2px);
+  }
+  
+  .friend-request-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .friend-request-name {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+  }
+  
+  .friend-request-actions {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .accept-request-btn,
+  .reject-request-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+  }
+  
+  .accept-request-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .reject-request-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .accept-request-btn:hover {
+    background-color: #43A047;
+    transform: scale(1.1);
+  }
+  
+  .reject-request-btn:hover {
+    background-color: #e53935;
+    transform: scale(1.1);
+  }
+  
+  .friends-loading,
+  .friends-error,
+  .no-friends-message,
+  .no-requests-message {
+    padding: 10px;
+    text-align: center;
+    color: #65676b;
+    font-size: 13px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  
+  .friends-error {
+    color: #e53935;
+  }
+  
+  /* Animation for loading state */
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  
+  .friends-loading {
+    animation: pulse 1.5s infinite ease-in-out;
+  }

@@ -125,3 +125,35 @@
   .suggestions-loading {
     animation: pulse 1.5s infinite ease-in-out;
   }
+
+
+
+  /* Add these styles to your existing peopleYouMayKnow.css file */
+
+/* Sent state for the add button */
+.suggestion-add-btn.sent {
+  background-color: #43A047;
+  animation: sendSuccess 0.3s ease-in-out;
+}
+
+@keyframes sendSuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.suggestion-add-btn:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+/* Pulse animation for add button */
+.suggestion-add-btn:not(.sent):not(:disabled) {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}

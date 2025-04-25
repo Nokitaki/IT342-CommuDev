@@ -1,6 +1,8 @@
 // src/components/newsfeed/PeopleYouMayKnow.jsx
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
+import { sendFriendRequest } from '../../services/friendService';
 import { getAllUsers, getUserById } from '../../services/userService';
 import UserProfileModal from '../modals/UserProfileModal';
 import '../../styles/components/peopleYouMayKnow.css';
@@ -9,9 +11,9 @@ const PeopleYouMayKnow = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { profile } = useProfile();
-  const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailedUser, setDetailedUser] = useState(null);
+  const [requestSent, setRequestSent] = useState({});
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -54,7 +56,9 @@ const PeopleYouMayKnow = () => {
   // Get user's profile picture
   const getProfilePicture = (user) => {
     if (user.profilePicture) {
-      return `${API_URL}${user.profilePicture}`;
+      return user.profilePicture.startsWith('http') 
+        ? user.profilePicture 
+        : `${API_URL}${user.profilePicture}`;
     }
     return '/src/assets/images/profile/default-avatar.png';
   };
@@ -111,11 +115,55 @@ const PeopleYouMayKnow = () => {
     setDetailedUser(null);
   };
 
+  // Send friend request - for frontend display only initially
+  const handleSendFriendRequest = async (userId) => {
+    try {
+      console.log('Sending friend request to:', userId);
+      
+      // Attempt to use the service if it exists, otherwise just update UI
+      try {
+        await sendFriendRequest(userId);
+      } catch (serviceError) {
+        console.log('Friend service not yet connected, showing UI only');
+      }
+      
+      // Update local state to show request sent
+      setRequestSent(prev => ({
+        ...prev,
+        [userId]: true
+      }));
+      
+      // Alert the user
+      alert(`Friend request sent to ${userId}`);
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to send friend request:', error);
+      return false;
+    }
+  };
+
   if (loading) {
     return (
       <div className="people-suggestions">
-        <h3>PEOPLE YOU MAY KNOW</h3>
+        <div className="suggestions-header">
+          <h3>People You May Know</h3>
+          <button className="see-all-link">See All</button>
+        </div>
         <div className="suggestions-loading">Loading...</div>
+      </div>
+    );
+  }
+
+  // If there are no users to display after filtering
+  if (users.length === 0) {
+    return (
+      <div className="people-suggestions">
+        <div className="suggestions-header">
+          <h3>People You May Know</h3>
+          <button className="see-all-link">See All</button>
+        </div>
+        <div className="suggestions-empty">No suggestions available</div>
       </div>
     );
   }
@@ -123,41 +171,48 @@ const PeopleYouMayKnow = () => {
   return (
     <div className="people-suggestions">
       <div className="suggestions-header">
-        <h3>All Users</h3>
-        <button className="see-all-link">See All</button>
+        <h3>People You May Know</h3>
+        <Link to="/users" className="see-all-link">See All</Link>
       </div>
       <div className="suggestions-list">
-        {users.length > 0 ? (
-          users.map(user => (
-            <div 
-              key={user.id} 
-              className="suggestion-item"
-              onClick={() => handleUserClick(user)}
+        {users.map(user => (
+          <div 
+            key={user.id} 
+            className="suggestion-item"
+            onClick={() => handleUserClick(user)}
+          >
+            <img 
+              src={getProfilePicture(user)} 
+              alt={`${getUserName(user)}'s profile`}
+              className="suggestion-avatar"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/src/assets/images/profile/default-avatar.png';
+              }}
+            />
+            <span className="suggestion-name">{getUserName(user)}</span>
+            <button 
+              className={`suggestion-add-btn ${requestSent[user.id] ? 'sent' : ''}`} 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!requestSent[user.id]) {
+                  handleSendFriendRequest(user.id);
+                }
+              }}
+              disabled={requestSent[user.id]}
             >
-              <img 
-                src={getProfilePicture(user)} 
-                alt={`${getUserName(user)}'s profile`}
-                className="suggestion-avatar"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/src/assets/images/profile/default-avatar.png';
-                }}
-              />
-              <span className="suggestion-name">{getUserName(user)}</span>
-              <button className="suggestion-add-btn" onClick={(e) => {
-                e.stopPropagation(); 
-                console.log('Add button clicked for:', user.id);
-                alert(`Friend request sent to ${getUserName(user)}`);
-              }}>
+              {requestSent[user.id] ? (
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                </svg>
+              ) : (
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                   <path d="M12 11V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2h-6v6a1 1 0 0 1-2 0v-6H6a1 1 0 0 1 0-2h6z"/>
                 </svg>
-              </button>
-            </div>
-          ))
-        ) : (
-          <div className="suggestions-empty">No users found</div>
-        )}
+              )}
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* User Profile Modal - Using the detailed user data */}

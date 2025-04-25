@@ -1,11 +1,17 @@
 // src/components/modals/UserProfileModal.jsx
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from '../common/Button';
+import { sendFriendRequest } from '../../services/friendService';
 import '../../styles/components/userProfileModal.css';
 
 const UserProfileModal = ({ isOpen, onClose, user }) => {
   // Check for null/undefined user or not being open
   if (!isOpen || !user) return null;
+  
+  // State to track friend request status
+  const [requestSent, setRequestSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -123,9 +129,19 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
   };
 
   // Handle add friend button click
-  const handleAddFriend = () => {
-    console.log('Adding friend:', user.id);
-    alert(`Friend request sent to ${getFullName()}`);
+  const handleAddFriend = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      console.log('Sending friend request to:', user.id);
+      await sendFriendRequest(user.id);
+      setRequestSent(true);
+    } catch (err) {
+      console.error('Error sending friend request:', err);
+      setError('Failed to send friend request. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle message button click
@@ -241,15 +257,40 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
               </div>
             </div>
 
+            {/* Display error if there is one */}
+            {error && (
+              <div className="friend-request-error">
+                {error}
+              </div>
+            )}
+
             <div className="user-profile-actions">
-              <Button 
-                variant="primary" 
-                className="add-friend-button"
-                onClick={handleAddFriend}
-              >
-                <span className="add-friend-icon">+</span>
-                Add Friend
-              </Button>
+              {requestSent ? (
+                <Button 
+                  variant="secondary" 
+                  className="friend-request-sent-button"
+                  disabled={true}
+                >
+                  <span className="friend-request-icon">✓</span>
+                  Friend Request Sent
+                </Button>
+              ) : (
+                <Button 
+                  variant="primary" 
+                  className="add-friend-button"
+                  onClick={handleAddFriend}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    "Sending Request..."
+                  ) : (
+                    <>
+                      <span className="add-friend-icon">+</span>
+                      Add Friend
+                    </>
+                  )}
+                </Button>
+              )}
               
               <Button 
                 variant="secondary" 
