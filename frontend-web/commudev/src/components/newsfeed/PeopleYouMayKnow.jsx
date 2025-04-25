@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
 import { sendFriendRequest } from '../../services/friendService';
 import { getAllUsers, getUserById } from '../../services/userService';
-import { checkFriendStatus } from '../../services/friendService'; // Import the friend status check function
+import { checkFriendStatus } from '../../services/friendService';
 import UserProfileModal from '../modals/UserProfileModal';
 import '../../styles/components/peopleYouMayKnow.css';
 
@@ -15,6 +15,7 @@ const PeopleYouMayKnow = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailedUser, setDetailedUser] = useState(null);
   const [requestSent, setRequestSent] = useState({});
+  const [statusMessage, setStatusMessage] = useState({ userId: null, text: '', type: '' });
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -74,6 +75,17 @@ const PeopleYouMayKnow = () => {
       fetchUsers();
     }
   }, [profile]);
+
+  // Clear status message after 5 seconds
+  useEffect(() => {
+    if (statusMessage.text) {
+      const timer = setTimeout(() => {
+        setStatusMessage({ userId: null, text: '', type: '' });
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [statusMessage]);
 
   // Get user's full name
   const getUserName = (user) => {
@@ -144,9 +156,6 @@ const PeopleYouMayKnow = () => {
 
   // Close the modal
   const handleCloseModal = () => {
-    // We no longer automatically update the requestSent state here
-    // Only update if a request was explicitly sent in the modal
-    
     setIsModalOpen(false);
     setDetailedUser(null);
   };
@@ -168,9 +177,38 @@ const PeopleYouMayKnow = () => {
         [userId]: true
       }));
       
+      // Show success message
+      setStatusMessage({
+        userId: userId,
+        text: "Friend request sent successfully!",
+        type: "success"
+      });
+      
       return true;
     } catch (error) {
       console.error('Failed to send friend request:', error);
+      
+      // Check if error contains "already sent" message
+      if (error.message && error.message.includes('already sent')) {
+        setStatusMessage({
+          userId: userId,
+          text: "You've already sent a request to this user",
+          type: "info"
+        });
+        
+        // Update UI to show request was sent
+        setRequestSent(prev => ({
+          ...prev,
+          [userId]: true
+        }));
+      } else {
+        setStatusMessage({
+          userId: userId,
+          text: "Failed to send request. Please try again.",
+          type: "error"
+        });
+      }
+      
       return false;
     }
   };
@@ -208,40 +246,48 @@ const PeopleYouMayKnow = () => {
       </div>
       <div className="suggestions-list">
         {users.map(user => (
-          <div 
-            key={user.id} 
-            className="suggestion-item"
-            onClick={() => handleUserClick(user)}
-          >
-            <img 
-              src={getProfilePicture(user)} 
-              alt={`${getUserName(user)}'s profile`}
-              className="suggestion-avatar"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/src/assets/images/profile/default-avatar.png';
-              }}
-            />
-            <span className="suggestion-name">{getUserName(user)}</span>
-            <button 
-              className={`suggestion-add-btn ${requestSent[user.id] ? 'sent' : ''}`} 
-              onClick={(e) => {
-                if (!requestSent[user.id]) {
-                  handleSendFriendRequest(user.id, e);
-                }
-              }}
-              disabled={requestSent[user.id]}
+          <div key={user.id} className="suggestion-item-container">
+            <div 
+              className="suggestion-item"
+              onClick={() => handleUserClick(user)}
             >
-              {requestSent[user.id] ? (
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                  <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                  <path d="M12 11V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2h-6v6a1 1 0 0 1-2 0v-6H6a1 1 0 0 1 0-2h6z"/>
-                </svg>
-              )}
-            </button>
+              <img 
+                src={getProfilePicture(user)} 
+                alt={`${getUserName(user)}'s profile`}
+                className="suggestion-avatar"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/src/assets/images/profile/default-avatar.png';
+                }}
+              />
+              <span className="suggestion-name">{getUserName(user)}</span>
+              <button 
+                className={`suggestion-add-btn ${requestSent[user.id] ? 'sent' : ''}`} 
+                onClick={(e) => {
+                  if (!requestSent[user.id]) {
+                    handleSendFriendRequest(user.id, e);
+                  }
+                }}
+                disabled={requestSent[user.id]}
+              >
+                {requestSent[user.id] ? (
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12 11V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2h-6v6a1 1 0 0 1-2 0v-6H6a1 1 0 0 1 0-2h6z"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+            
+            {/* Status message for this specific user */}
+            {statusMessage.userId === user.id && statusMessage.text && (
+              <div className={`suggestion-status ${statusMessage.type}`}>
+                {statusMessage.text}
+              </div>
+            )}
           </div>
         ))}
       </div>

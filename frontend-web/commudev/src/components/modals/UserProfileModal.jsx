@@ -11,7 +11,8 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
   // State to track friend request status
   const [requestSent, setRequestSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState({ text: '', type: '' }); // Changed from 'error' to 'statusMessage'
+  const [isFriend, setIsFriend] = useState(false); // Add state to track if users are already friends
   
   // Check friend request status when modal opens with a user
   useEffect(() => {
@@ -20,7 +21,8 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
         try {
           // Only check the current status, don't send a request
           const status = await checkFriendStatus(user.id);
-          // Only set requestSent to true if there's already a pending request
+          // Set friend status and pending request status
+          setIsFriend(status.isFriend || false);
           setRequestSent(status.pendingRequest || false);
         } catch (error) {
           console.error('Error checking friend request status:', error);
@@ -31,7 +33,8 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
     // Reset states when a new user modal is opened
     setRequestSent(false);
     setIsLoading(false);
-    setError('');
+    setStatusMessage({ text: '', type: '' });
+    setIsFriend(false);
     
     if (isOpen && user) {
       checkRequestStatus();
@@ -156,11 +159,15 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
   // Handle add friend button click
   const handleAddFriend = async () => {
     setIsLoading(true);
-    setError('');
+    setStatusMessage({ text: '', type: '' });
     try {
       console.log('Sending friend request to:', user.id);
       await sendFriendRequest(user.id);
       setRequestSent(true);
+      setStatusMessage({ 
+        text: 'Friend request sent successfully!', 
+        type: 'success' 
+      });
       
       // Call the callback to inform parent component
       if (onFriendRequestSent && typeof onFriendRequestSent === 'function') {
@@ -168,7 +175,20 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
       }
     } catch (err) {
       console.error('Error sending friend request:', err);
-      setError('Failed to send friend request. Please try again.');
+      
+      // Check if the error contains the "already sent" message
+      if (err.message && err.message.includes('already sent')) {
+        setStatusMessage({ 
+          text: 'You have already sent a friend request to this user',
+          type: 'info'
+        });
+        setRequestSent(true); // Update UI to show request was sent
+      } else {
+        setStatusMessage({ 
+          text: 'Failed to send friend request. Please try again.',
+          type: 'error'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -281,15 +301,23 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
               </div>
             </div>
 
-            {/* Display error if there is one */}
-            {error && (
-              <div className="friend-request-error">
-                {error}
+            {/* Display status message if there is one */}
+            {statusMessage.text && (
+              <div className={`friend-request-${statusMessage.type}`}>
+                {statusMessage.text}
               </div>
             )}
 
             <div className="user-profile-actions">
-              {requestSent ? (
+              {isFriend ? (
+                <Button 
+                  variant="secondary" 
+                  className="already-friends-button"
+                >
+                  <span className="friend-icon">👋</span>
+                  Already Friends
+                </Button>
+              ) : requestSent ? (
                 <Button 
                   variant="secondary" 
                   className="friend-request-sent-button"
@@ -315,6 +343,16 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
                   )}
                 </Button>
               )}
+              
+              {/* Message button, always visible */}
+              <Button 
+                variant="secondary" 
+                className="message-button"
+                onClick={() => window.location.href = `/messages?user=${user.id}`}
+              >
+                <span className="message-icon">✉️</span>
+                Message
+              </Button>
             </div>
           </div>
         </div>

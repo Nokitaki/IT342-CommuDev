@@ -26,7 +26,11 @@ export const sendFriendRequest = async (userId) => {
     
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      const errorMessage = errorData.error || `Error ${response.status}: ${response.statusText}`;
+      
+      // Pass through the specific error message from the server
+      // This will allow us to detect the "already sent" error message
+      throw new Error(errorMessage);
     }
     
     return await response.json();
