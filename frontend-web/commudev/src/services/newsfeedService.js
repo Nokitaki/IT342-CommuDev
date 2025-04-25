@@ -140,7 +140,7 @@ export const createPost = async (postData) => {
 };
 
 /**
- * Delete a post
+ * Delete a post and all its related entities (comments, likes)
  * @param {number} postId - ID of the post to delete
  * @returns {Promise<boolean>} True if successful
  */
@@ -151,9 +151,16 @@ export const deletePost = async (postId) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    console.log(`Attempting to delete post with ID: ${postId}`);
+    // Convert postId to number
+    const numericPostId = parseInt(postId, 10);
+    if (isNaN(numericPostId)) {
+      throw new Error('Invalid post ID');
+    }
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/delete/${postId}`, {
+    console.log(`Attempting to delete post ${numericPostId} with all related content`);
+    
+    // Use the new endpoint that handles deleting related entities
+    const response = await fetch(`http://localhost:8080/api/newsfeed/delete-with-related/${numericPostId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -163,26 +170,26 @@ export const deletePost = async (postId) => {
       credentials: 'include'
     });
     
-    console.log(`Delete post response status: ${response.status}`);
+    console.log(`Delete with related response status: ${response.status}`);
     
     if (!response.ok) {
       let errorMessage;
       try {
         const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || `Error deleting post: ${response.status}`;
+        errorMessage = errorData.error || `Error ${response.status}: ${response.statusText}`;
       } catch (e) {
-        errorMessage = `Error deleting post: ${response.status}`;
+        errorMessage = `Error ${response.status}: ${response.statusText}`;
       }
       throw new Error(errorMessage);
     }
     
-    console.log('Post deleted successfully');
+    console.log('Post deleted successfully with all related content');
     return true;
   } catch (error) {
-    console.error('Error deleting post:', error);
-    throw new Error(error.message || 'Failed to delete post');
+    console.error('Error in deletePost:', error);
+    throw error;
   }
-};
+}
 
 /**
  * Like a post
@@ -337,6 +344,12 @@ export const fetchUserPosts = async (username) => {
 
 
 
+/**
+ * Update a post (alternative method using URL query parameters)
+ * @param {number} postId - ID of the post to update
+ * @param {Object} postData - Updated post data
+ * @returns {Promise<Object>} Updated post object
+ */
 export const updatePost = async (postId, postData) => {
   try {
     const token = localStorage.getItem('token');
@@ -344,77 +357,53 @@ export const updatePost = async (postId, postData) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    // Create data object with BOTH camelCase and snake_case properties
-    // This ensures whichever format your backend expects will be available
-    const formattedData = {
-      // snake_case versions (for database columns)
-      post_description: postData.post_description || postData.postDescription || '',
-      post_type: postData.post_type || postData.postType || 'General',
-      post_status: postData.post_status || postData.postStatus || 'active',
-      post_date: postData.post_date || postData.postDate || new Date().toISOString(),
-      
-      // ALSO include camelCase versions (for Java entity properties)
-      postDescription: postData.post_description || postData.postDescription || '',
-      postType: postData.post_type || postData.postType || 'General',
-      postStatus: postData.post_status || postData.postStatus || 'active',
-      postDate: postData.post_date || postData.postDate || new Date().toISOString()
-    };
+    // Convert postId to number
+    const numericPostId = parseInt(postId, 10);
+    if (isNaN(numericPostId)) {
+      throw new Error('Invalid post ID');
+    }
     
-    console.log(`Updating post ${postId} with data:`, formattedData);
+    // Extract the values with fallbacks
+    const description = postData.post_description || postData.postDescription || '';
+    const type = postData.post_type || postData.postType || 'General';
+    const status = postData.post_status || postData.postStatus || 'active';
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/update/${postId}`, {
+    // Use URL parameters instead of a JSON body
+    const url = `http://localhost:8080/api/newsfeed/update-simple/${numericPostId}?postDescription=${encodeURIComponent(description)}&postType=${encodeURIComponent(type)}&postStatus=${encodeURIComponent(status)}`;
+    
+    console.log(`Updating post with URL: ${url}`);
+    
+    // Use PUT request with URL parameters
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(formattedData)
+      }
     });
     
     console.log(`Update post response status: ${response.status}`);
     
     if (!response.ok) {
-      let errorMessage;
-      try {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
         const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || `Error updating post: ${response.status}`;
-      } catch (e) {
-        errorMessage = `Error updating post: ${response.status}`;
+        throw new Error(errorData.error || errorData.message || `Error ${response.status}: ${response.statusText}`);
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
       }
-      throw new Error(errorMessage);
     }
     
     const updatedPost = await response.json();
     console.log('Post updated successfully:', updatedPost);
     
-    // Convert returned post to include both property naming styles to ensure compatibility
-    const normalizedPost = {
-      ...updatedPost,
-      // Ensure we have snake_case properties (for frontend)
-      newsfeed_id: updatedPost.newsfeedId || updatedPost.newsfeed_id,
-      post_description: updatedPost.postDescription || updatedPost.post_description || '',
-      post_type: updatedPost.postType || updatedPost.post_type || 'General',
-      post_status: updatedPost.postStatus || updatedPost.post_status || 'active',
-      post_date: updatedPost.postDate || updatedPost.post_date,
-      like_count: updatedPost.likeCount || updatedPost.like_count || 0,
-      
-      // And camelCase properties (for Java)
-      newsfeedId: updatedPost.newsfeedId || updatedPost.newsfeed_id,
-      postDescription: updatedPost.postDescription || updatedPost.post_description || '',
-      postType: updatedPost.postType || updatedPost.post_type || 'General',
-      postStatus: updatedPost.postStatus || updatedPost.post_status || 'active',
-      postDate: updatedPost.postDate || updatedPost.post_date,
-      likeCount: updatedPost.likeCount || updatedPost.like_count || 0
-    };
-    
-    return normalizedPost;
+    return updatedPost;
   } catch (error) {
     console.error('Error updating post:', error);
-    throw new Error(error.message || 'Failed to update post');
+    throw error;
   }
-};
+}
 
 // Add this function to src/services/newsfeedService.js
 

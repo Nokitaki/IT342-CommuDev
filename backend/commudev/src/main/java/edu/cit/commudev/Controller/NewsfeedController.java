@@ -3,6 +3,7 @@ package edu.cit.commudev.controller;
 import edu.cit.commudev.dto.NewsfeedRequestDTO;
 import edu.cit.commudev.entity.NewsfeedEntity;
 import edu.cit.commudev.service.NewsfeedService;
+import edu.cit.commudev.entity.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -103,7 +104,6 @@ public class NewsfeedController {
         }
     }
 
-    // Update post (requires authentication and ownership)
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateNewsfeed(@PathVariable int id, @RequestBody NewsfeedEntity newsfeedDetails) {
         try {
@@ -119,6 +119,35 @@ public class NewsfeedController {
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+    @PutMapping("/update-simple/{id}")
+public ResponseEntity<?> updateNewsfeedSimple(
+        @PathVariable int id,
+        @RequestParam String postDescription,
+        @RequestParam String postType,
+        @RequestParam String postStatus) {
+    try {
+        // Create a new entity with the parameters
+        NewsfeedEntity newsfeedDetails = new NewsfeedEntity();
+        newsfeedDetails.setPostDescription(postDescription);
+        newsfeedDetails.setPostType(postType);
+        newsfeedDetails.setPostStatus(postStatus);
+        
+        // Call the existing service method
+        NewsfeedEntity updatedNewsfeed = newsfeedService.updateNewsfeed(id, newsfeedDetails);
+        return new ResponseEntity<>(updatedNewsfeed, HttpStatus.OK);
+    } catch (AccessDeniedException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Access denied: " + e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    } catch (Exception e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Failed to update post: " + e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
 
     // Toggle like on a post (any authenticated user can like)
     @PatchMapping("/like/{id}")
@@ -191,5 +220,49 @@ public class NewsfeedController {
         Map<String, Boolean> response = new HashMap<>();
         response.put("canEdit", canEdit);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+
+
+
+
+    @DeleteMapping("/delete-with-related/{id}")
+    public ResponseEntity<?> deleteNewsfeedWithRelated(@PathVariable int id) {
+        try {
+            // Check if post exists and user has permission to delete it
+            NewsfeedEntity post = newsfeedService.getNewsfeedById(id);
+            
+            // Get current authenticated user
+            User currentUser = newsfeedService.getCurrentUser();
+            
+            // Check if the current user owns this post
+            if (!post.getUser().getId().equals(currentUser.getId())) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "You don't have permission to delete this post");
+                return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            }
+            
+            // Create a service method to handle complete deletion with all related entities
+            boolean deleted = newsfeedService.deleteWithRelated(id);
+            
+            if (deleted) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Post and all related content deleted successfully");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Failed to delete post");
+                return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (AccessDeniedException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Access denied: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to delete post: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

@@ -191,3 +191,106 @@
     display: none;
   }
 }
+
+/* Add these styles to your src/styles/components/sidebar.css file */
+
+.friends-section {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 5px;
+}
+
+.friends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.friends-header h3 {
+  font-size: 14px;
+  color: #65676b;
+  margin: 0;
+  font-weight: 600;
+}
+
+.see-all-link {
+  font-size: 12px;
+  color: #1877f2;
+  text-decoration: none;
+}
+
+.see-all-link:hover {
+  text-decoration: underline;
+}
+
+.scrollable-friends-list {
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 5px;
+}
+
+.scrollable-friends-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollable-friends-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollable-friends-list::-webkit-scrollbar-thumb {
+  background-color: #e0e0e0;
+  border-radius: 20px;
+}
+
+.scrollable-friends-list::-webkit-scrollbar-thumb:hover {
+  background-color: #bdbdbd;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #000;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.friend-item:hover {
+  background-color: #f0f2f5;
+}
+
+.friend-name {
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.no-friends-message {
+  padding: 10px;
+  text-align: center;
+  color: #65676b;
+  font-size: 13px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 5px;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.friends-loading {
+  padding: 10px;
+  text-align: center;
+  color: #65676b;
+  font-size: 13px;
+  animation: pulse 1.5s infinite ease-in-out;
+}

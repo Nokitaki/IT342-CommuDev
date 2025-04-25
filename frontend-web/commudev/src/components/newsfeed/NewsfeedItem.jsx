@@ -14,6 +14,8 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
   const [isLiked, setIsLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // New state for inline confirmation
+  const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete action
   
   // Get the post ID in the correct format
   const postId = post.newsfeed_id || post.newsfeedId;
@@ -84,12 +86,28 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
     onEdit(post);
   };
 
+  // Modified to show the inline delete confirmation instead of modal
   const handleDelete = () => {
-    console.log('Deleting post with ID:', postId);
-    
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      onDelete(postId);
+    console.log('Initiating delete for post with ID:', postId);
+    setShowDeleteConfirmation(true);
+  };
+  
+  // Handle delete confirmation
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete(postId);
+      // No need to hide confirmation as the post will be removed from DOM
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setIsDeleting(false);
+      setShowDeleteConfirmation(false);
     }
+  };
+  
+  // Handle cancel delete
+  const cancelDelete = () => {
+    setShowDeleteConfirmation(false);
   };
   
   const handleCommentsClick = () => {
@@ -216,6 +234,34 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
         )}
       </div>
 
+      {/* Inline Delete Confirmation */}
+      {showDeleteConfirmation && (
+        <div className="delete-confirmation">
+          <div className="delete-confirmation-message">
+            <svg className="delete-icon" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="#e53e3e" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+          </div>
+          <div className="delete-confirmation-actions">
+            <Button 
+              variant="secondary" 
+              onClick={cancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="delete" 
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <footer className="post-actions">
         <div className="post-actions-buttons">
           <button
@@ -240,7 +286,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
         </div>
 
         <div className="action-buttons">
-          {canEdit && (
+          {canEdit && !showDeleteConfirmation && (
             <>
               <Button 
                 variant="icon" 

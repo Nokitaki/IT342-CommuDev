@@ -3,11 +3,16 @@ package edu.cit.commudev.service;
 import edu.cit.commudev.entity.NewsfeedEntity;
 import edu.cit.commudev.entity.PostLike;
 import edu.cit.commudev.entity.User;
+import edu.cit.commudev.repository.CommentRepository;
 import edu.cit.commudev.repository.NewsfeedRepo;
 import edu.cit.commudev.repository.PostLikeRepository;
+import edu.cit.commudev.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +36,12 @@ public class NewsfeedService {
     
     @Autowired
     private PostLikeRepository postLikeRepository;
+    
+    @Autowired
+    private CommentRepository commentRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     // Create post with authenticated user
     public NewsfeedEntity createNewsfeed(NewsfeedEntity newsfeed) {
@@ -91,39 +102,39 @@ public class NewsfeedService {
 
     // Toggle like a post (any user can like)
     @Transactional
-public NewsfeedEntity toggleLike(int id) {
-    // Get the existing post
-    NewsfeedEntity post = getNewsfeedById(id);
-    
-    // Get current authenticated user
-    User currentUser = userService.getCurrentUser();
-    
-    // Check if the user has already liked this post
-    boolean hasLiked = postLikeRepository.existsByUserAndPost(currentUser, post);
-    
-    if (hasLiked) {
-        // Unlike: Remove the like
-        Optional<PostLike> existingLike = postLikeRepository.findByUserAndPost(currentUser, post);
-        existingLike.ifPresent(like -> postLikeRepository.delete(like));
+    public NewsfeedEntity toggleLike(int id) {
+        // Get the existing post
+        NewsfeedEntity post = getNewsfeedById(id);
         
-        // Update like count
-        long likeCount = postLikeRepository.countByPost(post);
-        post.setLikeCount((int) likeCount);
-    } else {
-        // Like: Create a new like
-        PostLike newLike = new PostLike(currentUser, post);
-        postLikeRepository.save(newLike);
+        // Get current authenticated user
+        User currentUser = userService.getCurrentUser();
         
-        // Create notification for the post owner (only when liking)
-        notificationService.createLikeNotification(post, currentUser);
+        // Check if the user has already liked this post
+        boolean hasLiked = postLikeRepository.existsByUserAndPost(currentUser, post);
         
-        // Update like count
-        long likeCount = postLikeRepository.countByPost(post);
-        post.setLikeCount((int) likeCount);
+        if (hasLiked) {
+            // Unlike: Remove the like
+            Optional<PostLike> existingLike = postLikeRepository.findByUserAndPost(currentUser, post);
+            existingLike.ifPresent(like -> postLikeRepository.delete(like));
+            
+            // Update like count
+            long likeCount = postLikeRepository.countByPost(post);
+            post.setLikeCount((int) likeCount);
+        } else {
+            // Like: Create a new like
+            PostLike newLike = new PostLike(currentUser, post);
+            postLikeRepository.save(newLike);
+            
+            // Create notification for the post owner (only when liking)
+            notificationService.createLikeNotification(post, currentUser);
+            
+            // Update like count
+            long likeCount = postLikeRepository.countByPost(post);
+            post.setLikeCount((int) likeCount);
+        }
+        
+        return newsfeedRepo.save(post);
     }
-    
-    return newsfeedRepo.save(post);
-}
     
     // Check if current user has liked a post
     public boolean hasUserLikedPost(int postId) {
@@ -182,5 +193,53 @@ public NewsfeedEntity toggleLike(int id) {
             result.put("likeCount", 0);
             return result;
         }
+    }
+
+    /**
+     * Delete a post and all related entities (comments and likes)
+     * @param id Post ID to delete
+     * @return True if deletion was successful
+     */
+    @Transactional
+    public boolean deleteWithRelated(int id) {
+        try {
+            // Get the post to verify it exists
+            NewsfeedEntity post = getNewsfeedById(id);
+            
+            // Get current authenticated user
+            User currentUser = getCurrentUser();
+            
+            // Check if the current user owns this post
+            if (!post.getUser().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("You don't have permission to delete this post");
+            }
+            
+            // First delete all likes for this post
+            postLikeRepository.deleteByPostNewsfeedId(id);
+            
+            // Then delete all comments for this post
+            commentRepository.deleteByPostNewsfeedId(id);
+            
+            // Finally delete the post
+            newsfeedRepo.deleteById(id);
+            
+            return true;
+        } catch (Exception e) {
+            // Log the exception
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Get the currently authenticated user
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No authenticated user found");
+        }
+        
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
     }
 }

@@ -27,6 +27,10 @@ const Button = ({
         <div className="btn-loading">
           <span className="loading-spinner"></span>
         </div>
+      ) : disabled && variant === 'delete' ? (
+        <div className="btn-loading">
+          <span className="loading-spinner"></span>
+        </div>
       ) : (
         children
       )}

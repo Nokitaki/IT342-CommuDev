@@ -4,7 +4,6 @@
 @import './styles/global.css';
 
 /* Import layout styles */
-
 @import './styles/layouts/authLayout.css';
 
 /* Import component styles */
@@ -18,6 +17,8 @@
 @import './styles/components/userCarousel.css';
 @import './styles/components/notification.css';
 @import './styles/components/calendar.css';
+@import './styles/components/peopleYouMayKnow.css';
+@import './styles/components/userProfileModal.css';
 
 /* Import page-specific styles */
 @import './styles/pages/newsfeed.css';
