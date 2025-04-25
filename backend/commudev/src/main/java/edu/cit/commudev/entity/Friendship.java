@@ -24,6 +24,19 @@ public class Friendship {
     @JsonManagedReference
     private User userTwo;
     
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "addressee_id", nullable = false)
+    @JsonManagedReference
+    private User addressee;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "requester_id", nullable = false)
+    @JsonManagedReference
+    private User requester;
+    
+    @Column(name = "status", nullable = false)
+    private String status;
+    
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
@@ -31,13 +44,7 @@ public class Friendship {
     public Friendship() {
     }
     
-    public Friendship(User userOne, User userTwo) {
-        this.userOne = userOne;
-        this.userTwo = userTwo;
-        this.createdAt = LocalDateTime.now();
-    }
-    
-    // Getters and Setters
+    // Getters and Setters for all fields (including new requester field)
     public Long getId() {
         return id;
     }
@@ -60,6 +67,30 @@ public class Friendship {
     
     public void setUserTwo(User userTwo) {
         this.userTwo = userTwo;
+    }
+    
+    public User getAddressee() {
+        return addressee;
+    }
+    
+    public void setAddressee(User addressee) {
+        this.addressee = addressee;
+    }
+    
+    public User getRequester() {
+        return requester;
+    }
+    
+    public void setRequester(User requester) {
+        this.requester = requester;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
     
     public LocalDateTime getCreatedAt() {

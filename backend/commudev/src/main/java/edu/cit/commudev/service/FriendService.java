@@ -160,6 +160,9 @@ public class FriendService {
         Friendship friendship = new Friendship();
         friendship.setUserOne(request.getSender());
         friendship.setUserTwo(request.getReceiver());
+        friendship.setRequester(request.getSender());
+        friendship.setAddressee(request.getReceiver());
+        friendship.setStatus("ACCEPTED"); // Changed from "ACTIVE" to "ACCEPTED"
         friendship.setCreatedAt(LocalDateTime.now());
         
         // Save both entities
