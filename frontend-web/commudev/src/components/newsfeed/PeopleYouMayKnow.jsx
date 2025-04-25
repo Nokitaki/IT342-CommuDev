@@ -123,7 +123,7 @@ const PeopleYouMayKnow = () => {
   return (
     <div className="people-suggestions">
       <div className="suggestions-header">
-        <h3>PEOPLE YOU MAY KNOW</h3>
+        <h3>All Users</h3>
         <button className="see-all-link">See All</button>
       </div>
       <div className="suggestions-list">

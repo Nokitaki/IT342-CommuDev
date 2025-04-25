@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import UserSearch from '../common/UserSearch';
 import Avatar from '../common/Avatar';
 import PeopleYouMayKnow from '../newsfeed/PeopleYouMayKnow';
+import FriendsSidebar from '../friends/FriendsSidebar';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/components/sidebar.css';
 
@@ -36,12 +37,6 @@ const Sidebar = () => {
     return 'Loading...';
   };
 
-  // Mock community data
-  const communities = [
-    { icon: '🏛️', name: 'Municipal Community' },
-    { icon: '🎨', name: 'Barangay Community' }
-  ];
-
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -68,17 +63,10 @@ const Sidebar = () => {
         </div>
       </Link>
 
-      <div className="community-section">
-        <h3>YOUR COMMUNITY</h3>
-        {communities.map((community, index) => (
-          <div key={index} className="community-item">
-            <span className="community-icon">{community.icon} </span>
-            <span>{community.name}</span>
-          </div>
-        ))}
-      </div>
+      {/* Replace Community section with Friends section */}
+      <FriendsSidebar />
 
-      {/* Replace the UserList with our new PeopleYouMayKnow component */}
+      {/* People You May Know component */}
       <PeopleYouMayKnow />
     </aside>
   );
