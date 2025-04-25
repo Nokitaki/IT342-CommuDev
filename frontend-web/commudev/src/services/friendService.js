@@ -203,3 +203,37 @@ export const removeFriend = async (userId) => {
     throw error;
   }
 };
+
+/**
+ * Check if a user is a friend of the current user
+ * @param {string|number} userId - The ID of the user to check
+ * @returns {Promise<Object>} - Response with isFriend boolean
+ */
+export const checkFriendStatus = async (userId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+    
+    const response = await fetch(`${API_URL}/api/friends/check/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error checking friend status:', error);
+    throw error;
+  }
+};

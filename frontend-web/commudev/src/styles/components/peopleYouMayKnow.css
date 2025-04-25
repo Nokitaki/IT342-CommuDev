@@ -14,25 +14,30 @@
   }
   
   .suggestions-header h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
+    font-size: 12px; /* or 13px for a subtle shrink */
+    font-weight: 500; /* optional: lighter weight */
+    color: #555; /* optional: softer color */
     margin: 0;
   }
   
   .see-all-link {
-    color: #3498db;
+    background-color: #3498db;
+    color: white;
     font-size: 14px;
-    text-decoration: none;
-    background: none;
+    padding: 6px 12px;
     border: none;
+    border-radius: 20px;
     cursor: pointer;
-    padding: 0;
+    transition: all 0.3s ease;
+    font-weight: 500;
   }
   
   .see-all-link:hover {
-    text-decoration: underline;
+    background-color: #5dade2; /* lighter blue */
+    color: white; /* keeps text visible */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
+  
   
   .suggestions-list {
     display: flex;

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
 import { sendFriendRequest } from '../../services/friendService';
 import { getAllUsers, getUserById } from '../../services/userService';
+import { checkFriendStatus } from '../../services/friendService'; // Import the friend status check function
 import UserProfileModal from '../modals/UserProfileModal';
 import '../../styles/components/peopleYouMayKnow.css';
 
@@ -24,12 +25,35 @@ const PeopleYouMayKnow = () => {
         setLoading(true);
         const allUsers = await getAllUsers();
         
-        // Filter out current user and limit to 3 users for display
-        const filteredUsers = allUsers
-          .filter(user => profile && user.id !== profile.id)
-          .slice(0, 3);
+        // Filter out current user
+        let filteredUsers = allUsers.filter(user => profile && user.id !== profile.id);
+        
+        // Check which users are already friends and filter them out
+        const nonFriendUsers = [];
+        
+        for (const user of filteredUsers) {
+          try {
+            // Check if this user is already a friend
+            const friendStatus = await checkFriendStatus(user.id);
+            
+            // If they're not a friend, add them to our list
+            if (!friendStatus.isFriend) {
+              nonFriendUsers.push(user);
+            }
+          } catch (error) {
+            console.log(`Error checking friend status for user ${user.id}:`, error);
+            // Include user by default if we can't determine friend status
+            nonFriendUsers.push(user);
+          }
           
-        setUsers(filteredUsers);
+          // If we have found 3 non-friend users, stop checking
+          if (nonFriendUsers.length >= 3) {
+            break;
+          }
+        }
+        
+        // Set the list of non-friend users (limited to 3 for display)
+        setUsers(nonFriendUsers.slice(0, 3));
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -115,7 +139,7 @@ const PeopleYouMayKnow = () => {
     setDetailedUser(null);
   };
 
-  // Send friend request - for frontend display only initially
+  // Send friend request
   const handleSendFriendRequest = async (userId) => {
     try {
       console.log('Sending friend request to:', userId);
@@ -148,7 +172,7 @@ const PeopleYouMayKnow = () => {
       <div className="people-suggestions">
         <div className="suggestions-header">
           <h3>People You May Know</h3>
-          <button className="see-all-link">See All</button>
+          <Link to="/users" className="see-all-link">See All</Link>
         </div>
         <div className="suggestions-loading">Loading...</div>
       </div>
@@ -161,7 +185,7 @@ const PeopleYouMayKnow = () => {
       <div className="people-suggestions">
         <div className="suggestions-header">
           <h3>People You May Know</h3>
-          <button className="see-all-link">See All</button>
+          <Link to="/users" className="see-all-link">See All</Link>
         </div>
         <div className="suggestions-empty">No suggestions available</div>
       </div>
