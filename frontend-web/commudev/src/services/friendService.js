@@ -207,7 +207,7 @@ export const removeFriend = async (userId) => {
 /**
  * Check if a user is a friend of the current user
  * @param {string|number} userId - The ID of the user to check
- * @returns {Promise<Object>} - Response with isFriend boolean
+ * @returns {Promise<Object>} - Response with isFriend and pendingRequest booleans
  */
 export const checkFriendStatus = async (userId) => {
   try {
@@ -216,7 +216,8 @@ export const checkFriendStatus = async (userId) => {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(`${API_URL}/api/friends/check/${userId}`, {
+    // First check if they are friends
+    const friendResponse = await fetch(`${API_URL}/api/friends/check/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -226,12 +227,56 @@ export const checkFriendStatus = async (userId) => {
       credentials: 'include'
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+    if (!friendResponse.ok) {
+      const errorData = await friendResponse.json();
+      throw new Error(errorData.error || `Error ${friendResponse.status}: ${friendResponse.statusText}`);
     }
     
-    return await response.json();
+    const friendStatus = await friendResponse.json();
+    
+    // If they are friends, we don't need to check for pending requests
+    if (friendStatus.isFriend) {
+      return {
+        isFriend: true,
+        pendingRequest: false
+      };
+    }
+    
+    // If they're not friends, check if there's a pending request
+    try {
+      // Get all pending requests
+      const pendingRequestsResponse = await fetch(`${API_URL}/api/friends/requests/pending`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (pendingRequestsResponse.ok) {
+        const pendingRequests = await pendingRequestsResponse.json();
+        
+        // Check if any pending request is for this user
+        const hasPendingRequest = pendingRequests.some(
+          request => request.receiver?.id == userId || request.sender?.id == userId
+        );
+        
+        return {
+          isFriend: false,
+          pendingRequest: hasPendingRequest
+        };
+      }
+    } catch (error) {
+      console.error('Error checking pending requests:', error);
+    }
+    
+    // Default response if pending request check fails
+    return {
+      isFriend: friendStatus.isFriend,
+      pendingRequest: false
+    };
   } catch (error) {
     console.error('Error checking friend status:', error);
     throw error;

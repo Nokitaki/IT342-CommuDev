@@ -1,10 +1,10 @@
 // src/components/modals/UserProfileModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../common/Button';
-import { sendFriendRequest } from '../../services/friendService';
+import { sendFriendRequest, checkFriendStatus } from '../../services/friendService';
 import '../../styles/components/userProfileModal.css';
 
-const UserProfileModal = ({ isOpen, onClose, user }) => {
+const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
   // Check for null/undefined user or not being open
   if (!isOpen || !user) return null;
   
@@ -12,6 +12,31 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
   const [requestSent, setRequestSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Check friend request status when modal opens with a user
+  useEffect(() => {
+    const checkRequestStatus = async () => {
+      if (user && user.id) {
+        try {
+          // Only check the current status, don't send a request
+          const status = await checkFriendStatus(user.id);
+          // Only set requestSent to true if there's already a pending request
+          setRequestSent(status.pendingRequest || false);
+        } catch (error) {
+          console.error('Error checking friend request status:', error);
+        }
+      }
+    };
+    
+    // Reset states when a new user modal is opened
+    setRequestSent(false);
+    setIsLoading(false);
+    setError('');
+    
+    if (isOpen && user) {
+      checkRequestStatus();
+    }
+  }, [isOpen, user]);
 
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -136,18 +161,17 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
       console.log('Sending friend request to:', user.id);
       await sendFriendRequest(user.id);
       setRequestSent(true);
+      
+      // Call the callback to inform parent component
+      if (onFriendRequestSent && typeof onFriendRequestSent === 'function') {
+        onFriendRequestSent(user.id);
+      }
     } catch (err) {
       console.error('Error sending friend request:', err);
       setError('Failed to send friend request. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Handle message button click
-  const handleMessage = () => {
-    console.log('Messaging:', user.id);
-    alert(`Messaging ${getFullName()}`);
   };
 
   return (
@@ -291,15 +315,6 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                   )}
                 </Button>
               )}
-              
-              <Button 
-                variant="secondary" 
-                className="message-button"
-                onClick={handleMessage}
-              >
-                <span className="message-icon">💬</span>
-                Message
-              </Button>
             </div>
           </div>
         </div>

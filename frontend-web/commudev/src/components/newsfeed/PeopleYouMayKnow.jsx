@@ -30,11 +30,17 @@ const PeopleYouMayKnow = () => {
         
         // Check which users are already friends and filter them out
         const nonFriendUsers = [];
+        const pendingRequests = {};
         
         for (const user of filteredUsers) {
           try {
             // Check if this user is already a friend
             const friendStatus = await checkFriendStatus(user.id);
+            
+            // If there's a pending friend request, track it
+            if (friendStatus.pendingRequest) {
+              pendingRequests[user.id] = true;
+            }
             
             // If they're not a friend, add them to our list
             if (!friendStatus.isFriend) {
@@ -51,6 +57,9 @@ const PeopleYouMayKnow = () => {
             break;
           }
         }
+        
+        // Update the requestSent state with any pending requests
+        setRequestSent(pendingRequests);
         
         // Set the list of non-friend users (limited to 3 for display)
         setUsers(nonFriendUsers.slice(0, 3));
@@ -135,30 +144,29 @@ const PeopleYouMayKnow = () => {
 
   // Close the modal
   const handleCloseModal = () => {
+    // We no longer automatically update the requestSent state here
+    // Only update if a request was explicitly sent in the modal
+    
     setIsModalOpen(false);
     setDetailedUser(null);
   };
 
   // Send friend request
-  const handleSendFriendRequest = async (userId) => {
+  const handleSendFriendRequest = async (userId, e) => {
+    // Stop event propagation to prevent opening the modal
+    if (e) e.stopPropagation();
+    
     try {
       console.log('Sending friend request to:', userId);
       
-      // Attempt to use the service if it exists, otherwise just update UI
-      try {
-        await sendFriendRequest(userId);
-      } catch (serviceError) {
-        console.log('Friend service not yet connected, showing UI only');
-      }
+      // Attempt to use the service
+      await sendFriendRequest(userId);
       
       // Update local state to show request sent
       setRequestSent(prev => ({
         ...prev,
         [userId]: true
       }));
-      
-      // Alert the user
-      alert(`Friend request sent to ${userId}`);
       
       return true;
     } catch (error) {
@@ -218,9 +226,8 @@ const PeopleYouMayKnow = () => {
             <button 
               className={`suggestion-add-btn ${requestSent[user.id] ? 'sent' : ''}`} 
               onClick={(e) => {
-                e.stopPropagation();
                 if (!requestSent[user.id]) {
-                  handleSendFriendRequest(user.id);
+                  handleSendFriendRequest(user.id, e);
                 }
               }}
               disabled={requestSent[user.id]}
@@ -243,7 +250,14 @@ const PeopleYouMayKnow = () => {
       <UserProfileModal 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
-        user={detailedUser} 
+        user={detailedUser}
+        onFriendRequestSent={(userId) => {
+          // Update our local state when a request is sent from the modal
+          setRequestSent(prev => ({
+            ...prev,
+            [userId]: true
+          }));
+        }}
       />
     </div>
   );
