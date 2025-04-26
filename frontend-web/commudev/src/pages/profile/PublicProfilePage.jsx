@@ -402,45 +402,15 @@ const PublicProfilePage = () => {
               </Button>
             ) : (
               <div className="button-row">
-                <Button 
-                  variant="primary" 
-                  onClick={handleMessage}
-                  className="equal-width-btn"
-                >
-                  <span className="message-icon">✉️</span>
-                  <span>Message</span>
-                </Button>
-                
-                {friendStatus.isFriend ? (
-                  <Button 
-                    variant="secondary" 
-                    onClick={handleUnfriend}
-                    disabled={isActionLoading}
-                    className="equal-width-btn"
-                  >
-                    <span className="unfriend-icon">🔄</span>
-                    <span>{isActionLoading ? "Processing..." : "Unfriend"}</span>
-                  </Button>
-                ) : friendStatus.pendingRequest ? (
-                  <Button 
-                    variant="secondary" 
-                    disabled={true}
-                    className="equal-width-btn"
-                  >
-                    <span className="pending-icon">⏳</span>
-                    <span>Request Sent</span>
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="primary" 
-                    onClick={handleAddFriend}
-                    disabled={isActionLoading}
-                    className="equal-width-btn"
-                  >
-                    <span className="add-friend-icon">➕</span>
-                    <span>{isActionLoading ? "Sending..." : "Add Friend"}</span>
-                  </Button>
-                )}
+               <Button 
+  variant="primary" 
+  onClick={handleMessage}
+  style={{ width: 'auto' }}
+>
+  <span className="message-icon">✉️</span>
+  <span>Message</span>
+</Button>
+
               </div>
             )}
           </div>
