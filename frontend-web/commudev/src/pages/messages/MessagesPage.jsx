@@ -1,6 +1,21 @@
-// src/pages/messages/MessagesPage.jsx
+// src/pages/messages/EnhancedMessagesPage.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Smile, Paperclip, Image, Mic, Phone, Video, Search, UserPlus } from "lucide-react";
+import { 
+  Send, 
+  Smile, 
+  Paperclip, 
+  Image, 
+  Mic, 
+  Phone, 
+  Video, 
+  MoreVertical, 
+  UserPlus, 
+  Edit2, 
+  Trash2, 
+  Check, 
+  X,
+  Search
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import MessageLayout from "../../layouts/MessagesLayout";
 import useMessages from "../../hooks/useMessages";
@@ -9,31 +24,11 @@ import Avatar from "../../components/common/Avatar";
 import NewMessageModal from '../../components/modals/NewMessageModal';
 import { formatTimeAgo } from "../../utils/dateUtils";
 import "../../styles/pages/messages.css";
-import { auth } from "../../services/firebaseAuth";
-import { debugFirestore } from "../../services/firebaseService";
 
 // Import your logo
 import LogoIcon from "../../assets/images/logo.png";
 
 const MessagesPage = () => {
-  useEffect(() => {
-    // Debug auth state and user ID
-    console.log("MessagesPage - Current auth state:", auth.currentUser);
-    console.log("MessagesPage - localStorage userId:", localStorage.getItem('userId'));
-    
-    // Debug Firestore data
-    const checkFirestore = async () => {
-      try {
-        const allConversations = await debugFirestore();
-        console.log("MessagesPage - All Firestore conversations:", allConversations);
-      } catch (error) {
-        console.error("Error checking Firestore:", error);
-      }
-    };
-    
-    checkFirestore();
-  }, []);
-  
   const { 
     conversations, 
     messages, 
@@ -46,16 +41,23 @@ const MessagesPage = () => {
     sendNewMessage, 
     handleTypingInput,
     startConversation,
-    setLastRefresh  // Add this
-  } = useMessages();  // Start a new conversation with a user
-
+    setLastRefresh,
+    editMessage,
+    deleteMessage
+  } = useMessages();
   
   const { profile } = useProfile();
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editedMessageText, setEditedMessageText] = useState("");
+  const [messageActionsId, setMessageActionsId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  
   const messagesEndRef = useRef(null);
+  const editInputRef = useRef(null);
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -68,6 +70,13 @@ const MessagesPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
+  // Auto focus when editing a message
+  useEffect(() => {
+    if (editingMessageId && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [editingMessageId]);
   
   // Filter conversations based on search term
   const filteredConversations = conversations.filter(conv => {
@@ -97,6 +106,76 @@ const MessagesPage = () => {
     }
   };
   
+  // Handle editing a message
+  const handleStartEditing = (message) => {
+    setEditingMessageId(message.id);
+    setEditedMessageText(message.text);
+    setMessageActionsId(null); // Close action menu
+  };
+  
+  // Save edited message
+  const handleSaveEdit = async () => {
+    if (editedMessageText.trim() === "" || !editingMessageId) return;
+    
+    try {
+      const success = await editMessage(currentConversation, editingMessageId, editedMessageText);
+      if (success) {
+        setEditingMessageId(null);
+        setEditedMessageText("");
+      }
+    } catch (error) {
+      console.error("Error editing message:", error);
+    }
+  };
+  
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditedMessageText("");
+  };
+  
+  // Delete message
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      const success = await deleteMessage(currentConversation, messageId);
+      if (success) {
+        setMessageActionsId(null);
+        setConfirmDeleteId(null);
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  };
+  
+  // Confirm delete
+  const showDeleteConfirmation = (messageId) => {
+    setConfirmDeleteId(messageId);
+  };
+  
+  // Hide delete confirmation
+  const hideDeleteConfirmation = () => {
+    setConfirmDeleteId(null);
+  };
+  
+  // Toggle message actions menu
+  const toggleMessageActions = (messageId) => {
+    if (messageActionsId === messageId) {
+      setMessageActionsId(null);
+    } else {
+      setMessageActionsId(messageId);
+    }
+  };
+  
+  // Close message actions when clicking anywhere else
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setMessageActionsId(null);
+    };
+    
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
+  
   // Handle typing
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
@@ -122,15 +201,11 @@ const MessagesPage = () => {
         return;
       }
       
-      console.log('Starting conversation with user:', user);
-      console.log('Current user:', profile);
-      
       try {
         // Convert user.id to string to ensure compatibility
         const conversationId = await startConversation(user.id.toString());
         
         if (conversationId) {
-          console.log('Conversation started successfully with ID:', conversationId);
           setShowNewMessageModal(false);
           
           // Force refresh conversation list
@@ -138,7 +213,6 @@ const MessagesPage = () => {
             setLastRefresh(Date.now());
           }, 500);
         } else {
-          console.error('Failed to start conversation, no ID returned');
           alert("There was a problem starting the conversation. Please try again later.");
         }
       } catch (error) {
@@ -173,7 +247,6 @@ const MessagesPage = () => {
   // Format date for messages
   const formatMessageTime = (timestamp) => {
     if (!timestamp) return 'Just now';
-    
     return new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit'
@@ -227,8 +300,8 @@ const MessagesPage = () => {
                     e.target.src = '/src/assets/images/profile/default-avatar.png';
                   }}
                 />
-                {/* Placeholder for online indicator */}
-                {false && <span className="online-indicator"></span>}
+                {/* Online status indicator - this would need to be implemented in your Firebase presence system */}
+                {conversation.isOnline && <span className="online-indicator"></span>}
               </div>
               <div className="conversation-info">
                 <h3 className="m-user-name">{conversation.otherUserName || "User"}</h3>
@@ -241,6 +314,9 @@ const MessagesPage = () => {
                 <span className="conversation-time">
                   {conversation.lastUpdated ? formatTimeAgo(conversation.lastUpdated) : ''}
                 </span>
+                {conversation.unreadCount > 0 && (
+                  <span className="unread-count">{conversation.unreadCount}</span>
+                )}
               </div>
             </div>
           ))
@@ -268,17 +344,21 @@ const MessagesPage = () => {
               <div className="chat-user-details">
                 <h2 className="chat-user-name">{selectedUser.name}</h2>
                 <p className="chat-user-status">
-                  {/* Placeholder for online status */}
-                  {false ? "Online" : "Offline"}
+                  {/* Status indicator */}
+                  <span className={`status-indicator ${selectedUser.isOnline ? "online" : "offline"}`}></span>
+                  {selectedUser.isOnline ? "Online" : "Offline"}
                 </p>
               </div>
             </div>
             <div className="chat-actions">
-              <button className="action-btn">
+              <button className="action-btn" title="Voice call">
                 <Phone size={20} />
               </button>
-              <button className="action-btn">
+              <button className="action-btn" title="Video call">
                 <Video size={20} />
+              </button>
+              <button className="action-btn" title="More options">
+                <MoreVertical size={20} />
               </button>
             </div>
           </div>
@@ -286,6 +366,9 @@ const MessagesPage = () => {
           <div className="messages-area">
             {messages.length === 0 ? (
               <div className="no-messages">
+                <div className="no-messages-icon">
+                  <img src={LogoIcon} alt="Start conversation" className="no-chat-icon" />
+                </div>
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
@@ -293,17 +376,108 @@ const MessagesPage = () => {
                 <div
                   key={msg.id}
                   className={`message ${msg.senderId === profile?.id?.toString() ? "message-sent" : "message-received"}`}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <div className="message-content">
-                    <div className="message-bubble">{msg.text}</div>
-                    <span className="message-time">
-                      {formatMessageTime(msg.timestamp)}
-                      {msg.senderId === profile?.id?.toString() && (
-                        <span className="message-status">
-                          {msg.read ? " ✓✓" : " ✓"}
-                        </span>
-                      )}
-                    </span>
+                    {editingMessageId === msg.id ? (
+                      <div className="message-edit-container">
+                        <input
+                          type="text"
+                          className="message-edit-input"
+                          value={editedMessageText}
+                          onChange={(e) => setEditedMessageText(e.target.value)}
+                          ref={editInputRef}
+                          onKeyPress={(e) => e.key === "Enter" && handleSaveEdit()}
+                        />
+                        <div className="message-edit-actions">
+                          <button 
+                            className="message-edit-btn save" 
+                            onClick={handleSaveEdit}
+                            title="Save changes"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button 
+                            className="message-edit-btn cancel" 
+                            onClick={handleCancelEdit}
+                            title="Cancel editing"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="message-bubble">
+                          {msg.text}
+                        </div>
+                        <div className="message-meta">
+                          <span className="message-time">
+                            {formatMessageTime(msg.timestamp)}
+                            {msg.senderId === profile?.id?.toString() && (
+                              <span className="message-status">
+                                {msg.read ? " ✓✓" : " ✓"}
+                              </span>
+                            )}
+                          </span>
+                          
+                          {/* Only show message actions for sent messages */}
+                          {msg.senderId === profile?.id?.toString() && (
+                            <div className="message-actions">
+                              <button 
+                                className="message-action-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMessageActions(msg.id);
+                                }}
+                                title="Message options"
+                              >
+                                <MoreVertical size={14} />
+                              </button>
+                              
+                              {messageActionsId === msg.id && (
+                                <div className="message-actions-menu">
+                                  <button 
+                                    className="message-action-item edit"
+                                    onClick={() => handleStartEditing(msg)}
+                                  >
+                                    <Edit2 size={14} />
+                                    Edit
+                                  </button>
+                                  <button 
+                                    className="message-action-item delete"
+                                    onClick={() => showDeleteConfirmation(msg.id)}
+                                  >
+                                    <Trash2 size={14} />
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                              
+                              {confirmDeleteId === msg.id && (
+                                <div className="delete-confirmation">
+                                  <p>Delete this message?</p>
+                                  <div className="delete-actions">
+                                    <button 
+                                      className="delete-confirm"
+                                      onClick={() => handleDeleteMessage(msg.id)}
+                                    >
+                                      Delete
+                                    </button>
+                                    <button 
+                                      className="delete-cancel"
+                                      onClick={hideDeleteConfirmation}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ))
@@ -324,13 +498,13 @@ const MessagesPage = () => {
           </div>
 
           <div className="input-area">
-            <button className="input-action">
+            <button className="input-action" title="Emoji">
               <Smile size={20} />
             </button>
-            <button className="input-action">
+            <button className="input-action" title="Attach file">
               <Paperclip size={20} />
             </button>
-            <button className="input-action">
+            <button className="input-action" title="Send image">
               <Image size={20} />
             </button>
             <input
@@ -343,13 +517,14 @@ const MessagesPage = () => {
               disabled={isSending}
             />
             <button
-              className="send-btn"
+              className={`send-btn ${!newMessage.trim() ? 'disabled' : ''}`}
               onClick={handleSendMessage}
-              disabled={isSending}
+              disabled={isSending || !newMessage.trim()}
+              title="Send message"
             >
               <Send size={20} />
             </button>
-            <button className="input-action">
+            <button className="input-action" title="Voice message">
               <Mic size={20} />
             </button>
           </div>
@@ -385,8 +560,8 @@ const MessagesPage = () => {
         />
         <h2 className="profile-name">{selectedUser.name}</h2>
         <p className="profile-status">
-          {/* Placeholder for online status */}
-          {false ? "Online" : "Last seen recently"}
+          <span className={`status-indicator ${selectedUser.isOnline ? "online" : "offline"}`}></span>
+          {selectedUser.isOnline ? "Online" : "Last seen recently"}
         </p>
       </div>
   
@@ -398,10 +573,15 @@ const MessagesPage = () => {
               <span className="info-label">Username:</span>
               <span className="info-value">@{selectedUser.username}</span>
             </p>
-            {/* Placeholder info - in a real app you'd get this from your user API */}
+            {selectedUser.bio && (
+              <p className="info-item bio">
+                <span className="info-label">Bio:</span>
+                <span className="info-value">{selectedUser.bio}</span>
+              </p>
+            )}
             <p className="info-item">
               <span className="info-label">Member since:</span>
-              <span className="info-value">January 2024</span>
+              <span className="info-value">February 2024</span>
             </p>
           </div>
         </section>
@@ -409,7 +589,12 @@ const MessagesPage = () => {
         <section className="details-section">
           <h3 className="section-title">Shared Media</h3>
           <div className="media-grid">
-            <p>No shared media yet</p>
+            {/* Sample shared media - in a real app, this would be fetched from the backend */}
+            <div className="media-item-placeholder">
+              <div className="media-item-content">
+                <span>No shared media yet</span>
+              </div>
+            </div>
           </div>
         </section>
   
@@ -419,6 +604,12 @@ const MessagesPage = () => {
             <Link to={`/profiles/${selectedUser.username}`} className="profile-action-link">
               View Full Profile
             </Link>
+            <button className="profile-action-button mute">
+              Mute Notifications
+            </button>
+            <button className="profile-action-button block">
+              Block User
+            </button>
           </div>
         </section>
       </div>

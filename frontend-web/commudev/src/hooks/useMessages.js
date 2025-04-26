@@ -10,11 +10,13 @@ import {
   markMessagesAsRead,
   updateTypingStatus,
   subscribeToTypingStatus,
-  debugFirestore // Add this import
+  updateMessage,
+  deleteMessage as firebaseDeleteMessage,
+  debugFirestore
 } from '../services/firebaseService';
 import useProfile from './useProfile';
 import { getUserById } from '../services/userService';
-import { auth } from '../services/firebaseAuth'; // Add this import
+import { auth } from '../services/firebaseAuth';
 
 const useMessages = () => {
   const [conversations, setConversations] = useState([]);
@@ -312,6 +314,70 @@ const useMessages = () => {
     }
   };
 
+  // Edit a message
+  const editMessage = async (conversationId, messageId, newText) => {
+    if (!conversationId || !messageId || !userId) {
+      setError('Cannot edit message');
+      return false;
+    }
+
+    try {
+      // Find the message to make sure it's our message
+      const message = messages.find(m => m.id === messageId);
+      
+      if (!message) {
+        console.error('Message not found for editing');
+        return false;
+      }
+      
+      if (message.senderId !== userId) {
+        console.error('Cannot edit messages from other users');
+        return false;
+      }
+      
+      // Call Firebase function to update the message
+      await updateMessage(conversationId, messageId, newText);
+      
+      return true;
+    } catch (err) {
+      console.error('Error editing message:', err);
+      setError('Failed to edit message');
+      return false;
+    }
+  };
+
+  // Delete a message
+  const deleteMessage = async (conversationId, messageId) => {
+    if (!conversationId || !messageId || !userId) {
+      setError('Cannot delete message');
+      return false;
+    }
+
+    try {
+      // Find the message to make sure it's our message
+      const message = messages.find(m => m.id === messageId);
+      
+      if (!message) {
+        console.error('Message not found for deletion');
+        return false;
+      }
+      
+      if (message.senderId !== userId) {
+        console.error('Cannot delete messages from other users');
+        return false;
+      }
+      
+      // Call Firebase function to delete the message
+      await firebaseDeleteMessage(conversationId, messageId);
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      setError('Failed to delete message');
+      return false;
+    }
+  };
+
   // Handle typing input
   const handleTypingInput = useCallback(() => {
     setIsTyping(true);
@@ -327,7 +393,8 @@ const useMessages = () => {
       id: conversation.otherUserId,
       name: userData.name || conversation.otherUserName || 'User',
       avatar: userData.avatar || conversation.otherUserAvatar,
-      username: userData.username || ''
+      username: userData.username || '',
+      isOnline: conversation.isOtherUserOnline || false
     });
   }, []);
 
@@ -343,6 +410,8 @@ const useMessages = () => {
     sendNewMessage,
     selectConversation,
     handleTypingInput,
+    editMessage,
+    deleteMessage,
     setLastRefresh
   };
 };

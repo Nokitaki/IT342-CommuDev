@@ -13,6 +13,8 @@ import {
   serverTimestamp,
   getDoc,
   updateDoc,
+  deleteDoc,
+  arrayRemove,
   getDocs
 } from 'firebase/firestore';
 
@@ -432,6 +434,134 @@ export const subscribeToTypingStatus = (conversationId, currentUserId, callback)
   }
 };
 
+
+
+/**
+ * Update a message in a conversation
+ * @param {string} conversationId - ID of the conversation
+ * @param {string} messageId - ID of the message to update
+ * @param {string} newText - Updated message text
+ * @returns {Promise<void>} - Promise that resolves when message is updated
+ */
+export const updateMessage = async (conversationId, messageId, newText) => {
+  try {
+    if (!firestore) {
+      throw new Error("Firestore is not initialized");
+    }
+
+    const messageRef = doc(firestore, 'conversations', conversationId, 'messages', messageId);
+    
+    // First check if the message exists
+    const messageSnap = await getDoc(messageRef);
+    if (!messageSnap.exists()) {
+      throw new Error('Message not found');
+    }
+    
+    // Update the message
+    await updateDoc(messageRef, {
+      text: newText,
+      edited: true,
+      editedAt: serverTimestamp()
+    });
+    
+    // Update the conversation's lastMessage if this was the most recent message
+    const conversationRef = doc(firestore, 'conversations', conversationId);
+    const conversationSnap = await getDoc(conversationRef);
+    
+    if (conversationSnap.exists()) {
+      const conversationData = conversationSnap.data();
+      const lastMessageId = conversationData.lastMessageId;
+      
+      // If this is the most recent message, update the conversation's lastMessage
+      if (lastMessageId === messageId) {
+        await updateDoc(conversationRef, {
+          lastMessage: newText,
+          lastUpdated: serverTimestamp()
+        });
+      }
+    }
+    
+    console.log('Message updated successfully');
+    return true;
+  } catch (error) {
+    console.error('Error updating message:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a message from a conversation
+ * @param {string} conversationId - ID of the conversation
+ * @param {string} messageId - ID of the message to delete
+ * @returns {Promise<void>} - Promise that resolves when message is deleted
+ */
+export const deleteMessage = async (conversationId, messageId) => {
+  try {
+    if (!firestore) {
+      throw new Error("Firestore is not initialized");
+    }
+
+    // Get the message to be deleted
+    const messageRef = doc(firestore, 'conversations', conversationId, 'messages', messageId);
+    const messageSnap = await getDoc(messageRef);
+    
+    if (!messageSnap.exists()) {
+      throw new Error('Message not found');
+    }
+    
+    const messageData = messageSnap.data();
+    
+    // Delete the message document
+    await deleteDoc(messageRef);
+    
+    // Update the conversation's lastMessage if this was the most recent message
+    const conversationRef = doc(firestore, 'conversations', conversationId);
+    const conversationSnap = await getDoc(conversationRef);
+    
+    if (conversationSnap.exists()) {
+      const conversationData = conversationSnap.data();
+      const lastMessageId = conversationData.lastMessageId;
+      
+      // If this was the last message, we need to find the new last message
+      if (lastMessageId === messageId) {
+        // Get all messages and find the new most recent one
+        const messagesQuery = await getCollectionWithQuery(
+          collection(firestore, 'conversations', conversationId, 'messages'),
+          orderBy('timestamp', 'desc'),
+          limit(1)
+        );
+        
+        if (messagesQuery.docs.length > 0) {
+          const newLastMessage = messagesQuery.docs[0];
+          const newLastMessageData = newLastMessage.data();
+          
+          // Update the conversation with the new last message
+          await updateDoc(conversationRef, {
+            lastMessage: newLastMessageData.text,
+            lastMessageId: newLastMessage.id,
+            lastSenderId: newLastMessageData.senderId,
+            lastUpdated: newLastMessageData.timestamp
+          });
+        } else {
+          // No messages left, update with empty values
+          await updateDoc(conversationRef, {
+            lastMessage: "No messages",
+            lastMessageId: null,
+            lastSenderId: null,
+            lastUpdated: serverTimestamp()
+          });
+        }
+      }
+    }
+    
+    console.log('Message deleted successfully');
+    return true;
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    throw error;
+  }
+};
+
 export default {
   sendMessage, 
   getOrCreateConversation, 
@@ -441,5 +571,7 @@ export default {
   subscribeToUserPresence,
   markMessagesAsRead,
   updateTypingStatus,
-  subscribeToTypingStatus
+  subscribeToTypingStatus,
+  updateMessage, 
+  deleteMessage
 };
