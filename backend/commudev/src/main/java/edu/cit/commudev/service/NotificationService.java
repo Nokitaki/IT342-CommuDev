@@ -1,6 +1,7 @@
 package edu.cit.commudev.service;
 
 import edu.cit.commudev.entity.CommentEntity;
+import edu.cit.commudev.entity.FriendRequest;
 import edu.cit.commudev.entity.NewsfeedEntity;
 import edu.cit.commudev.entity.NotificationEntity;
 import edu.cit.commudev.entity.User;
@@ -158,4 +159,49 @@ public class NotificationService {
         
         notificationRepository.deleteById(notificationId);
     }
+
+
+
+
+    /**
+ * Create a notification for a friend request
+ * @param friendRequest The friend request
+ */
+@Transactional
+public void createFriendRequestNotification(FriendRequest friendRequest) {
+    User recipient = friendRequest.getReceiver();
+    User actor = friendRequest.getSender();
+    
+    String notificationText = actor.getUsername() + " sent you a friend request";
+    
+    NotificationEntity notification = new NotificationEntity(
+            "FRIEND_REQUEST",
+            notificationText,
+            recipient,
+            actor
+    );
+    
+    notificationRepository.save(notification);
+}
+
+/**
+ * Create a notification for an accepted friend request
+ * @param friendRequest The accepted friend request
+ */
+@Transactional
+public void createFriendRequestAcceptedNotification(FriendRequest friendRequest) {
+    User recipient = friendRequest.getSender(); // Sender becomes recipient
+    User actor = friendRequest.getReceiver();   // Receiver is who accepted
+    
+    String notificationText = actor.getUsername() + " accepted your friend request";
+    
+    NotificationEntity notification = new NotificationEntity(
+            "FRIEND_ACCEPTED",
+            notificationText,
+            recipient,
+            actor
+    );
+    
+    notificationRepository.save(notification);
+}
 }

@@ -1,108 +1,589 @@
-/* src/styles/pages/publicProfile.css */
+/* src/styles/pages/publicProfile.css - Complete version */
+
+/* Full page container */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto; /* Ensure page is scrollable */
+}
+
+/* Main Container */
 .public-profile-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 1000px;
+  margin: 0 auto 40px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Changed from hidden to visible to allow content to flow */
+  position: relative;
+}
+
+/* Cover Photo Section */
+.public-profile-cover {
+  height: 250px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.public-profile-container:hover .cover-image {
+  transform: scale(1.03);
+}
+
+.cover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, 
+    rgba(0, 0, 0, 0.1) 0%, 
+    rgba(0, 0, 0, 0.5) 100%);
+}
+
+.profile-nav {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  border-radius: 20px;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-icon {
+  margin-right: 6px;
+}
+
+/* Profile Header */
+.public-profile-header {
+  padding: 0 30px 30px;
+  margin-top: -70px;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+}
+
+.profile-avatar-wrapper {
+  margin-right: 20px;
+  position: relative;
+  display: flex; /* Add this */
+  justify-content: center; /* Add this */
+  align-items: center; /* Add this */
+}
+
+.profile-avatar-large {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+  vertical-align: middle; /* Add this to help alignment */
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0; /* For text overflow management */
+}
+
+.profile-name {
+    /* Current margin */
+  margin: 100px 0 5px;  /* Increased top margin to move it down */
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.profile-username {
+  margin: 0 0 15px;  /* Change this to increase space below */
+  margin: 5px 0 15px; /* Add more top margin to move it down */
+  font-size: 16px;
+  color: #666; /* This is currently grey, you might want to change it */
+  color: #3498db; /* Change to a different color like blue */
+}
+
+.profile-actions {
+  display: block;
+  width: 100%;
+}
+
+/* Button row styles */
+.button-row {
+  display: flex;
+  flex-direction: row !important; /* Force row layout */
+  width: 100%;
+  gap: 10px;
+}
+
+.equal-width-btn {
+  flex: 1 1 0 !important; /* Equal width distribution */
+  min-width: 120px !important;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.full-width-btn {
+  width: 100%;
+}
+
+/* Status Message */
+.profile-status-message {
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  animation: slide-in 0.3s ease;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.profile-status-message.success {
+  background-color: #f0fff4;
+  color: #38a169;
+  border-left: 3px solid #38a169;
+}
+
+.profile-status-message.error {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  border-left: 3px solid #e53e3e;
+}
+
+.profile-status-message.info {
+  background-color: #ebf8ff;
+  color: #3182ce;
+  border-left: 3px solid #3182ce;
+}
+
+/* Profile Navigation/Tabs */
+.profile-navigation {
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-top: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.profile-tabs {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.profile-tab {
+  flex: 1;
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.profile-tab:hover {
+  color: #4CAF50;
+}
+
+.profile-tab.active {
+  color: #4CAF50;
+}
+
+.profile-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 25%;
+  width: 50%;
+  height: 3px;
+  background-color: #4CAF50;
+  border-radius: 3px 3px 0 0;
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+/* Profile Content */
+.profile-content {
+  padding: 30px;
+  min-height: auto; /* Changed from 60vh to auto */
+  overflow: visible; /* Ensure content flows properly */
+}
+
+/* Posts Tab */
+.profile-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading-posts,
+.no-posts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  color: #666;
+  padding: 30px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4CAF50;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-posts-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+/* About Tab */
+.profile-about {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.about-section {
+  background-color: #f9fafb;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.about-section h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #333;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.about-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background-color: #4CAF50;
+  border-radius: 3px;
+}
+
+.about-bio {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #4CAF50;
+}
+
+.bio-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.bio-icon {
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+.about-bio h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.about-bio p {
+  margin: 0;
+  line-height: 1.6;
+  color: #555;
+}
+
+.about-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.about-detail {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.about-detail:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detail-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.detail-content {
+  flex: 1;
+}
+
+.detail-content h4 {
+  margin: 0 0 5px;
+  font-size: 14px;
+  color: #666;
+}
+
+.detail-content p {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Private Profile */
+.private-profile-container {
+  min-height: 100vh; /* Use min-height instead of height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  padding: 20px;
+  overflow-y: auto; /* Add scrolling capability */
+}
+
+.private-profile-content {
+  max-width: 500px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  animation: fade-in 0.5s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.private-profile-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.private-profile-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 30px 0;
+}
+
+.private-profile-avatar h3 {
+  margin-top: 15px;
+  font-size: 18px;
+  color: #666;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+}
+
+.back-link:hover {
+  background-color: #43A047;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.back-icon {
+  margin-right: 8px;
+}
+
+/* Profile Footer */
+.profile-footer {
+  background-color: #f5f5f5;
+  padding: 20px 30px;
+  text-align: center;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.profile-footer p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Loading and Error States */
+.public-profile-loading,
+.public-profile-error,
+.public-profile-not-found {
+  min-height: 100vh; /* Changed from fixed height to min-height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  overflow-y: auto; /* Add scrolling capability */
+}
+
+.public-profile-error,
+.public-profile-not-found {
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.public-profile-error h2,
+.public-profile-not-found h2 {
+  color: #e53e3e;
+}
+
+/* Add these styles for the message icon and unfriend icon */
+.message-icon, 
+.unfriend-icon, 
+.pending-icon, 
+.add-friend-icon {
+  margin-right: 4px !important;
+}
+
+/* Media query for small screens - STILL maintains row layout */
+@media (max-width: 480px) {
+  .button-row {
+    flex-direction: row !important; /* Force row layout even on mobile */
   }
   
-  .profile-header {
-    display: flex;
+  .equal-width-btn {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 14px !important;
+  }
+  
+  .public-profile-header {
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 20px;
+    text-align: center;
+    padding: 0 20px 20px;
   }
   
-  .profile-avatar {
+  .profile-avatar-wrapper {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+  
+  .profile-avatar-large {
     width: 120px;
     height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin-right: 20px;
-    border: 3px solid #f0f2f5;
   }
   
-  .profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .profile-name-section h1 {
-    margin: 0 0 5px 0;
-    font-size: 24px;
-    color: #333;
-  }
-  
-  .username {
-    margin: 0;
-    color: #666;
-    font-size: 16px;
+  .profile-cover {
+    height: 180px;
   }
   
   .profile-content {
-    margin-top: a0px;
+    padding: 20px;
+    overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
   }
   
-  .profile-section {
-    margin-bottom: 30px;
+  .about-details {
+    grid-template-columns: 1fr;
   }
   
-  .profile-section h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #333;
-    font-size: 18px;
-    font-weight: 600;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .profile-section p {
-    margin: 0;
-    color: #666;
-    line-height: 1.5;
-  }
-  
+  /* Ensure content doesn't get cut off */
   .profile-footer {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-    text-align: center;
+    margin-top: 20px;
+  }
+}
+
+/* And in very small screens, just show icons */
+@media (max-width: 340px) {
+  .equal-width-btn span:not(.message-icon):not(.unfriend-icon):not(.pending-icon):not(.add-friend-icon) {
+    display: none;
   }
   
-  .back-link {
-    display: inline-block;
-    padding: 8px 16px;
-    background-color: #f5f5f5;
-    color: #333;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  .equal-width-btn .message-icon,
+  .equal-width-btn .unfriend-icon,
+  .equal-width-btn .pending-icon,
+  .equal-width-btn .add-friend-icon {
+    margin-right: 0 !important;
+    font-size: 18px;
   }
-  
-  .back-link:hover {
-    background-color: #e8e8e8;
-    text-decoration: none;
-  }
-  
-  .private-profile-container {
-    max-width: 500px;
-    margin: 100px auto;
-    padding: 30px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    text-align: center;
-  }
-  
-  .private-profile-container h2 {
-    color: #333;
-    margin-top: 0;
-  }
-  
-  .private-profile-container p {
-    color: #666;
-    margin-bottom: 20px;
-  }
+}

@@ -675,3 +675,145 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* Add these styles to your existing userProfileModal.css file */
+
+/* Friend request button states */
+.friend-request-sent-button {
+  background: linear-gradient(135deg, #4CAF50, #8BC34A);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2);
+  opacity: 0.8;
+}
+
+.friend-request-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.friend-request-error {
+  color: #e53e3e;
+  background-color: #fff5f5;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 14px;
+  border-left: 3px solid #e53e3e;
+}
+
+/* Add hover effect for add friend button */
+.add-friend-button:hover {
+  background: linear-gradient(135deg, #43A047, #7CB342);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Add pulse animation for the add friend icon */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.add-friend-icon {
+  font-size: 20px;
+  margin-right: 8px;
+  animation: pulse 2s infinite;
+}
+
+
+/* Add these styles to the end of your existing userProfileModal.css file */
+
+/* Status message styling */
+.friend-request-error,
+.friend-request-info,
+.friend-request-success {
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.3s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.friend-request-error {
+  color: #e53e3e;
+  background-color: #fff5f5;
+  border-left: 3px solid #e53e3e;
+}
+
+.friend-request-info {
+  color: #3182ce;
+  background-color: #ebf8ff;
+  border-left: 3px solid #3182ce;
+}
+
+.friend-request-success {
+  color: #38a169;
+  background-color: #f0fff4;
+  border-left: 3px solid #38a169;
+}
+
+/* Already friends button */
+.already-friends-button {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: 2px solid #c8e6c9;
+  border-radius: 12px;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.friend-icon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+/* Enhanced message button */
+.message-button {
+  background-color: white;
+  color: #3182ce;
+  border: 2px solid #bee3f8;
+  transition: all 0.3s ease;
+}
+
+.message-button:hover {
+  background-color: #ebf8ff;
+  color: #2c5282;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(66, 153, 225, 0.2);
+}
+
+.message-icon {
+  animation: float 2s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}

@@ -11,6 +11,7 @@ import PublicProfilePage from '../pages/profile/PublicProfilePage';
 import NotificationsPage from '../components/notifications/NotificationsPage';
 import PostPage from '../pages/post/PostPage';
 import AllUsersPage from '../pages/users/AllUsersPage';
+import FriendsPage from '../pages/friends/FriendsPage';
 import { isLoggedIn } from '../services/authService';
 
 // Protected route component
@@ -93,7 +94,17 @@ const AppRoutes = () => {
           } 
         />
         
-        {/* New route for All Users page */}
+        {/* New route for Friends page */}
+        <Route 
+          path="/friends" 
+          element={
+            <ProtectedRoute>
+              <FriendsPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Route for All Users page */}
         <Route 
           path="/users" 
           element={
@@ -103,7 +114,7 @@ const AppRoutes = () => {
           } 
         />
         
-        {/* New notification routes */}
+        {/* Notification routes */}
         <Route 
           path="/notifications" 
           element={
@@ -131,4 +142,4 @@ const AppRoutes = () => {
   );
 };
 
-export default AppRoutes;
+export default AppRoutes

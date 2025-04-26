@@ -3,14 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../../layouts/MainLayout';
 import Avatar from '../../components/common/Avatar';
+import Button from '../../components/common/Button';
 import { getAllUsers } from '../../services/userService';
+import { checkFriendStatus, sendFriendRequest } from '../../services/friendService';
+import UserProfileModal from '../../components/modals/UserProfileModal';
+import useProfile from '../../hooks/useProfile';
 import '../../styles/components/allUsers.css';
 
 const AllUsersPage = () => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [friendStatuses, setFriendStatuses] = useState({});
+  const [requestSent, setRequestSent] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const { profile } = useProfile();
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -20,7 +30,24 @@ const AllUsersPage = () => {
       try {
         setLoading(true);
         const userData = await getAllUsers();
-        setUsers(userData);
+        
+        // Filter out current user
+        const otherUsers = userData.filter(user => profile && user.id !== profile.id);
+        setUsers(otherUsers);
+        
+        // Check friend status for each user
+        const statuses = {};
+        for (const user of otherUsers) {
+          try {
+            const status = await checkFriendStatus(user.id);
+            statuses[user.id] = status.isFriend;
+          } catch (err) {
+            console.error(`Error checking friend status for user ${user.id}:`, err);
+            statuses[user.id] = false;
+          }
+        }
+        
+        setFriendStatuses(statuses);
         setError(null);
       } catch (err) {
         console.error('Error fetching users:', err);
@@ -30,17 +57,28 @@ const AllUsersPage = () => {
       }
     };
 
-    fetchUsers();
-  }, []);
+    if (profile) {
+      fetchUsers();
+    }
+  }, [profile]);
 
-  // Filter users based on search term
-  const filteredUsers = users.filter(user => {
-    const searchLower = searchTerm.toLowerCase();
-    const fullName = `${user.firstname || ''} ${user.lastname || ''}`.toLowerCase();
-    const username = (user.username || '').toLowerCase();
+  // Filter users when search term or friend statuses change
+  useEffect(() => {
+    if (!users) return;
     
-    return fullName.includes(searchLower) || username.includes(searchLower);
-  });
+    const filtered = users.filter(user => {
+      const searchLower = searchTerm.toLowerCase();
+      const fullName = `${user.firstname || ''} ${user.lastname || ''}`.toLowerCase();
+      const username = (user.username || '').toLowerCase();
+      
+      // Match search term
+      const matchesSearch = fullName.includes(searchLower) || username.includes(searchLower);
+      
+      return matchesSearch;
+    });
+    
+    setFilteredUsers(filtered);
+  }, [users, searchTerm, friendStatuses]);
 
   // Get user's full name
   const getFullName = (user) => {
@@ -59,12 +97,42 @@ const AllUsersPage = () => {
     }
     return '/src/assets/images/profile/default-avatar.png';
   };
+  
+  // Open user profile modal
+  const handleViewProfile = (user) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+  
+  // Close user profile modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+  
+  // Send friend request
+  const handleSendFriendRequest = async (userId) => {
+    try {
+      await sendFriendRequest(userId);
+      
+      // Update local state to show request sent
+      setRequestSent(prev => ({
+        ...prev,
+        [userId]: true
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to send friend request:', error);
+      return false;
+    }
+  };
 
   return (
     <MainLayout>
       <div className="all-users-container">
         <div className="all-users-header">
-          <h1>All Community Members</h1>
+          <h1>Community Members</h1>
           <div className="users-search">
             <input
               type="text"
@@ -100,30 +168,71 @@ const AllUsersPage = () => {
         ) : (
           <div className="users-grid">
             {filteredUsers.map(user => (
-              <Link 
-                to={`/profiles/${user.username}`} 
-                key={user.id} 
-                className="user-card"
-              >
-                <div className="user-card-avatar">
-                  <Avatar
-                    src={getProfilePicture(user)}
-                    alt={getFullName(user)}
-                    size="large"
-                  />
+              <div key={user.id} className="user-card">
+                <div 
+                  className="user-card-content"
+                  onClick={() => handleViewProfile(user)}
+                >
+                  <div className="user-card-avatar">
+                    <Avatar
+                      src={getProfilePicture(user)}
+                      alt={getFullName(user)}
+                      size="large"
+                    />
+                  </div>
+                  <div className="user-card-info">
+                    <h3 className="user-card-name">{getFullName(user)}</h3>
+                    <p className="user-card-username">@{user.username}</p>
+                    {user.biography && (
+                      <p className="user-card-bio">{user.biography}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="user-card-info">
-                  <h3 className="user-card-name">{getFullName(user)}</h3>
-                  <p className="user-card-username">@{user.username}</p>
-                  {user.biography && (
-                    <p className="user-card-bio">{user.biography}</p>
+                <div className="user-card-actions">
+                  <Link to={`/profiles/${user.username}`} className="view-profile-btn">
+                    View Profile
+                  </Link>
+                  
+                  {/* Show appropriate action button based on friend status */}
+                  {friendStatuses[user.id] ? (
+                    <span className="already-friends-badge">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                      </svg>
+                      Friends
+                    </span>
+                  ) : requestSent[user.id] ? (
+                    <span className="request-sent-badge">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                      </svg>
+                      Request Sent
+                    </span>
+                  ) : (
+                    <Button 
+                      variant="primary"
+                      onClick={() => handleSendFriendRequest(user.id)}
+                      className="add-friend-btn"
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M12 11V5a1 1 0 0 1 2 0v6h6a1 1 0 0 1 0 2h-6v6a1 1 0 0 1-2 0v-6H6a1 1 0 0 1 0-2h6z"/>
+                      </svg>
+                      Add Friend
+                    </Button>
                   )}
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </div>
+      
+      {/* User Profile Modal */}
+      <UserProfileModal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        user={selectedUser} 
+      />
     </MainLayout>
   );
 };
