@@ -43,7 +43,8 @@ const MessagesPage = () => {
     startConversation,
     setLastRefresh,
     editMessage,
-    deleteMessage
+    deleteMessage,
+    deleteCurrentConversation
   } = useMessages();
   
   const { profile } = useProfile();
@@ -59,8 +60,37 @@ const MessagesPage = () => {
   const messagesEndRef = useRef(null);
   const editInputRef = useRef(null);
   
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  
   // API URL for images
   const API_URL = 'http://localhost:8080';
+
+
+
+  const toggleOptionsMenu = (e) => {
+    e.stopPropagation();
+    setShowOptionsMenu(prev => !prev);
+  };
+  
+  // Handle delete conversation
+  const handleDeleteConversation = async () => {
+    setShowDeleteConfirm(false);
+    setShowOptionsMenu(false);
+    
+    try {
+      const success = await deleteCurrentConversation();
+      if (success) {
+        // Maybe show a temporary success message
+      }
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+    }
+  };
+
+
+  
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -351,16 +381,60 @@ const MessagesPage = () => {
               </div>
             </div>
             <div className="chat-actions">
-              <button className="action-btn" title="Voice call">
-                <Phone size={20} />
-              </button>
-              <button className="action-btn" title="Video call">
-                <Video size={20} />
-              </button>
-              <button className="action-btn" title="More options">
-                <MoreVertical size={20} />
-              </button>
-            </div>
+                  <button className="action-btn" title="Voice call">
+                    <Phone size={20} />
+                  </button>
+                  <button className="action-btn" title="Video call">
+                    <Video size={20} />
+                  </button>
+                  <button 
+                    className="action-btn" 
+                    title="More options"
+                    onClick={toggleOptionsMenu}
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+                  
+                  {/* Options menu dropdown */}
+                  {showOptionsMenu && (
+                    <div className="options-menu">
+                      <button 
+                        className="option-item delete"
+                        onClick={() => {
+                          setShowDeleteConfirm(true);
+                          setShowOptionsMenu(false);
+                        }}
+                      >
+                        <Trash2 size={16} />
+                        Delete Conversation
+                      </button>
+                      {/* Add other options here as needed */}
+                    </div>
+                  )}
+                  
+                  {/* Delete confirmation dialog */}
+                  {showDeleteConfirm && (
+                    <div className="delete-conversation-confirmation">
+                      <p>Delete this entire conversation?</p>
+                      <div className="delete-actions">
+                        <button 
+                          className="delete-confirm"
+                          onClick={handleDeleteConversation}
+                        >
+                          Delete
+                        </button>
+                        <button 
+                          className="delete-cancel"
+                          onClick={() => setShowDeleteConfirm(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+            
           </div>
 
           <div className="messages-area">

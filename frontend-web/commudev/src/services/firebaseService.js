@@ -30,7 +30,41 @@ if (!firestore) {
 
 if (!realtimeDB) {
   console.error("Realtime Database is not initialized!");
+
 }
+
+
+
+
+export const deleteConversation = async (conversationId) => {
+  try {
+    if (!firestore) {
+      throw new Error("Firestore is not initialized");
+    }
+
+    // Delete all messages in the conversation
+    const messagesRef = collection(firestore, 'conversations', conversationId, 'messages');
+    const messagesSnapshot = await getDocs(messagesRef);
+    
+    // Delete each message document
+    const deletePromises = messagesSnapshot.docs.map(doc => 
+      deleteDoc(doc.ref)
+    );
+    
+    await Promise.all(deletePromises);
+    
+    // Delete the conversation document itself
+    await deleteDoc(doc(firestore, 'conversations', conversationId));
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
+    throw error;
+  }
+};
+
+
+
 
 /**
  * Send a message in a conversation
@@ -560,6 +594,11 @@ export const deleteMessage = async (conversationId, messageId) => {
     console.error('Error deleting message:', error);
     throw error;
   }
+
+
+
+
+  
 };
 
 export default {
@@ -573,5 +612,6 @@ export default {
   updateTypingStatus,
   subscribeToTypingStatus,
   updateMessage, 
-  deleteMessage
+  deleteMessage,
+  deleteConversation
 };

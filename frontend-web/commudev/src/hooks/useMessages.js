@@ -12,6 +12,7 @@ import {
   subscribeToTypingStatus,
   updateMessage,
   deleteMessage as firebaseDeleteMessage,
+  deleteConversation,
   debugFirestore
 } from '../services/firebaseService';
 import useProfile from './useProfile';
@@ -398,6 +399,34 @@ const useMessages = () => {
     });
   }, []);
 
+
+
+  const deleteCurrentConversation = async () => {
+    if (!currentConversation) {
+      setError('No conversation selected');
+      return false;
+    }
+  
+    try {
+      await deleteConversation(currentConversation);
+      
+      // Update the conversations list
+      setConversations(prev => 
+        prev.filter(conv => conv.id !== currentConversation)
+      );
+      
+      // Clear current conversation and selected user
+      setCurrentConversation(null);
+      setSelectedUser(null);
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
+      setError('Failed to delete conversation');
+      return false;
+    }
+  };
+
   return {
     conversations,
     messages,
@@ -412,7 +441,8 @@ const useMessages = () => {
     handleTypingInput,
     editMessage,
     deleteMessage,
-    setLastRefresh
+    setLastRefresh,
+    deleteCurrentConversation
   };
 };
 
