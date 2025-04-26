@@ -67,6 +67,10 @@ const MessagesPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const messageInputRef = useRef(null);
+
+
+  const [selectedImage, setSelectedImage] = useState(null);
+  const fileInputRef = useRef(null);
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -77,6 +81,34 @@ const MessagesPage = () => {
     e.stopPropagation();
     setShowOptionsMenu(prev => !prev);
   };
+
+
+
+
+  
+
+  const handleImageSelect = () => {
+    fileInputRef.current.click();
+  };
+  
+  // Add this function to process the selected file
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedImage(file);
+      // Create a preview message with the image
+      const imageUrl = URL.createObjectURL(file);
+      setNewMessage(`[Image: ${file.name}]`);
+      // You can optionally show a preview here
+    } else {
+      alert('Please select a valid image file');
+    }
+  };
+
+
+
+
+
   
   // Handle delete conversation
   const handleDeleteConversation = async () => {
@@ -152,7 +184,7 @@ useEffect(() => {
       setShowEmojiPicker(false);
     }
   };
-  
+
   
   document.addEventListener('mousedown', handleClickOutside);
   return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -170,12 +202,23 @@ useEffect(() => {
 
   // Handle send message
   const handleSendMessage = async () => {
-    if (newMessage.trim() === "" || !currentConversation || isSending) return;
+    if ((newMessage.trim() === "" && !selectedImage) || !currentConversation || isSending) return;
     
     setIsSending(true);
     
     try {
-      const success = await sendNewMessage(newMessage);
+      let success;
+      
+      if (selectedImage) {
+        // For now, we'll send a placeholder message with the image name
+        // In a real implementation, you would upload the image to storage
+        // and send a message with the image URL
+        success = await sendNewMessage(`Sent an image: ${selectedImage.name}`);
+        setSelectedImage(null);
+      } else {
+        success = await sendNewMessage(newMessage);
+      }
+      
       if (success) {
         setNewMessage("");
       }
@@ -532,9 +575,23 @@ useEffect(() => {
                       </div>
                     ) : (
                       <>
+                        {msg.text.startsWith('Sent an image:') ? (
+                      <>
                         <div className="message-bubble">
-                          {msg.text}
+                          <p>Image message</p>
+                          {/* This is a placeholder. In a real implementation, you would display the actual image */}
+                          <img 
+                            src="/src/assets/images/image-placeholder.png" 
+                            alt="Image message" 
+                            className="message-image"
+                          />
                         </div>
+                      </>
+                    ) : (
+                      <div className="message-bubble">
+                        {msg.text}
+                      </div>
+                    )}
                         <div className="message-meta">
                           <span className="message-time">
                             {formatMessageTime(msg.timestamp)}
@@ -639,9 +696,45 @@ useEffect(() => {
   <button className="input-action" title="Attach file">
     <Paperclip size={20} />
   </button>
-  <button className="input-action" title="Send image">
-    <Image size={20} />
-  </button>
+
+
+
+
+
+  {selectedImage && (
+  <div className="selected-image-preview">
+    <img 
+      src={URL.createObjectURL(selectedImage)} 
+      alt="Preview" 
+      className="image-preview"
+    />
+    <button 
+      className="remove-image-btn" 
+      onClick={() => {
+        setSelectedImage(null);
+        setNewMessage("");
+      }}
+    >
+      <X size={16} />
+    </button>
+  </div>
+)}
+
+
+  <input
+  type="file"
+  ref={fileInputRef}
+  style={{ display: 'none' }}
+  accept="image/*"
+  onChange={handleFileChange}
+/>
+
+<button className="input-action" title="Send image" onClick={handleImageSelect}>
+  <Image size={20} />
+</button>
+
+
+
   <input
     type="text"
     placeholder="Type a message"
