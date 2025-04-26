@@ -24,6 +24,7 @@ import Avatar from "../../components/common/Avatar";
 import NewMessageModal from '../../components/modals/NewMessageModal';
 import { formatTimeAgo } from "../../utils/dateUtils";
 import "../../styles/pages/messages.css";
+import EmojiPicker from 'emoji-picker-react';
 
 // Import your logo
 import LogoIcon from "../../assets/images/logo.png";
@@ -63,6 +64,9 @@ const MessagesPage = () => {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const messageInputRef = useRef(null);
   
   // API URL for images
   const API_URL = 'http://localhost:8080';
@@ -90,7 +94,37 @@ const MessagesPage = () => {
   };
 
 
+  const handleEmojiSelect = (emojiData) => {
+    const emoji = emojiData.emoji;
+    const newText = newMessage.slice(0, cursorPosition) + emoji + newMessage.slice(cursorPosition);
+    setNewMessage(newText);
+    
+    // Close the emoji picker
+    setShowEmojiPicker(false);
+    
+    // Focus back on the input and set cursor position after emoji
+    if (messageInputRef.current) {
+      messageInputRef.current.focus();
+      const newCursorPosition = cursorPosition + emoji.length;
+      messageInputRef.current.selectionStart = newCursorPosition;
+      messageInputRef.current.selectionEnd = newCursorPosition;
+      setCursorPosition(newCursorPosition);
+    }
+  };
+
+
+  const handleInputClick = (e) => {
+    setCursorPosition(e.target.selectionStart);
+  };
   
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+    setCursorPosition(e.target.selectionStart);
+    handleTypingInput();
+  };
+
+
+
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -100,6 +134,7 @@ const MessagesPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
   
   // Auto focus when editing a message
   useEffect(() => {
@@ -107,6 +142,21 @@ const MessagesPage = () => {
       editInputRef.current.focus();
     }
   }, [editingMessageId]);
+
+
+  // Add this useEffect to close the emoji picker when clicking outside
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (showEmojiPicker && !e.target.closest('.emoji-picker-container') && 
+        !e.target.closest('.input-action[title="Emoji"]')) {
+      setShowEmojiPicker(false);
+    }
+  };
+  
+  
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => document.removeEventListener('mousedown', handleClickOutside);
+}, [showEmojiPicker]);
   
   // Filter conversations based on search term
   const filteredConversations = conversations.filter(conv => {
@@ -572,36 +622,49 @@ const MessagesPage = () => {
           </div>
 
           <div className="input-area">
-            <button className="input-action" title="Emoji">
-              <Smile size={20} />
-            </button>
-            <button className="input-action" title="Attach file">
-              <Paperclip size={20} />
-            </button>
-            <button className="input-action" title="Send image">
-              <Image size={20} />
-            </button>
-            <input
-              type="text"
-              placeholder="Type a message"
-              className="message-input"
-              value={newMessage}
-              onChange={handleTyping}
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              disabled={isSending}
-            />
-            <button
-              className={`send-btn ${!newMessage.trim() ? 'disabled' : ''}`}
-              onClick={handleSendMessage}
-              disabled={isSending || !newMessage.trim()}
-              title="Send message"
-            >
-              <Send size={20} />
-            </button>
-            <button className="input-action" title="Voice message">
-              <Mic size={20} />
-            </button>
-          </div>
+  <button 
+    className="input-action" 
+    title="Emoji"
+    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+  >
+    <Smile size={20} />
+  </button>
+  
+  {showEmojiPicker && (
+    <div className="emoji-picker-container">
+      <EmojiPicker onEmojiClick={handleEmojiSelect} />
+    </div>
+  )}
+  
+  <button className="input-action" title="Attach file">
+    <Paperclip size={20} />
+  </button>
+  <button className="input-action" title="Send image">
+    <Image size={20} />
+  </button>
+  <input
+    type="text"
+    placeholder="Type a message"
+    className="message-input"
+    value={newMessage}
+    onChange={handleInputChange}
+    onClick={handleInputClick}
+    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+    disabled={isSending}
+    ref={messageInputRef}
+  />
+  <button
+    className={`send-btn ${!newMessage.trim() ? 'disabled' : ''}`}
+    onClick={handleSendMessage}
+    disabled={isSending || !newMessage.trim()}
+    title="Send message"
+  >
+    <Send size={20} />
+  </button>
+  <button className="input-action" title="Voice message">
+    <Mic size={20} />
+  </button>
+</div>
         </div>
       ) : (
         <div className="no-chat">

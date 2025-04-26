@@ -1177,3 +1177,21 @@ img.profile-avatar{
 .chat-actions {
   position: relative;
 }
+
+
+.emoji-picker-container {
+  position: absolute;
+  bottom: 70px;
+  left: 16px;
+  z-index: 10;
+}
+
+/* Add a click-outside handler by adding a background overlay */
+.emoji-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+}
