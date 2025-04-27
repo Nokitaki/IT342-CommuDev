@@ -1,6 +1,6 @@
-// src/services/friendService.js
+import API_URL from '../config/apiConfig.js';
 
-const API_URL = 'http://localhost:8080';
+
 
 /**
  * Send a friend request to another user

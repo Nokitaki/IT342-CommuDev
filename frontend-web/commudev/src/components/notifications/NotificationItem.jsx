@@ -5,13 +5,13 @@ import Avatar from '../common/Avatar';
 import { formatTimeAgo } from '../../utils/dateUtils';
 import useNotifications from '../../hooks/useNotifications';
 import '../../styles/components/notificationItem.css';
+import API_URL from '../../config/apiConfig';
 
 const NotificationItem = ({ notification, onClose }) => {
   const navigate = useNavigate();
   const { handleMarkAsRead, handleDeleteNotification } = useNotifications();
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
   
   const handleClick = async () => {
     // Mark notification as read

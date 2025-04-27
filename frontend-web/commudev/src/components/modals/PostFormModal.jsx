@@ -4,7 +4,7 @@ import Button from '../common/Button';
 import Avatar from '../common/Avatar';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/components/modal.css';
-
+import API_URL from '../../config/apiConfig';
 const PostFormModal = ({ isOpen, onClose, onSubmit, editPost, userName }) => {
   const { profile } = useProfile();
   const [formData, setFormData] = useState({
@@ -13,8 +13,7 @@ const PostFormModal = ({ isOpen, onClose, onSubmit, editPost, userName }) => {
     post_status: 'active'
   });
 
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   // Post types options
   const postTypes = [

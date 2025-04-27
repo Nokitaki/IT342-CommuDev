@@ -1,6 +1,6 @@
-// src/services/userService.js
+import API_URL from '../config/apiConfig.js';
 
-const API_URL = 'http://localhost:8080';
+
 
 /**
  * Fetch all users from the system

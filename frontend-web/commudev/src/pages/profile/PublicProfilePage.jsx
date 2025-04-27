@@ -9,6 +9,9 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import Avatar from '../../components/common/Avatar';
 import '../../styles/pages/publicProfile.css';
+import API_URL from '../../config/apiConfig';
+
+
 
 const PublicProfilePage = () => {
   const { username } = useParams();
@@ -27,8 +30,6 @@ const PublicProfilePage = () => {
   // Use the newsfeed hook to load user's posts
   const { posts, loading: postsLoading, loadUserPosts, handleLikePost } = useNewsfeed(username);
 
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
 
   // Load the user profile and check friendship status
   useEffect(() => {

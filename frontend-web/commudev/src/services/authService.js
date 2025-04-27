@@ -1,3 +1,7 @@
+
+import API_URL from '../config/apiConfig.js';
+
+
 // src/services/authService.js
 import { 
   registerWithEmailAndPassword, 
@@ -7,7 +11,10 @@ import {
   auth
 } from './firebaseAuth';
 
-const API_URL = 'http://localhost:8080';
+
+
+
+
 const AUTH_URL = `${API_URL}/auth`;
 const USERS_URL = `${API_URL}/users`;
 
@@ -241,7 +248,7 @@ export const updateUserProfile = async (profileData) => {
       throw new Error('You must be logged in to update your profile');
     }
 
-    const response = await fetch('http://localhost:8080/users/me', {
+    const response = await fetch(`${API_URL}/users/me`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -264,8 +271,8 @@ export const updateUserProfile = async (profileData) => {
 
 /**
  * Upload profile picture
- * @param {File|FormData} file Profile picture file or FormData with file
- * @returns {Promise} Promise with updated user profile
+ * @param {File|FormData} file Profile picture file or FormData with fillocalhost:8080e
+ * @returns {Promise} Promise with updated user profile   
  */
 export const uploadProfilePicture = async (file) => {
   try {
@@ -276,7 +283,7 @@ export const uploadProfilePicture = async (file) => {
     if (file instanceof FormData) {
       formData = file;
     } else {
-      formData = new FormData();
+      formData = new FormData();        
       formData.append('file', file);
     }
     

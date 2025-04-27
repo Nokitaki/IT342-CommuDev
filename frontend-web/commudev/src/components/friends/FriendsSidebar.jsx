@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Avatar from '../common/Avatar';
 import useFriends from '../../hooks/useFriends';
 import '../../styles/components/friendsSidebar.css';
+import API_URL from '../../config/apiConfig';
 
 const FriendsSidebar = () => {
   const [activeTab, setActiveTab] = useState('friends'); // 'friends' or 'requests'
@@ -18,8 +19,7 @@ const FriendsSidebar = () => {
     handleRejectRequest
   } = useFriends();
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
   
   // Get user's full name
   const getUserName = (user) => {

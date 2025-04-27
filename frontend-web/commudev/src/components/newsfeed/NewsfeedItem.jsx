@@ -7,6 +7,8 @@ import { formatTimeAgo } from '../../utils/dateUtils';
 import ReactMarkdown from 'react-markdown';
 import useComments from '../../hooks/useComments';
 import '../../styles/components/newsfeed.css';
+import API_URL from '../../config/apiConfig';
+
 
 const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser = false }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -141,7 +143,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
     if (post.user && post.user.profilePicture) {
       return post.user.profilePicture.startsWith('http') 
         ? post.user.profilePicture 
-        : `http://localhost:8080${post.user.profilePicture}`;
+        : `${API_URL}${post.user.profilePicture}`;
     }
     return post.creator_profile_picture || '/src/assets/images/profile/default-avatar.png';
   };

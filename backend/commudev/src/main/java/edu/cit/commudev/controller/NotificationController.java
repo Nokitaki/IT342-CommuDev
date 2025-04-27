@@ -13,6 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
+@CrossOrigin(origins = "https://it-342-commu-dev.vercel.app")
 public class NotificationController {
 
     @Autowired

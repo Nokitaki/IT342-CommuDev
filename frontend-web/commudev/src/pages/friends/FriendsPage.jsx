@@ -8,6 +8,8 @@ import UserProfileModal from '../../components/modals/UserProfileModal';
 import useFriends from '../../hooks/useFriends';
 import { getUserById } from '../../services/userService';
 import '../../styles/pages/friendsPage.css';
+import API_URL from '../../config/apiConfig';
+
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState('friends'); // 'friends' or 'requests'
@@ -26,8 +28,7 @@ const FriendsPage = () => {
     refreshFriendsData
   } = useFriends();
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
   
   // Get user's full name
   const getUserName = (user) => {

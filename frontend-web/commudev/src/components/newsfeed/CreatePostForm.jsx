@@ -2,14 +2,14 @@
 import React from 'react';
 import Avatar from '../common/Avatar';
 import useProfile from '../../hooks/useProfile';
+import API_URL from '../../config/apiConfig';
 
 import "../../styles/components/createPostForm.css";
 const CreatePostForm = ({ onOpenModal }) => {
   // Get user profile data
   const { profile } = useProfile();
 
-  // Get API base URL
-  const API_URL = 'http://localhost:8080';
+ 
 
   return (
     <div className="create-post-section">

@@ -5,6 +5,8 @@ import useProfile from '../../hooks/useProfile';
 import { formatTimeAgo } from '../../utils/dateUtils';
 import useComments from '../../hooks/useComments';
 import '../../styles/components/comments.css';
+import API_URL from '../../config/apiConfig';
+
 
 const CommentSection = ({ postId, comments = [], onAddComment, expanded = false }) => {
   const [newComment, setNewComment] = useState('');
@@ -19,8 +21,7 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
     fetchComments 
   } = useComments();
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   // Update local comments when props change
   useEffect(() => {

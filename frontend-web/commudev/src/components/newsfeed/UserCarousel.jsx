@@ -5,6 +5,7 @@ import Avatar from '../common/Avatar';
 import useProfile from '../../hooks/useProfile';
 import { getAllUsers } from '../../services/userService';
 import '../../styles/components/userCarousel.css';
+import API_URL from '../../config/apiConfig';
 
 const UserCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -13,8 +14,7 @@ const UserCarousel = () => {
   const { profile } = useProfile();
   const usersPerPage = 7;
 
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   useEffect(() => {
     const fetchUsers = async () => {
