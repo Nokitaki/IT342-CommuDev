@@ -1,7 +1,7 @@
 // src/services/notificationService.js
 
 import API_URL from '../config/apiConfig.js';
-
+const NOTIFICATIONS_URL = `${API_URL}/api/notifications`;
 
 /**
  * Get all notifications for the current user
@@ -14,7 +14,7 @@ export const getAllNotifications = async () => {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(API_URL, {
+    const response = await fetch(NOTIFICATIONS_URL, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -46,7 +46,7 @@ export const getUnreadNotifications = async () => {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(`${API_URL}/unread`, {
+    const response = await fetch(`${NOTIFICATIONS_URL}/unread`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -78,7 +78,7 @@ export const getUnreadCount = async () => {
       return 0; // Return 0 if not authenticated
     }
     
-    const response = await fetch(`${API_URL}/unread/count`, {
+    const response = await fetch(`${NOTIFICATIONS_URL}/unread/count`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -112,7 +112,7 @@ export const markAsRead = async (notificationId) => {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(`${API_URL}/${notificationId}/read`, {
+    const response = await fetch(`${NOTIFICATIONS_URL}/${notificationId}/read`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -144,7 +144,7 @@ export const deleteAllNotifications = async () => {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(`${API_URL}/delete-all`, {
+    const response = await fetch(`${NOTIFICATIONS_URL}/delete-all`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -177,7 +177,7 @@ export const deleteNotification = async (notificationId) => {
       throw new Error('Authentication required');
     }
     
-    const response = await fetch(`${API_URL}/${notificationId}`, {
+    const response = await fetch(`${NOTIFICATIONS_URL}/${notificationId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

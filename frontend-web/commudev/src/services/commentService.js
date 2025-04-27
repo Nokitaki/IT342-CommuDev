@@ -1,4 +1,5 @@
 // src/services/commentService.js
+import { API_URL } from '../config/apiConfig.js'; // adjust the path as needed
 
 const API_URL = `${API_URL}/api/comments`;
 

@@ -14,7 +14,8 @@ export const fetchAllPosts = async () => {
     const token = localStorage.getItem('token');
     
     // Make fetch request with better error handling
-    const response = await fetch('http://localhost:8080/api/newsfeed/all', {
+    const response = await fetch(`${API_URL}/api/newsfeed/all`,
+       {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -85,7 +86,7 @@ export const createPost = async (postData) => {
     
     console.log('Creating post with data:', formattedData);
     
-    const response = await fetch('http://localhost:8080/api/newsfeed/create', {
+    const response = await fetch(`${API_URL}/api/newsfeed/create`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -160,7 +161,7 @@ export const deletePost = async (postId) => {
     console.log(`Attempting to delete post ${numericPostId} with all related content`);
     
     // Use the new endpoint that handles deleting related entities
-    const response = await fetch(`http://localhost:8080/api/newsfeed/delete-with-related/${numericPostId}`, {
+    const response = await fetch(`${API_URL}/api/newsfeed/delete-with-related/${numericPostId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -205,7 +206,7 @@ export const likePost = async (postId) => {
     
     console.log(`Attempting to like post with ID: ${postId}`);
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/like/${postId}`, {
+    const response = await fetch(`${API_URL}/api/newsfeed/like/${postId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -250,7 +251,7 @@ export const fetchMyPosts = async () => {
     
     console.log('Fetching current user posts');
     
-    const response = await fetch('http://localhost:8080/api/newsfeed/my-posts', {
+    const response = await fetch(`${API_URL}/api/newsfeed/my-posts`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -308,7 +309,7 @@ export const fetchUserPosts = async (username) => {
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/user/${username}`, {
+    const response = await fetch(`${API_URL}/api/newsfeed/user/${username}`, {
       method: 'GET',
       headers: headers,
       credentials: 'include'
@@ -369,7 +370,7 @@ export const updatePost = async (postId, postData) => {
     const status = postData.post_status || postData.postStatus || 'active';
     
     // Use URL parameters instead of a JSON body
-    const url = `http://localhost:8080/api/newsfeed/update-simple/${numericPostId}?postDescription=${encodeURIComponent(description)}&postType=${encodeURIComponent(type)}&postStatus=${encodeURIComponent(status)}`;
+    const url = `${API_URL}/api/newsfeed/update-simple/${numericPostId}?postDescription=${encodeURIComponent(description)}&postType=${encodeURIComponent(type)}&postStatus=${encodeURIComponent(status)}`;
     
     console.log(`Updating post with URL: ${url}`);
     
@@ -416,7 +417,7 @@ export const getPostById = async (postId) => {
   try {
     console.log(`Fetching post with ID: ${postId}`);
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/${postId}`, {
+    const response = await fetch(`${API_URL}/api/newsfeed/${postId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -475,7 +476,7 @@ export const toggleLikePost = async (postId) => {
       throw new Error('Authentication required. Please log in.');
     }
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/like/${numericPostId}`, {
+    const response = await fetch(`${API_URL}/api/newsfeed/like/${numericPostId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -525,7 +526,7 @@ export const checkUserLiked = async (postId) => {
       return false; // Not authenticated
     }
     
-    const response = await fetch(`http://localhost:8080/api/newsfeed/liked/${postId}`, {
+    const response = await fetch(`${API_URL}/api/newsfeed/liked/${postId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
