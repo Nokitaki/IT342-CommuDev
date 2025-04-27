@@ -1,3 +1,7 @@
+
+import API_URL from '../config/apiConfig.js';
+
+
 // src/services/authService.js
 import { 
   registerWithEmailAndPassword, 
@@ -6,7 +10,8 @@ import {
   getCurrentUser,
   auth
 } from './firebaseAuth';
-import API_URL from '../../config/apiConfig';
+
+
 
 
 

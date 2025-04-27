@@ -1,6 +1,6 @@
 // src/services/notificationService.js
-import API_URL from '../../config/apiConfig';
 
+import API_URL from '../config/apiConfig.js';
 
 
 /**

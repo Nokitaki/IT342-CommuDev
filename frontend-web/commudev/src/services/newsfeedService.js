@@ -1,7 +1,7 @@
 // src/services/newsfeedService.js
 
+import API_URL from '../config/apiConfig.js';
 
-const API_URL = 'http://localhost:8080';
 
 
 /**
