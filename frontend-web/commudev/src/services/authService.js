@@ -271,8 +271,8 @@ export const updateUserProfile = async (profileData) => {
 
 /**
  * Upload profile picture
- * @param {File|FormData} file Profile picture file or FormData with file
- * @returns {Promise} Promise with updated user profile
+ * @param {File|FormData} file Profile picture file or FormData with fillocalhost:8080e
+ * @returns {Promise} Promise with updated user profile   
  */
 export const uploadProfilePicture = async (file) => {
   try {
@@ -283,7 +283,7 @@ export const uploadProfilePicture = async (file) => {
     if (file instanceof FormData) {
       formData = file;
     } else {
-      formData = new FormData();
+      formData = new FormData();        
       formData.append('file', file);
     }
     

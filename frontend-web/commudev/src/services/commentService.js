@@ -1,13 +1,11 @@
 // src/services/commentService.js
-import { API_URL } from '../config/apiConfig.js'; // adjust the path as needed
 
-const API_URL = `${API_URL}/api/comments`;
-
+import API_URL from '../config/apiConfig.js';
 /**
  * Get comments for a post
  * @param {number} postId - Post ID
  * @returns {Promise<Array>} Array of comments
- */
+ */   
 export const getCommentsByPostId = async (postId) => {
   try {
     const token = localStorage.getItem('token');
@@ -16,12 +14,11 @@ export const getCommentsByPostId = async (postId) => {
       'Accept': 'application/json'
     };
     
-    
-    if (token) {
+    if (token) {      
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    const response = await fetch(`${API_URL}/post/${postId}`, {
+    const response = await fetch(`${API_URL}/api/comments/post/${postId}`, {
       method: 'GET',
       headers: headers,
       credentials: 'include'
@@ -55,7 +52,7 @@ export const addComment = async (postId, commentText) => {
     
     console.log('Adding comment:', { postId, commentText });
     
-    const response = await fetch(API_URL, {
+    const response = await fetch(`${API_URL}/api/comments`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -96,7 +93,7 @@ export const updateComment = async (commentId, commentText) => {
       throw new Error('Authentication required to update a comment');
     }
     
-    const response = await fetch(`${API_URL}/${commentId}`, {
+    const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -131,7 +128,7 @@ export const deleteComment = async (commentId) => {
       throw new Error('Authentication required to delete a comment');
     }
     
-    const response = await fetch(`${API_URL}/${commentId}`, {
+    const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -160,7 +157,7 @@ export const deleteComment = async (commentId) => {
  */
 export const getCommentCount = async (postId) => {
   try {
-    const response = await fetch(`${API_URL}/count/${postId}`, {
+    const response = await fetch(`${API_URL}/api/comments/count/${postId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
