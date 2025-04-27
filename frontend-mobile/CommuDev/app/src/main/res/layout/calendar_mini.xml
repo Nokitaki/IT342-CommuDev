@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- Month navigation -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <ImageButton
+                android:id="@+id/prevMonthButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_chevron_left"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/previous_month" />
+
+            <TextView
+                android:id="@+id/currentMonthText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="April 2025"
+                android:textAlignment="center"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/nextMonthButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_chevron_right"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/next_month" />
+        </LinearLayout>
+
+        <!-- Day headers -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/sun" />
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/mon" />
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/tue" />
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/wed" />
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/thu" />
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/fri" />
+
+            <TextView
+                style="@style/CalendarDayHeaderStyle"
+                android:text="@string/sat" />
+        </LinearLayout>
+
+        <!-- Calendar grid - Simple example with sample days -->
+        <GridLayout
+            android:id="@+id/calendarGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="7"
+            android:rowCount="6">
+
+            <!-- Week 1 -->
+            <TextView style="@style/CalendarDayStyle" android:text=" " />
+            <TextView style="@style/CalendarDayStyle" android:text="1" />
+            <TextView style="@style/CalendarDayStyle" android:text="2" />
+            <TextView style="@style/CalendarDayStyle" android:text="3" />
+            <TextView style="@style/CalendarDayStyle" android:text="4" />
+            <TextView style="@style/CalendarDayStyle" android:text="5" />
+            <TextView style="@style/CalendarDayStyle" android:text="6" />
+
+            <!-- Week 2 -->
+            <TextView style="@style/CalendarDayStyle" android:text="7" />
+            <TextView style="@style/CalendarDayStyle" android:text="8" />
+            <TextView style="@style/CalendarDayStyle" android:text="9" />
+            <TextView style="@style/CalendarDayStyle" android:text="10" />
+            <TextView style="@style/CalendarDayStyle" android:text="11" />
+            <TextView style="@style/CalendarDayStyle" android:text="12" />
+            <TextView style="@style/CalendarDayStyle" android:text="13" />
+
+            <!-- Week 3 -->
+            <TextView style="@style/CalendarDayStyle" android:text="14" />
+            <TextView style="@style/CalendarDayStyle" android:text="15" />
+            <TextView style="@style/CalendarDayStyle" android:text="16" />
+            <TextView style="@style/CalendarDayStyle" android:text="17" />
+            <TextView style="@style/CalendarDayStyle" android:text="18" />
+            <TextView style="@style/CalendarDayStyle" android:text="19" />
+            <TextView style="@style/CalendarDayStyle" android:text="20" />
+
+            <!-- Week 4 - Make today (21) styled differently -->
+            <TextView style="@style/CalendarDayStyle" android:text="21" android:background="@drawable/badge_background" android:textColor="@color/white" />
+            <TextView style="@style/CalendarDayStyle" android:text="22" />
+            <TextView style="@style/CalendarDayStyle" android:text="23" />
+            <TextView style="@style/CalendarDayStyle" android:text="24" />
+            <TextView style="@style/CalendarDayStyle" android:text="25" />
+            <TextView style="@style/CalendarDayStyle" android:text="26" />
+            <TextView style="@style/CalendarDayStyle" android:text="27" />
+
+            <!-- Week 5 -->
+            <TextView style="@style/CalendarDayStyle" android:text="28" />
+            <TextView style="@style/CalendarDayStyle" android:text="29" />
+            <TextView style="@style/CalendarDayStyle" android:text="30" />
+            <TextView style="@style/CalendarDayStyle" android:text=" " />
+            <TextView style="@style/CalendarDayStyle" android:text=" " />
+            <TextView style="@style/CalendarDayStyle" android:text=" " />
+            <TextView style="@style/CalendarDayStyle" android:text=" " />
+        </GridLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

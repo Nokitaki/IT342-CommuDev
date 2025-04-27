@@ -26,10 +26,6 @@ public class FragmentWeatherBinding {
     public static FragmentWeatherBinding bind(@NonNull View root) {
         FragmentWeatherBinding binding = new FragmentWeatherBinding();
         binding.searchBar = root.findViewById(R.id.searchBar);
-        binding.coldestFilterChip = root.findViewById(R.id.coldestFilterChip);
-        binding.temperatureRangeChip = root.findViewById(R.id.temperatureRangeChip);
-        binding.rainyChip = root.findViewById(R.id.rainyChip);
-        binding.weatherContainer = root.findViewById(R.id.weatherContainer);
         return binding;
     }
 

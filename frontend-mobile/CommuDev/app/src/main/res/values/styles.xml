@@ -1,15 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Calendar Day Header Style -->
+    <style name="CalendarDayHeaderStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/medium_gray</item>
+    </style>
+
     <!-- Calendar Day Style -->
     <style name="CalendarDayStyle">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_weight">1</item>
         <item name="android:gravity">center</item>
         <item name="android:padding">8dp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <!-- Calendar Today Style -->
+    <style name="CalendarDayStyle.Today">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/light_green</item>
+    </style>
+
+    <!-- Calendar Event Day Style -->
+    <style name="CalendarDayStyle.Event">
+        <item name="android:textColor">@color/dark_green</item>
+    </style>
+
+    <!-- Navigation Button Style -->
+    <style name="NavigationButtonStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <!-- Resource Tab Style -->
+    <style name="ResourceTabStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Resource Tab Active Style -->
+    <style name="ResourceTabStyle.Active">
+        <item name="android:background">@drawable/tab_active</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Resource Tab Inactive Style -->
+    <style name="ResourceTabStyle.Inactive">
+        <item name="android:background">@drawable/tab_inactive</item>
+        <item name="android:textColor">@color/dark_gray</item>
+    </style>
+
+    <!-- Tab Text Appearance -->
+    <style name="TabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">normal</item>
     </style>
 </resources>

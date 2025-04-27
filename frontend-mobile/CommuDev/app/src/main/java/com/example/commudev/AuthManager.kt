@@ -2,10 +2,17 @@ package com.example.commudev
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 
 class AuthManager(private val context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+
+    init {
+        // Optional: Log the current login state for debugging
+        val isLoggedIn = isUserLoggedIn()
+        Log.d("AuthManager", "Current login state: ${if (isLoggedIn) "Logged in" else "Logged out"}")
+    }
 
     fun registerUser(
         fullName: String,
@@ -14,18 +21,14 @@ class AuthManager(private val context: Context) {
         password: String,
         onComplete: (Boolean, String?) -> Unit
     ) {
-
         if (sharedPreferences.contains("username_$username")) {
             onComplete(false, "Username already exists")
             return
         }
 
-
         val userId = "user_${System.currentTimeMillis()}"
 
-
         with(sharedPreferences.edit()) {
-            putString("userId", userId)
             putString("user_${userId}_fullName", fullName)
             putString("user_${userId}_username", username)
             putString("user_${userId}_email", email)
@@ -47,7 +50,6 @@ class AuthManager(private val context: Context) {
         val password = "password123"
 
         with(sharedPreferences.edit()) {
-            putString("userId", userId)
             putString("user_${userId}_fullName", fullName)
             putString("user_${userId}_username", username)
             putString("user_${userId}_email", email)
@@ -57,10 +59,11 @@ class AuthManager(private val context: Context) {
             putLong("user_${userId}_joinDate", System.currentTimeMillis())
             apply()
         }
+
+        Log.d("AuthManager", "Test user created")
     }
 
     fun loginUser(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
-
         val userId = sharedPreferences.getString("email_$email", null)
 
         if (userId == null) {
@@ -70,8 +73,8 @@ class AuthManager(private val context: Context) {
 
         val storedPassword = sharedPreferences.getString("user_${userId}_password", "")
         if (password == storedPassword) {
-
             sharedPreferences.edit().putString("currentUserId", userId).apply()
+            Log.d("AuthManager", "User logged in: $userId")
             onComplete(true, null)
         } else {
             onComplete(false, "Incorrect password")
@@ -79,7 +82,9 @@ class AuthManager(private val context: Context) {
     }
 
     fun logoutUser() {
+        val wasLoggedIn = isUserLoggedIn()
         sharedPreferences.edit().remove("currentUserId").apply()
+        Log.d("AuthManager", "User logged out, previous state: ${if (wasLoggedIn) "Logged in" else "Already logged out"}")
     }
 
     fun isUserLoggedIn(): Boolean {
@@ -91,7 +96,6 @@ class AuthManager(private val context: Context) {
     }
 
     fun sendPasswordResetEmail(email: String, onComplete: (Boolean, String?) -> Unit) {
-
         val userId = sharedPreferences.getString("email_$email", null)
 
         if (userId == null) {

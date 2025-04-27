@@ -5,61 +5,286 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".WeatherFragment">
+    android:background="@color/gray_200">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Weather Dashboard"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="16dp"
+        android:textColor="@color/dark_gray" />
 
     <!-- Search Bar -->
     <androidx.appcompat.widget.SearchView
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/search_background"
-        android:queryHint="Search location..."
-        app:iconifiedByDefault="false" />
+        android:elevation="2dp"
+        app:iconifiedByDefault="false"
+        app:queryHint="Search location..." />
 
-    <!-- Filter Chips -->
+    <!-- Weather Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/white">
+
+            <!-- Location and Temperature -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/red_circle"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:id="@+id/locationText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        tools:text="Manila, Philippines" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/temperatureValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="30sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/blue_500"
+                    tools:text="30°C" />
+            </LinearLayout>
+
+            <!-- Weather Icon and Condition -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginVertical="24dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
+                    app:cardCornerRadius="45dp"
+                    app:cardBackgroundColor="@color/gray_200"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/weatherIcon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="16dp"
+                        android:scaleType="centerInside"
+                        tools:src="@drawable/ic_few_clouds"
+                        android:contentDescription="Weather condition" />
+                </androidx.cardview.widget.CardView>
+
+                <TextView
+                    android:id="@+id/conditionText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    tools:text="Few Clouds" />
+            </LinearLayout>
+
+            <!-- Weather Details -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Humidity -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_humidity"
+                        app:tint="@color/blue_400"
+                        android:contentDescription="Humidity" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Humidity:"
+                        android:textSize="14sp"
+                        android:layout_marginStart="12dp"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/humidityValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        tools:text="69%" />
+                </LinearLayout>
+
+                <!-- Wind -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_wind"
+                        android:contentDescription="Wind" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Wind:"
+                        android:textSize="14sp"
+                        android:layout_marginStart="12dp"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/windValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        tools:text="11 km/h" />
+                </LinearLayout>
+
+                <!-- Feels Like -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_feels_like"
+                        app:tint="@color/red_500"
+                        android:contentDescription="Feels like" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Feels like:"
+                        android:textSize="14sp"
+                        android:layout_marginStart="12dp"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/feelsLikeValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        tools:text="35°C" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Last Updated -->
+            <TextView
+                android:id="@+id/updatedTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="12sp"
+                android:textColor="@color/medium_gray"
+                android:drawableStart="@drawable/ic_time"
+                android:drawablePadding="4dp"
+                android:gravity="center_vertical"
+                tools:text="Updated: 10:11 PM" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Location Filters (optional) -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:scrollbars="none">
-
-        <com.google.android.material.chip.ChipGroup
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:singleLine="true">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/coldestFilterChip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Coldest" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/temperatureRangeChip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="20-30°C" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/rainyChip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Rainy" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
-    <!-- Weather Cards Container -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:scrollbars="none"
+        android:layout_marginHorizontal="16dp">
 
         <LinearLayout
-            android:id="@+id/weatherContainer"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </androidx.core.widget.NestedScrollView>
+            android:orientation="horizontal">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/manilaChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manila"
+                android:textColor="@color/white"
+                app:chipBackgroundColor="@color/light_green"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/cebuChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cebu"
+                app:chipBackgroundColor="@color/white"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/davaoCityChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Davao City"
+                app:chipBackgroundColor="@color/white"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iloiloChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Iloilo"
+                app:chipBackgroundColor="@color/white"
+                android:layout_marginEnd="8dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
 </LinearLayout>

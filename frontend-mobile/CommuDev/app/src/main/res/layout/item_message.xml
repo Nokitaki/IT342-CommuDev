@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="4dp">
+
+    <!-- Sent message (right aligned) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sentMessageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/sentMessageCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="80dp"
+            app:cardBackgroundColor="@color/light_green"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/sentMessageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="240dp"
+                android:padding="12dp"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                tools:text="I'm doing well, thanks for asking! Just working on some community projects." />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/sentMessageTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/medium_gray"
+            android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="@id/sentMessageCard"
+            app:layout_constraintTop_toBottomOf="@id/sentMessageCard"
+            tools:text="9:32 AM" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Received message (left aligned) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/receivedMessageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/senderImageCard"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/receivedMessageCard">
+
+            <ImageView
+                android:id="@+id/senderImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/profile_placeholder"
+                android:contentDescription="User profile" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/receivedMessageCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="80dp"
+            app:cardBackgroundColor="@color/background_light"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toEndOf="@id/senderImageCard"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/receivedMessageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="240dp"
+                android:padding="12dp"
+                android:textColor="@color/dark_gray"
+                android:textSize="14sp"
+                tools:text="Hey, how are you doing?" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/receivedMessageTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/medium_gray"
+            android:textSize="10sp"
+            app:layout_constraintStart_toStartOf="@id/receivedMessageCard"
+            app:layout_constraintTop_toBottomOf="@id/receivedMessageCard"
+            tools:text="9:30 AM" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

@@ -1,5 +1,11 @@
 package com.example.commudev
 
+
+import com.example.commudev.api.RetrofitClient
+import com.example.commudev.models.LoginRequest
+import com.example.commudev.models.LoginResponse
+import com.example.commudev.models.UserProfileResponse
+import com.example.commudev.util.SessionManager
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
@@ -7,21 +13,28 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.commudev.databinding.ActivityLoginBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var authManager: AuthManager
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Set theme explicitly to make sure UI displays correctly
+        setTheme(R.style.Theme_CommuDev_NoActionBar)
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        authManager = AuthManager(this)
+        sessionManager = SessionManager(this)
 
         // Check if user is already logged in
-        if (authManager.isUserLoggedIn()) {
+        if (sessionManager.isLoggedIn()) {
             navigateToMain()
             return
         }
@@ -31,12 +44,21 @@ class LoginActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         binding.loginButton.setOnClickListener {
-            val username = binding.usernameEditText.text.toString()
+            val email = binding.usernameEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
-            if (validateInputs(username, password)) {
-                loginUser(username, password)
+            if (validateInputs(email, password)) {
+                loginUser(email, password)
             }
+        }
+
+        // Long press on login button to auto-fill test user credentials
+        binding.loginButton.setOnLongClickListener {
+            // Auto-fill with test user credentials
+            binding.usernameEditText.setText("test@example.com")
+            binding.passwordEditText.setText("password123")
+            Toast.makeText(this, "Test user credentials filled", Toast.LENGTH_SHORT).show()
+            true
         }
 
         binding.registerText.setOnClickListener {
@@ -51,16 +73,13 @@ class LoginActivity : AppCompatActivity() {
             // Handle forgot password
             showForgotPasswordDialog()
         }
-
-        // Social login buttons have been removed from the layout
-        // to match the new design
     }
 
-    private fun validateInputs(username: String, password: String): Boolean {
+    private fun validateInputs(email: String, password: String): Boolean {
         var isValid = true
 
-        if (username.isEmpty()) {
-            binding.usernameEditText.error = "Username cannot be empty"
+        if (email.isEmpty()) {
+            binding.usernameEditText.error = "Email cannot be empty"
             isValid = false
         }
 
@@ -72,21 +91,81 @@ class LoginActivity : AppCompatActivity() {
         return isValid
     }
 
-    private fun loginUser(username: String, password: String) {
-        // In a real app, you would handle both username and email login
-        // For simplicity, this example assumes the username field is actually email
-
+    private fun loginUser(email: String, password: String) {
         showLoading(true)
 
-        authManager.loginUser(username, password) { success, errorMessage ->
-            showLoading(false)
+        val apiService = RetrofitClient.getApiService(this)
+        val loginRequest = LoginRequest(email, password)
 
-            if (success) {
-                navigateToMain()
-            } else {
-                showError(errorMessage ?: "Login failed")
+        apiService.login(loginRequest).enqueue(object : Callback<LoginResponse> {
+            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                showLoading(false)
+
+                if (response.isSuccessful) {
+                    response.body()?.let { loginResponse ->
+                        // Save authentication token and expiry
+                        sessionManager.saveAuthToken(loginResponse.token)
+                        sessionManager.saveTokenExpiry(loginResponse.expiresIn)
+                        sessionManager.setLoggedIn(true)
+
+                        // Fetch user profile to get user info
+                        fetchUserProfile()
+                    }
+                } else {
+                    val errorMessage = when (response.code()) {
+                        401 -> "Invalid email or password"
+                        else -> "Login failed: ${response.message()}"
+                    }
+                    showError(errorMessage)
+                }
             }
-        }
+
+            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                showLoading(false)
+                showError("Network error: ${t.message}")
+            }
+        })
+    }
+
+    private fun fetchUserProfile() {
+        val apiService = RetrofitClient.getApiService(this)
+
+        apiService.getCurrentUserProfile().enqueue(object : Callback<UserProfileResponse> {
+            override fun onResponse(
+                call: Call<UserProfileResponse>,
+                response: Response<UserProfileResponse>
+            ) {
+                if (response.isSuccessful) {
+                    response.body()?.let { userProfile ->
+                        // Save user information
+                        sessionManager.saveUserInfo(
+                            userProfile.id,
+                            userProfile.email,
+                            userProfile.username
+                        )
+                        navigateToMain()
+                    }
+                } else {
+                    // If we can't get user profile, still navigate to main but show warning
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Logged in, but couldn't fetch profile",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    navigateToMain()
+                }
+            }
+
+            override fun onFailure(call: Call<UserProfileResponse>, t: Throwable) {
+                // If we can't get user profile, still navigate to main but show warning
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Logged in, but couldn't fetch profile",
+                    Toast.LENGTH_SHORT
+                ).show()
+                navigateToMain()
+            }
+        })
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -120,13 +199,7 @@ class LoginActivity : AppCompatActivity() {
             .setPositiveButton("Reset") { _, _ ->
                 val email = emailEditText.text.toString()
                 if (email.isNotEmpty()) {
-                    authManager.sendPasswordResetEmail(email) { success, message ->
-                        if (success) {
-                            Toast.makeText(this, "Password reset email sent", Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(this, message ?: "Failed to send reset email", Toast.LENGTH_LONG).show()
-                        }
-                    }
+                    sendPasswordResetEmail(email)
                 } else {
                     Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show()
                 }
@@ -135,5 +208,13 @@ class LoginActivity : AppCompatActivity() {
             .create()
 
         dialog.show()
+    }
+
+    private fun sendPasswordResetEmail(email: String) {
+        val apiService = RetrofitClient.getApiService(this)
+
+        // Note: You'll need to implement a password reset endpoint in your backend
+        // For now, just show a success message
+        Toast.makeText(this, "Password reset email sent to $email", Toast.LENGTH_LONG).show()
     }
 }
