@@ -15,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/friends")
+@CrossOrigin(origins = "https://it-342-commu-dev.vercel.app")
 public class FriendController {
 
     @Autowired
