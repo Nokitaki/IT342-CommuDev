@@ -15,6 +15,8 @@ import '../../styles/pages/profile.css';
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
 import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
+import API_URL from '../../config/apiConfig';
+
 
 const ProfilePage = () => {
   // Authentication and user data
@@ -209,7 +211,7 @@ const ProfilePage = () => {
                  src={profile?.profilePicture ? 
                   (profile.profilePicture.startsWith('http') ? 
                     profile.profilePicture : 
-                    `http://localhost:8080${profile.profilePicture}`) : 
+                    `${API_URL}${profile.profilePicture}`) : 
                   '/src/assets/images/profile/pp.png'
                 }
                   alt={getFullName()} 
@@ -525,7 +527,7 @@ const ProfilePage = () => {
           <div className="profile-user-menu">
             <Avatar 
               src={profile?.profilePicture ? 
-                `http://localhost:8080${profile.profilePicture}` : 
+               `${API_URL}${profile.profilePicture}` : 
                 '/src/assets/images/profile/pp.png'
               } 
               alt={getFullName()} 
@@ -551,7 +553,7 @@ const ProfilePage = () => {
             src={profile?.coverPhoto ? 
               (profile.coverPhoto.startsWith('http') ? 
                 profile.coverPhoto : 
-                `http://localhost:8080${profile.coverPhoto}`) : 
+               `${API_URL}${profile.coverPhoto}`) : 
               '/src/assets/images/profile/coverphoto.jpg'
             }
             alt="Cover"
@@ -579,7 +581,7 @@ const ProfilePage = () => {
               <img 
                 key={`profile-image-${imageKey}`}
                 src={profile?.profilePicture ? 
-                  `http://localhost:8080${profile.profilePicture}` : 
+                 `${API_URL}${profile.profilePicture}` : 
                   '/src/assets/images/profile/pp.png'
                 } 
                 alt={getFullName()} 
@@ -825,7 +827,7 @@ const ProfilePage = () => {
      {/* Cover Photo Upload Modal */}
      <CoverPhotoUpload 
        isOpen={isUploadingCover}
-       currentCoverPhoto={profile?.coverPhoto ? `http://localhost:8080${profile.coverPhoto}` : null}
+       currentCoverPhoto={profile?.coverPhoto ? `${API_URL}${profile.coverPhoto}` : null}
        onSave={handleCoverPhotoUpload}
        onCancel={() => setIsUploadingCover(false)}
      />
@@ -833,7 +835,7 @@ const ProfilePage = () => {
      {/* Profile Picture Upload Modal */}
      <ProfilePictureUpload 
        isOpen={isUploadingProfilePic}
-       currentProfilePicture={profile?.profilePicture ? `http://localhost:8080${profile.profilePicture}` : null}
+       currentProfilePicture={profile?.profilePicture ? `${API_URL}${profile.profilePicture}` : null}
        onSave={handleProfilePictureUpload}
        onCancel={() => setIsUploadingProfilePic(false)}
      />

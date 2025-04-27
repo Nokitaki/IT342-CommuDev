@@ -7,14 +7,15 @@ import PeopleYouMayKnow from '../newsfeed/PeopleYouMayKnow';
 import FriendsSidebar from '../friends/FriendsSidebar';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/components/sidebar.css';
+import API_URL from '../../config/apiConfig';
+
 
 const Sidebar = () => {
   // Use profile hook to get the current user data
   const { profile, loading } = useProfile();
   const [profilePicture, setProfilePicture] = useState(null);
   
-  // API URL
-  const API_URL = 'http://localhost:8080';
+
   
   useEffect(() => {
     // When profile is loaded, update the profile picture

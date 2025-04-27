@@ -3,6 +3,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from './Avatar';
 import '../../styles/components/userList.css';
+import API_URL from '../../config/apiConfig';
+
 
 const UserList = ({ 
   users, 
@@ -12,8 +14,7 @@ const UserList = ({
   showStatus = false,
   maxHeight = 300
 }) => {
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   // Get user display name
   const getUserDisplayName = (user) => {

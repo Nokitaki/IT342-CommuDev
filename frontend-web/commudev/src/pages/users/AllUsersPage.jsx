@@ -9,6 +9,8 @@ import { checkFriendStatus, sendFriendRequest } from '../../services/friendServi
 import UserProfileModal from '../../components/modals/UserProfileModal';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/components/allUsers.css';
+import API_URL from '../../config/apiConfig';
+
 
 const AllUsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -22,8 +24,7 @@ const AllUsersPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const { profile } = useProfile();
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   useEffect(() => {
     const fetchUsers = async () => {

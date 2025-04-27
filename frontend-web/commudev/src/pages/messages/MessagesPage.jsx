@@ -25,6 +25,8 @@ import NewMessageModal from '../../components/modals/NewMessageModal';
 import { formatTimeAgo } from "../../utils/dateUtils";
 import "../../styles/pages/messages.css";
 import EmojiPicker from 'emoji-picker-react';
+import API_URL from '../../config/apiConfig';
+
 
 // Import your logo
 import LogoIcon from "../../assets/images/logo.png";
@@ -72,8 +74,7 @@ const MessagesPage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
 
 

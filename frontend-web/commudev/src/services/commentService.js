@@ -1,6 +1,6 @@
 // src/services/commentService.js
 
-const API_URL = 'http://localhost:8080/api/comments';
+const API_URL = `${API_URL}/api/comments`;
 
 /**
  * Get comments for a post
@@ -15,7 +15,7 @@ export const getCommentsByPostId = async (postId) => {
       'Accept': 'application/json'
     };
     
-    // Add token if available
+    
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }

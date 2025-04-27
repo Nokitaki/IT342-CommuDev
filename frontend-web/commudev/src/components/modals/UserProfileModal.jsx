@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Button from '../common/Button';
 import { sendFriendRequest, checkFriendStatus } from '../../services/friendService';
 import '../../styles/components/userProfileModal.css';
+import API_URL from '../../config/apiConfig';
+
 
 const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
   // Check for null/undefined user or not being open
@@ -41,8 +43,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
     }
   }, [isOpen, user]);
 
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   // Get user's profile picture with fallback
   const getProfilePicture = () => {

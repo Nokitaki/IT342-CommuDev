@@ -6,8 +6,10 @@ import {
   getCurrentUser,
   auth
 } from './firebaseAuth';
+import API_URL from '../../config/apiConfig';
 
-const API_URL = 'http://localhost:8080';
+
+
 const AUTH_URL = `${API_URL}/auth`;
 const USERS_URL = `${API_URL}/users`;
 
@@ -241,7 +243,7 @@ export const updateUserProfile = async (profileData) => {
       throw new Error('You must be logged in to update your profile');
     }
 
-    const response = await fetch('http://localhost:8080/users/me', {
+    const response = await fetch(`${API_URL}/users/me`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

@@ -7,6 +7,7 @@ import { getAllUsers, getUserById } from '../../services/userService';
 import { checkFriendStatus } from '../../services/friendService';
 import UserProfileModal from '../modals/UserProfileModal';
 import '../../styles/components/peopleYouMayKnow.css';
+import API_URL from '../../config/apiConfig';
 
 const PeopleYouMayKnow = () => {
   const [users, setUsers] = useState([]);
@@ -17,8 +18,7 @@ const PeopleYouMayKnow = () => {
   const [requestSent, setRequestSent] = useState({});
   const [statusMessage, setStatusMessage] = useState({ userId: null, text: '', type: '' });
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   useEffect(() => {
     const fetchUsers = async () => {

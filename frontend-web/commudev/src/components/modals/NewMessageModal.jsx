@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react';
 import { getAllUsers } from '../../services/userService';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/components/newMessageModal.css';
+import API_URL from '../../config/apiConfig';
 
 const NewMessageModal = ({ isOpen, onClose, onSelectUser }) => {
   const [users, setUsers] = useState([]);
@@ -13,8 +14,7 @@ const NewMessageModal = ({ isOpen, onClose, onSelectUser }) => {
   const [selectedUser, setSelectedUser] = useState(null); // Track selected user
   const { profile } = useProfile();
   
-  // API URL for images
-  const API_URL = 'http://localhost:8080';
+
 
   // Fetch all users when modal opens
   useEffect(() => {
