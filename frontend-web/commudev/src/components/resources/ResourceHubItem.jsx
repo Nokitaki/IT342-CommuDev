@@ -18,7 +18,7 @@ const ResourceHubItem = ({ resource, onDelete, onLike, onEdit }) => {
       <header className="resource-header">
         <div className="resource-author">
           <Avatar 
-            src={resource.creator_profile_picture || '../../../public/assets/images/profile/default-avatar.png'} 
+            src={resource.creator_profile_picture || '/src/assets/images/profile/default-avatar.png'} 
             alt={`${resource.creator}'s profile`} 
             size="medium" 
           />

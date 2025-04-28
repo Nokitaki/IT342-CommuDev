@@ -69,7 +69,7 @@ const UserSearch = () => {
                 className="search-result-avatar"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+                  e.target.src = '/src/assets/images/profile/default-avatar.png';
                 }}
               />
               <span className="search-result-name">{result.name}</span>

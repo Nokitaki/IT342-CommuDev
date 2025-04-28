@@ -96,7 +96,7 @@ const AllUsersPage = () => {
     if (user.profilePicture) {
       return `${API_URL}${user.profilePicture}`;
     }
-    return '../../../public/assets/images/profile/default-avatar.png';
+    return '/src/assets/images/profile/default-avatar.png';
   };
   
   // Open user profile modal

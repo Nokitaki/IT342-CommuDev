@@ -73,7 +73,7 @@ const UserCarousel = () => {
     if (user.profilePicture) {
       return `${API_URL}${user.profilePicture}`;
     }
-    return '../../../public/assets/images/profile/default-avatar.png';
+    return '/src/assets/images/profile/default-avatar.png';
   };
 
   // Slice users for current page view

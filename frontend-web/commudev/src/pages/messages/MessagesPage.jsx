@@ -371,7 +371,7 @@ useEffect(() => {
 
   // Get user's avatar with fallback
   const getAvatarUrl = (avatarPath) => {
-    if (!avatarPath) return '../../../public/assets/images/profile/default-avatar.png';
+    if (!avatarPath) return '/src/assets/images/profile/default-avatar.png';
     
     return avatarPath.startsWith('http') 
       ? avatarPath 
@@ -431,7 +431,7 @@ useEffect(() => {
                   className="avatar-image"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+                    e.target.src = '/src/assets/images/profile/default-avatar.png';
                   }}
                 />
                 {/* Online status indicator - this would need to be implemented in your Firebase presence system */}
@@ -472,7 +472,7 @@ useEffect(() => {
                 className="chat-avatar"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+                  e.target.src = '/src/assets/images/profile/default-avatar.png';
                 }}
               />
               <div className="chat-user-details">
@@ -820,7 +820,7 @@ useEffect(() => {
           className="profile-avatar"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+            e.target.src = '/src/assets/images/profile/default-avatar.png';
           }}
         />
         <h2 className="profile-name">{selectedUser.name}</h2>

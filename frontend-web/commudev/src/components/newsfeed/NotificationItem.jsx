@@ -8,7 +8,7 @@ const NotificationItem = ({ notification }) => {
     <div className="notification-item">
       <div className="notification-header">
       <Avatar 
-        src={notification.image ? `/src/assets/images/profile/${notification.image}` : '../../../public/assets/images/profile/default-avatar.png'} 
+        src={notification.image ? `/src/assets/images/profile/${notification.image}` : '/src/assets/images/profile/default-avatar.png'} 
         alt={`${notification.user}'s profile`} 
         size="small" 
       />

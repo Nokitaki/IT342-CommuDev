@@ -105,7 +105,7 @@ const PeopleYouMayKnow = () => {
         ? user.profilePicture 
         : `${API_URL}${user.profilePicture}`;
     }
-    return '../../../public/assets/images/profile/default-avatar.png';
+    return '/src/assets/images/profile/default-avatar.png';
   };
 
   // Open modal with selected user
@@ -257,7 +257,7 @@ const PeopleYouMayKnow = () => {
                 className="suggestion-avatar"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+                  e.target.src = '/src/assets/images/profile/default-avatar.png';
                 }}
               />
               <span className="suggestion-name">{getUserName(user)}</span>
