@@ -8,7 +8,11 @@ import FriendsSidebar from '../friends/FriendsSidebar';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/components/sidebar.css';
 import API_URL from '../../config/apiConfig';
+<<<<<<< Updated upstream
+=======
 import { getAssetUrl, getProfilePicture } from '../../utils/assetUtils';
+import Logo from '../../assets/images/logo.png'; 
+>>>>>>> Stashed changes
 
 
 const Sidebar = () => {
@@ -44,7 +48,11 @@ const Sidebar = () => {
       <div className="sidebar-header">
         <Link to="/newsfeed" className="logo-container">
           <img 
-            src={getAssetUrl('/assets/images/logo.png')}
+<<<<<<< Updated upstream
+            src="/src/assets/images/logo.png" 
+=======
+            src={Logo}
+>>>>>>> Stashed changes
             alt="CommuDev Logo" 
             className="logo-image" 
           />
@@ -55,7 +63,7 @@ const Sidebar = () => {
       <Link to="/profile" className="profile-sidebar-link">
         <div className="profile-sidebar">
           <Avatar 
-            src={profilePicture || getProfilePicture({})}
+            src={profilePicture || '/src/assets/images/profile/default-avatar.png'} 
             alt={getFullName()} 
             size="medium"
           />
