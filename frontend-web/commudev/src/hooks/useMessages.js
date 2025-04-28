@@ -287,14 +287,14 @@ const useMessages = () => {
   };
 
   // Send a message in the current conversation
-  const sendNewMessage = async (text, imageFile = null) => {
+  const sendNewMessage = async (text) => {
     if (!currentConversation || !userId) {
       setError('Cannot send message');
       return false;
     }
-  
+
     try {
-      const messageData = {
+      await sendMessage(currentConversation, {
         senderId: userId,
         senderName: profile ? 
           `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username : 
@@ -302,9 +302,7 @@ const useMessages = () => {
         senderUsername: profile?.username || '',
         senderAvatar: profile?.profilePicture || '',
         text: text
-      };
-      
-      await sendMessage(currentConversation, messageData, imageFile);
+      });
       
       // Clear typing status after sending
       setIsTyping(false);

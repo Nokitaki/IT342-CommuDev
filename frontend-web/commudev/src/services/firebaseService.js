@@ -22,41 +22,6 @@ import { ref, onDisconnect, set, onValue } from 'firebase/database';
 
 // Import centralized Firebase instances
 import { firestore, realtimeDB, auth } from './firebase';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-
-const storage = getStorage();
-
-
-
-
-/**
- * Upload an image to Firebase Storage
- * @param {File} imageFile - The image file to upload
- * @param {string} conversationId - ID of the conversation
- * @param {string} userId - ID of the uploading user
- * @returns {Promise<string>} - Promise that resolves with the image URL
- */
-export const uploadImage = async (imageFile, conversationId, userId) => {
-  try {
-    const timestamp = new Date().getTime();
-    const filePath = `messages/${conversationId}/${userId}_${timestamp}_${imageFile.name}`;
-    const imageRef = storageRef(storage, filePath);
-    
-    // Upload the file
-    const snapshot = await uploadBytes(imageRef, imageFile);
-    
-    // Get the download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    throw error;
-  }
-};
-
-
-
 
 // Ensure we have the Firebase services
 if (!firestore) {
@@ -131,14 +96,7 @@ export const debugFirestore = async () => {
 
 
 
-/**
- * Send a message in a conversation
- * @param {string} conversationId - ID of the conversation
- * @param {object} message - Message object with sender, text, etc.
- * @param {File} imageFile - Optional image file to attach
- * @returns {Promise} - Promise that resolves with the new message reference
- */
-export const sendMessage = async (conversationId, message, imageFile = null) => {
+export const sendMessage = async (conversationId, message) => {
   try {
     if (!firestore) {
       throw new Error("Firestore is not initialized");
@@ -146,18 +104,10 @@ export const sendMessage = async (conversationId, message, imageFile = null) => 
 
     const messagesRef = collection(firestore, 'conversations', conversationId, 'messages');
     
-    let imageUrl = null;
-    if (imageFile) {
-      // Upload the image and get its URL
-      imageUrl = await uploadImage(imageFile, conversationId, message.senderId);
-    }
-    
     const newMessage = {
       ...message,
       timestamp: serverTimestamp(),
-      read: false,
-      // Add image URL if present
-      imageUrl: imageUrl
+      read: false
     };
     
     const messageDoc = await addDoc(messagesRef, newMessage);
@@ -165,7 +115,7 @@ export const sendMessage = async (conversationId, message, imageFile = null) => 
     // Update the conversation with the last message
     const conversationRef = doc(firestore, 'conversations', conversationId);
     await updateDoc(conversationRef, {
-      lastMessage: imageUrl ? "📷 Image" : newMessage.text,
+      lastMessage: newMessage.text,
       lastSenderId: newMessage.senderId,
       lastUpdated: serverTimestamp()
     });
@@ -176,10 +126,6 @@ export const sendMessage = async (conversationId, message, imageFile = null) => 
     throw error;
   }
 };
-
-
-
-
 
 /**
  * Get or create a conversation between two users

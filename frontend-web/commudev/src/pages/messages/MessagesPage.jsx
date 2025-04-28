@@ -210,24 +210,14 @@ useEffect(() => {
     try {
       let success;
       
-      // Create message object
-      const messageData = {
-        senderId: profile?.id?.toString(),
-        senderName: profile ? 
-          `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username : 
-          'User',
-        senderUsername: profile?.username || '',
-        senderAvatar: profile?.profilePicture || '',
-        text: newMessage.trim()
-      };
-      
       if (selectedImage) {
-        // Send message with image
-        success = await sendNewMessage(messageData.text || "📷", selectedImage);
+        // For now, we'll send a placeholder message with the image name
+        // In a real implementation, you would upload the image to storage
+        // and send a message with the image URL
+        success = await sendNewMessage(`Sent an image: ${selectedImage.name}`);
         setSelectedImage(null);
       } else {
-        // Send text-only message
-        success = await sendNewMessage(messageData.text);
+        success = await sendNewMessage(newMessage);
       }
       
       if (success) {
@@ -599,23 +589,9 @@ useEffect(() => {
                         </div>
                       </>
                     ) : (
-
-
                       <div className="message-bubble">
-                      {msg.text && <div className="message-text">{msg.text}</div>}
-                      {msg.imageUrl && (
-                        <div className="message-image-container">
-                          <img 
-                            src={msg.imageUrl}
-                            alt="Shared image" 
-                            className="message-image"
-                            onClick={() => window.open(msg.imageUrl, '_blank')}
-                          />
-                        </div>
-                      )}
-                    </div>
-
-
+                        {msg.text}
+                      </div>
                     )}
                         <div className="message-meta">
                           <span className="message-time">
@@ -733,9 +709,6 @@ useEffect(() => {
       alt="Preview" 
       className="image-preview"
     />
-    <span className="image-preview-caption">
-      {selectedImage.name} ({Math.round(selectedImage.size / 1024)} KB)
-    </span>
     <button 
       className="remove-image-btn" 
       onClick={() => {
@@ -774,21 +747,14 @@ useEffect(() => {
     disabled={isSending}
     ref={messageInputRef}
   />
- <button
-  className={`send-btn ${(!newMessage.trim() && !selectedImage) ? 'disabled' : ''}`}
-  onClick={handleSendMessage}
-  disabled={isSending || (!newMessage.trim() && !selectedImage)}
-  title="Send message"
->
-  {isSending ? (
-    <div className="send-loading"></div>
-  ) : (
+  <button
+    className={`send-btn ${!newMessage.trim() ? 'disabled' : ''}`}
+    onClick={handleSendMessage}
+    disabled={isSending || !newMessage.trim()}
+    title="Send message"
+  >
     <Send size={20} />
-  )}
-</button>
-
-
-
+  </button>
   <button className="input-action" title="Voice message">
     <Mic size={20} />
   </button>
