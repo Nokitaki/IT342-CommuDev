@@ -12,19 +12,15 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
-<<<<<<< Updated upstream
-=======
-import { getProfilePicture, getCoverPhoto } from '../../utils/assetUtils';
-import { getAssetUrl } from '../../utils/assetUtils';
-import Logo from '../../assets/images/logo.png'; // Adjust path based on your structure
-import DefaultPic from '../../assets/images/profile/pp.png'; // Adjust path based on your structure
 
->>>>>>> Stashed changes
+import { getAssetUrl } from '../../utils/assetUtils';
+
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
 import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
 import API_URL from '../../config/apiConfig';
 
+import ASSETS_URL from '../config/assetConfig';
 
 const ProfilePage = () => {
   // Authentication and user data
@@ -216,16 +212,10 @@ const ProfilePage = () => {
             <div className="profile-create-post">
               <div className="profile-create-post-header">
                 <Avatar 
-<<<<<<< Updated upstream
-                 src={profile?.profilePicture ? 
-                  (profile.profilePicture.startsWith('http') ? 
-                    profile.profilePicture : 
-                    `${API_URL}${profile.profilePicture}`) : 
-                  '/src/assets/images/profile/pp.png'
-                }
-=======
-                src={DefaultPic}
->>>>>>> Stashed changes
+                src={profile?.profilePicture ? 
+                  `${API_URL}${profile.profilePicture}` : 
+                  getAssetUrl('/assets/images/profile/pp.png')
+              }
                   alt={getFullName()} 
                   size="medium" 
                 />
@@ -518,11 +508,7 @@ const ProfilePage = () => {
         <div className="profile-top-left">
           <Link to="/newsfeed" className="profile-logo-link">
             <img 
-<<<<<<< Updated upstream
-              src="/src/assets/images/logo.png" 
-=======
-               src={Logo} 
->>>>>>> Stashed changes
+               src={getAssetUrl('/assets/images/logo.png')} 
               alt="CommuDev Logo" 
               className="profile-logo" 
             />
@@ -542,7 +528,10 @@ const ProfilePage = () => {
         <div className="profile-top-right">
           <div className="profile-user-menu">
             <Avatar 
-              src={DefaultPic}
+              src={profile?.profilePicture ? 
+               `${API_URL}${profile.profilePicture}` : 
+                '/src/assets/images/profile/pp.png'
+              } 
               alt={getFullName()} 
               size="small" 
             />
@@ -563,18 +552,13 @@ const ProfilePage = () => {
         <div className="profile-cover">
           <img  
             key={`cover-image-${imageKey}`}
-            src={profile?.coverPhoto ? 
-              (profile.coverPhoto.startsWith('http') ? 
-                profile.coverPhoto : 
-               `${API_URL}${profile.coverPhoto}`) : 
-              '/src/assets/images/profile/coverphoto.jpg'
-            }
+            src={getCoverPhoto(profile)}
             alt="Cover"
             className="profile-cover-image"
             onError={(e) => {
               console.log("Error loading cover photo:", profile?.coverPhoto);
               e.target.onerror = null;
-              e.target.src = '/src/assets/images/profile/prof3.jpg';
+              e.target.src = getAssetUrl('/assets/images/profile/prof3.jpg');
             }}
           />
           <div className="profile-cover-buttons">
@@ -593,24 +577,13 @@ const ProfilePage = () => {
             <div className="profile-avatar-wrapper">
               <img 
                 key={`profile-image-${imageKey}`}
-<<<<<<< Updated upstream
-                src={profile?.profilePicture ? 
-                 `${API_URL}${profile.profilePicture}` : 
-                  '/src/assets/images/profile/pp.png'
-                } 
-=======
-                src={getProfilePicture(profile) || DefaultPic}
->>>>>>> Stashed changes
+                src={getProfilePicture(profile) || getAssetUrl('/assets/images/profile/pp.png')}
                 alt={getFullName()} 
                 className="profile-avatar-image"
                 onError={(e) => {
                   console.log("Error loading profile picture:", profile?.profilePicture);
                   e.target.onerror = null;
-<<<<<<< Updated upstream
-                  e.target.src = '/src/assets/images/profile/pp.png';
-=======
-                  e.target.src = src={DefaultPic};
->>>>>>> Stashed changes
+                  e.target.src = getAssetUrl('/assets/images/profile/pp.png');
                 }}
               />
             </div>

@@ -10,7 +10,6 @@ import useProfile from '../../hooks/useProfile';
 import Avatar from '../../components/common/Avatar';
 import '../../styles/pages/publicProfile.css';
 import API_URL from '../../config/apiConfig';
-import CoverPhoto from '../../assets/images/profile/coverphoto.jpg'; // Default cover photo 
 
 
 
@@ -104,7 +103,7 @@ const PublicProfilePage = () => {
         ? profile.coverPhoto 
         : `${API_URL}${profile.coverPhoto}`;
     }
-    return {CoverPhoto};
+    return '/src/assets/images/profile/coverphoto.jpg';
   };
 
   // Get full name
@@ -349,7 +348,7 @@ const PublicProfilePage = () => {
           className="cover-image"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = {CoverPhoto};
+            e.target.src = '/src/assets/images/profile/coverphoto.jpg';
           }}
         />
         <div className="cover-overlay"></div>

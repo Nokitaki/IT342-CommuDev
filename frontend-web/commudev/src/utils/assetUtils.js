@@ -1,7 +1,6 @@
 // src/utils/assetUtils.js
 import API_URL from '../config/apiConfig';
 import ASSETS_URL from '../config/assetConfig';
-import CoverPhoto from '../assets/images/profile/cover-photo.png'; // Default cover photo
 
 // Helper function to get profile picture with fallback
 export const getProfilePicture = (user) => {
@@ -20,7 +19,7 @@ export const getCoverPhoto = (user) => {
       ? user.coverPhoto 
       : `${API_URL}${user.coverPhoto}`;
   }
-  return {CoverPhoto};
+  return `${ASSETS_URL}/assets/images/profile/coverphoto.jpg`;
 };
 
 // Helper function for general static assets
