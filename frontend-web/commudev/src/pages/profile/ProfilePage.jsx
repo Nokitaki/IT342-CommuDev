@@ -13,7 +13,7 @@ import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
 import { getProfilePicture, getCoverPhoto } from '../../utils/assetUtils';
-
+import { getAssetUrl } from '../../utils/assetUtils';
 
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
@@ -212,12 +212,10 @@ const ProfilePage = () => {
             <div className="profile-create-post">
               <div className="profile-create-post-header">
                 <Avatar 
-                 src={profile?.profilePicture ? 
-                  (profile.profilePicture.startsWith('http') ? 
-                    profile.profilePicture : 
-                    `${API_URL}${profile.profilePicture}`) : 
-                  '/src/assets/images/profile/pp.png'
-                }
+                src={profile?.profilePicture ? 
+                  `${API_URL}${profile.profilePicture}` : 
+                  getAssetUrl('/assets/images/profile/pp.png')
+              }
                   alt={getFullName()} 
                   size="medium" 
                 />
@@ -510,7 +508,7 @@ const ProfilePage = () => {
         <div className="profile-top-left">
           <Link to="/newsfeed" className="profile-logo-link">
             <img 
-              src="/src/assets/images/logo.png" 
+               src={getAssetUrl('/assets/images/logo.png')} 
               alt="CommuDev Logo" 
               className="profile-logo" 
             />
@@ -560,7 +558,7 @@ const ProfilePage = () => {
             onError={(e) => {
               console.log("Error loading cover photo:", profile?.coverPhoto);
               e.target.onerror = null;
-              e.target.src = '/src/assets/images/profile/prof3.jpg';
+              e.target.src = getAssetUrl('/assets/images/profile/prof3.jpg');
             }}
           />
           <div className="profile-cover-buttons">
@@ -585,7 +583,7 @@ const ProfilePage = () => {
                 onError={(e) => {
                   console.log("Error loading profile picture:", profile?.profilePicture);
                   e.target.onerror = null;
-                  e.target.src = '/src/assets/images/profile/pp.png';
+                  e.target.src = getAssetUrl('/assets/images/profile/pp.png');
                 }}
               />
             </div>
