@@ -17,7 +17,7 @@ public class CustomDotenvProcessor implements EnvironmentPostProcessor {
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         // Specify the exact path to your .env file
-        Path envPath = Paths.get("backend", "commudev", ".env");
+        Path envPath = Paths.get(".env");
         Resource resource = new FileSystemResource(envPath.toFile());
         
         System.out.println("Looking for .env file at: " + envPath.toAbsolutePath());
