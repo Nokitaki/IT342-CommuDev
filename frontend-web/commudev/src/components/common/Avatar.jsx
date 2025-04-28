@@ -2,9 +2,10 @@
 import React from 'react';
 import '../../styles/components/avatar.css';
 
+
 // Default avatar image
 
-const defaultAvatar = '/assets/images/profile/default-avatar.png';
+const defaultAvatar = '../../../public/assets/images/profile/default-avatar.png';
 
 import { getProfilePicture } from '../../utils/assetUtils';
 const Avatar = ({ 

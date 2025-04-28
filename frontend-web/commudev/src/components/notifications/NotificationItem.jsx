@@ -54,7 +54,7 @@ const NotificationItem = ({ notification, onClose }) => {
         ? notification.actor.profilePicture 
         : `${API_URL}${notification.actor.profilePicture}`;
     }
-    return '/src/assets/images/profile/default-avatar.png';
+    return '../../../public/assets/images/profile/default-avatar.png';
   };
   
   // Get icon based on notification type

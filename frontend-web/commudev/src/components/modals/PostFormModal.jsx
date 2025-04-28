@@ -112,7 +112,7 @@ const PostFormModal = ({ isOpen, onClose, onSubmit, editPost, userName }) => {
           <Avatar 
             src={profile?.profilePicture ? 
               `${API_URL}${profile.profilePicture}` : 
-              '/src/assets/images/profile/default-avatar.png'
+              '../../../public/assets/images/profile/default-avatar.png'
             } 
             alt={`${userName}'s profile`} 
             size="medium" 
