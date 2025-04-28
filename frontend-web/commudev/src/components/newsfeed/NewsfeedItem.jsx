@@ -145,7 +145,7 @@ const NewsfeedItem = ({ post, onUpdate, onDelete, onLike, onEdit, isCurrentUser 
         ? post.user.profilePicture 
         : `${API_URL}${post.user.profilePicture}`;
     }
-    return post.creator_profile_picture || '/src/assets/images/profile/default-avatar.png';
+    return post.creator_profile_picture || '../../../public/assets/images/profile/default-avatar.png';
   };
 
   // Format post date with proper fallback

@@ -63,7 +63,7 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
     if (profile?.profilePicture) {
       return `${API_URL}${profile.profilePicture}`;
     }
-    return '/src/assets/images/profile/default-avatar.png';
+    return '../../../public/assets/images/profile/default-avatar.png';
   };
 
   // Get commenter's profile picture
@@ -73,7 +73,7 @@ const CommentSection = ({ postId, comments = [], onAddComment, expanded = false 
         ? comment.user.profilePicture 
         : `${API_URL}${comment.user.profilePicture}`;
     }
-    return '/src/assets/images/profile/default-avatar.png';
+    return '../../../public/assets/images/profile/default-avatar.png';
   };
 
   // Get commenter's name
