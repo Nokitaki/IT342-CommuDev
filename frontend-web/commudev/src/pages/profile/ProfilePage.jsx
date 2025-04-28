@@ -12,9 +12,8 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
-import { getProfilePicture, getCoverPhoto } from '../../utils/assetUtils';
-import { getAssetUrl } from '../../utils/assetUtils';
 
+import { getAssetUrl } from '../../utils/assetUtils';
 
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
@@ -579,7 +578,6 @@ const ProfilePage = () => {
               <img 
                 key={`profile-image-${imageKey}`}
                 src={getProfilePicture(profile) || getAssetUrl('/assets/images/profile/pp.png')}
-                
                 alt={getFullName()} 
                 className="profile-avatar-image"
                 onError={(e) => {
