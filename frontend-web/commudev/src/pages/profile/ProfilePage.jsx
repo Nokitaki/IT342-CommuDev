@@ -20,7 +20,6 @@ import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your 
 import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
 import API_URL from '../../config/apiConfig';
 
-import ASSETS_URL from '../config/assetConfig';
 
 const ProfilePage = () => {
   // Authentication and user data

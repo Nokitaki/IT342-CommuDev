@@ -4,9 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 import '../../styles/components/navigation.css';
 
 // Import icons
-import HomeIcon from '../../assets/icons/HomeIcon.svg';
-import MessageIcon from '../../assets/icons/MessageIcon.svg';
-import ResourceIcon from '../../assets/icons/ResourceIcon.svg';
+import HomeIcon from '../../../public/assets/icons/HomeIcon.svg';
+import MessageIcon from '../../../public/assets/icons/MessageIcon.svg';
+import ResourceIcon from '../../../public/assets/icons/ResourceIcon.svg';
 
 const NavigationBar = () => {
   const location = useLocation();
