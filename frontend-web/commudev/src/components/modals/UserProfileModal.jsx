@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import { sendFriendRequest, checkFriendStatus } from '../../services/friendService';
 import '../../styles/components/userProfileModal.css';
 import API_URL from '../../config/apiConfig';
+import CoverPhoto from '../../assets/images/profile/coverphoto.jpg';
 
 
 const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
@@ -62,7 +63,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
         ? user.coverPhoto 
         : `${API_URL}${user.coverPhoto}`;
     }
-    return '/src/assets/images/profile/coverphoto.jpg';
+    return {CoverPhoto};
   };
 
   // Get user's full name
@@ -207,7 +208,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
             className="user-profile-cover-image"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = '/src/assets/images/profile/coverphoto.jpg';
+              e.target.src = {CoverPhoto};
             }}
           />
           <button className="close-modal-button" onClick={onClose}>
