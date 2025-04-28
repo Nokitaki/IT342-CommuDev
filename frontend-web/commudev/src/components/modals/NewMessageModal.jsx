@@ -66,7 +66,7 @@ const NewMessageModal = ({ isOpen, onClose, onSelectUser }) => {
 
   // Get user's profile picture with fallback
   const getAvatarUrl = (avatarPath) => {
-    if (!avatarPath) return '../../../public/assets/images/profile/default-avatar.png';
+    if (!avatarPath) return '/src/assets/images/profile/default-avatar.png';
     
     return avatarPath.startsWith('http') 
       ? avatarPath 

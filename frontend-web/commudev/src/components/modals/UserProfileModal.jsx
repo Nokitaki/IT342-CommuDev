@@ -52,7 +52,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
         ? user.profilePicture 
         : `${API_URL}${user.profilePicture}`;
     }
-    return '../../../public/assets/images/profile/default-avatar.png';
+    return '/src/assets/images/profile/default-avatar.png';
   };
 
   // Get user's cover photo with fallback
@@ -225,7 +225,7 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
               className="user-profile-avatar"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+                e.target.src = '/src/assets/images/profile/default-avatar.png';
               }}
             />
           </div>

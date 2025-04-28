@@ -93,7 +93,7 @@ const PublicProfilePage = () => {
         ? profile.profilePicture 
         : `${API_URL}${profile.profilePicture}`;
     }
-    return '../../../public/assets/images/profile/default-avatar.png';
+    return '/src/assets/images/profile/default-avatar.png';
   };
 
   // Get user's cover photo
@@ -369,7 +369,7 @@ const PublicProfilePage = () => {
             className="profile-avatar-large"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+              e.target.src = '/src/assets/images/profile/default-avatar.png';
             }}
           />
         </div>

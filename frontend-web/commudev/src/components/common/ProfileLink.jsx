@@ -14,7 +14,7 @@ const ProfileLink = ({ user, showAvatar = true, className = '' }) => {
     >
       {showAvatar && (
         <Avatar 
-          src={user.profilePicture || '../../../public/assets/images/profile/default-avatar.png'} 
+          src={user.profilePicture || '/src/assets/images/profile/default-avatar.png'} 
           alt={`${user.firstname} ${user.lastname}`} 
           size="small" 
         />

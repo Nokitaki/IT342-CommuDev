@@ -48,7 +48,7 @@ const FriendsPage = () => {
         ? user.profilePicture 
         : `${API_URL}${user.profilePicture}`;
     }
-    return '../../../public/assets/images/profile/default-avatar.png';
+    return '/src/assets/images/profile/default-avatar.png';
   };
   
   // Filter friends or requests based on search term
