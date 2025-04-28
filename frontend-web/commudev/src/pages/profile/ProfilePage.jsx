@@ -15,6 +15,7 @@ import '../../styles/pages/profile.css';
 import { getProfilePicture, getCoverPhoto } from '../../utils/assetUtils';
 import { getAssetUrl } from '../../utils/assetUtils';
 
+
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
 import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
@@ -578,6 +579,7 @@ const ProfilePage = () => {
               <img 
                 key={`profile-image-${imageKey}`}
                 src={getProfilePicture(profile) || getAssetUrl('/assets/images/profile/pp.png')}
+                
                 alt={getFullName()} 
                 className="profile-avatar-image"
                 onError={(e) => {
