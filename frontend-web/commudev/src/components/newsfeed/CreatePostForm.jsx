@@ -19,7 +19,7 @@ const CreatePostForm = ({ onOpenModal }) => {
           <Avatar 
             src={profile?.profilePicture ? 
               `${API_URL}${profile.profilePicture}` : 
-              '/src/assets/images/profile/default-avatar.png'
+              '../../../public/assets/images/profile/default-avatar.png'
             } 
             alt={(profile?.firstname && profile?.lastname) ? 
                 `${profile.firstname} ${profile.lastname}'s profile` : 

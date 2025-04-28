@@ -34,7 +34,7 @@ const UserList = ({
         ? user.profilePicture 
         : `${API_URL}${user.profilePicture}`;
     }
-    return getAssetUrl('/assets/images/profile/default-avatar.png');
+    return getAssetUrl('../../../public/assets/images/profile/default-avatar.png');
   };
 
   if (loading) {
