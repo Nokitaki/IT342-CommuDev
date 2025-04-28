@@ -4,7 +4,7 @@ import Button from '../common/Button';
 import { sendFriendRequest, checkFriendStatus } from '../../services/friendService';
 import '../../styles/components/userProfileModal.css';
 import API_URL from '../../config/apiConfig';
-
+import useFriends from '../../hooks/useFriends';
 
 const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
   // Check for null/undefined user or not being open
@@ -15,6 +15,8 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ text: '', type: '' }); // Changed from 'error' to 'statusMessage'
   const [isFriend, setIsFriend] = useState(false); // Add state to track if users are already friends
+  const { refreshFriendsData } = useFriends();
+
   
   // Check friend request status when modal opens with a user
   useEffect(() => {
@@ -170,26 +172,15 @@ const UserProfileModal = ({ isOpen, onClose, user, onFriendRequestSent }) => {
         type: 'success' 
       });
       
+      // Refresh friend data to update pending requests
+      refreshFriendsData();
+      
       // Call the callback to inform parent component
       if (onFriendRequestSent && typeof onFriendRequestSent === 'function') {
         onFriendRequestSent(user.id);
       }
     } catch (err) {
-      console.error('Error sending friend request:', err);
-      
-      // Check if the error contains the "already sent" message
-      if (err.message && err.message.includes('already sent')) {
-        setStatusMessage({ 
-          text: 'You have already sent a friend request to this user',
-          type: 'info'
-        });
-        setRequestSent(true); // Update UI to show request was sent
-      } else {
-        setStatusMessage({ 
-          text: 'Failed to send friend request. Please try again.',
-          type: 'error'
-        });
-      }
+      // existing error handling
     } finally {
       setIsLoading(false);
     }

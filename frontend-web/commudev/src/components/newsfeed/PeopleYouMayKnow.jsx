@@ -8,6 +8,7 @@ import { checkFriendStatus } from '../../services/friendService';
 import UserProfileModal from '../modals/UserProfileModal';
 import '../../styles/components/peopleYouMayKnow.css';
 import API_URL from '../../config/apiConfig';
+import useFriends from '../../hooks/useFriends';
 
 const PeopleYouMayKnow = () => {
   const [users, setUsers] = useState([]);
@@ -17,7 +18,7 @@ const PeopleYouMayKnow = () => {
   const [detailedUser, setDetailedUser] = useState(null);
   const [requestSent, setRequestSent] = useState({});
   const [statusMessage, setStatusMessage] = useState({ userId: null, text: '', type: '' });
-  
+  const { refreshFriendsData } = useFriends();
 
 
   useEffect(() => {
@@ -176,6 +177,9 @@ const PeopleYouMayKnow = () => {
         ...prev,
         [userId]: true
       }));
+      
+      // Refresh friend requests data
+      refreshFriendsData();
       
       // Show success message
       setStatusMessage({

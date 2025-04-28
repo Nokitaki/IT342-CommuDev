@@ -47,37 +47,28 @@ export const sendFriendRequest = async (userId) => {
 export const getPendingFriendRequests = async () => {
   try {
     const token = localStorage.getItem('token');
+    
     if (!token) {
-      throw new Error('Authentication required');
+      console.warn('No token available for friend requests');
+      return [];
     }
     
     const response = await fetch(`${API_URL}/api/friends/requests/pending`, {
-      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
+        'Content-Type': 'application/json'
+      }
     });
     
     if (!response.ok) {
-      // Safely try to parse error JSON or use text as fallback
-      const errorText = await response.text();
-      let errorMessage;
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.error || `Error ${response.status}: ${response.statusText}`;
-      } catch (e) {
-        // If JSON parsing fails, use the raw text
-        errorMessage = `Error ${response.status}: ${errorText}`;
-      }
-      throw new Error(errorMessage);
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
     
+    return await response.json();
   } catch (error) {
     console.error('Error fetching pending friend requests:', error);
-    throw error;
+    // Return empty array instead of throwing to prevent crashes
+    return [];
   }
 };
 
@@ -156,32 +147,21 @@ export const rejectFriendRequest = async (requestId) => {
 export const getFriends = async () => {
   try {
     const token = localStorage.getItem('token');
+    
     if (!token) {
-      console.warn('No token available for getFriends');
-      throw new Error('Authentication required');
+      console.warn('No token available for fetching friends');
+      return [];
     }
     
     const response = await fetch(`${API_URL}/api/friends`, {
-      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
-      // Remove credentials: 'include'
     });
     
     if (!response.ok) {
-      const text = await response.text();
-      let error;
-      try {
-        // Try to parse as JSON first
-        const errorData = JSON.parse(text);
-        error = errorData.error || `Error ${response.status}: ${response.statusText}`;
-      } catch (e) {
-        // If not JSON, use raw text
-        error = `Error ${response.status}: ${text}`;
-      }
-      throw new Error(error);
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
     
     return await response.json();

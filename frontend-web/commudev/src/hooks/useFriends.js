@@ -128,15 +128,17 @@ const useFriends = () => {
         setLoading(false);
       }
     };
-
+  
     loadAllData();
-  }, [fetchFriends, fetchPendingRequests, lastRefresh]);
+    // Remove refreshFriendsData from dependency array
+  }, [fetchFriends, fetchPendingRequests]);
 
   return {
     friends,
     pendingRequests,
     loading,
     error,
+    fetchPendingRequests,
     handleAcceptRequest,
     handleRejectRequest,
     handleRemoveFriend,

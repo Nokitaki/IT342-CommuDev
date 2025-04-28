@@ -1,5 +1,5 @@
 // src/components/friends/FriendsSidebar.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { Link } from 'react-router-dom';
 import Avatar from '../common/Avatar';
 import useFriends from '../../hooks/useFriends';
@@ -16,9 +16,16 @@ const FriendsSidebar = () => {
     loading, 
     error,
     handleAcceptRequest,
-    handleRejectRequest
+    handleRejectRequest,
+    refreshFriendsData
   } = useFriends();
   
+
+  useEffect(() => {
+    // This will only run once when the component mounts
+    refreshFriendsData();
+  }, []);
+
 
   
   // Get user's full name
@@ -42,6 +49,10 @@ const FriendsSidebar = () => {
     return '../../../public/assets/images/profile/default-avatar.png';
   };
   
+
+
+ 
+
   return (
     <div className="friends-section">
       <div className="friends-header">
