@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/comments")
-@CrossOrigin(origins = "https://it-342-commu-dev.vercel.app")
+@CrossOrigin(origins = {"http://localhost:5173", "https://it-342-commu-dev.vercel.app"})
 public class CommentController {
 
     @Autowired
