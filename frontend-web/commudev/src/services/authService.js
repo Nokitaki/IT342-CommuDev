@@ -187,6 +187,12 @@ export const resendVerificationCode = async (email) => {
 export const getUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
+    console.log('Getting profile with token:', token ? token.substring(0, 10) + '...' : 'No token');
+    
+    if (!token) {
+      throw new Error('Authentication token missing');
+    }
+    
     const response = await fetch(`${USERS_URL}/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -196,7 +202,11 @@ export const getUserProfile = async () => {
       credentials: 'include'
     });
     
+    console.log('Profile response status:', response.status);
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Profile error response:', errorText);
       throw new Error('Failed to fetch profile');
     }
     
@@ -219,7 +229,15 @@ export const updateUserProfile = async (profileData) => {
       throw new Error('You must be logged in to update your profile');
     }
 
-    console.log('Sending profile update with data:', profileData);
+    // Simplify the data we're sending
+    // Only include basic text fields first to test
+    const simplifiedData = {
+      firstname: profileData.firstname || undefined,
+      lastname: profileData.lastname || undefined,
+      biography: profileData.biography || undefined
+    };
+
+    console.log('Sending simplified profile update:', simplifiedData);
 
     const response = await fetch(`${API_URL}/users/me`, {
       method: 'PUT',
@@ -227,22 +245,13 @@ export const updateUserProfile = async (profileData) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(profileData)
+      body: JSON.stringify(simplifiedData)
     });
 
-    // Handle non-200 responses
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Profile update error response:', errorText);
-      
-      // Try to parse as JSON if possible
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
-      } catch (e) {
-        // If can't parse as JSON, use the text
-        throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}`);
-      }
+      throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}`);
     }
 
     return await response.json();

@@ -170,6 +170,36 @@ const ProfilePage = () => {
     }
   };
 
+
+
+
+  const testProfileUpdate = async () => {
+    try {
+      // Try with minimal data
+      const simpleData = {
+        firstname: "Test Update"
+      };
+      
+      console.log('Testing profile update with simple data:', simpleData);
+      const success = await updateProfile(simpleData);
+      
+      if (success) {
+        console.log('Simple profile update succeeded!');
+      } else {
+        console.log('Simple profile update failed');
+      }
+    } catch (err) {
+      console.error('Test update error:', err);
+    }
+  };
+  
+  // Add a test button somewhere in your component
+  <Button variant="secondary" onClick={testProfileUpdate}>
+    Test Update
+  </Button>
+
+  
+
   // Social media icons component
   const SocialMediaLinks = () => (
     <div className="social-media-links">

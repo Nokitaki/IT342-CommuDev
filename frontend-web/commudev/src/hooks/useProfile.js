@@ -151,30 +151,32 @@ const useProfile = () => {
 
 
   const updateProfile = async (profileData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
-      
-      // Clean empty values to prevent overwrites with empty strings
-      const cleanProfileData = Object.fromEntries(
-        Object.entries(profileData).filter(([_, value]) => 
-          value !== '' && value !== null && value !== undefined
-        )
-      );
-      
-      
-      const updatedProfile = await updateUserProfile(cleanProfileData);
-      setProfile(updatedProfile);
-      setSuccess('Profile updated successfully!');
-      return true;
-    } catch (err) {
-      setError(err.message || 'Failed to update profile');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    // Clean empty values to prevent overwrites with empty strings
+    const cleanProfileData = Object.fromEntries(
+      Object.entries(profileData).filter(([_, value]) => 
+        value !== '' && value !== null && value !== undefined
+      )
+    );
+    
+    console.log('Cleaned profile data for update:', cleanProfileData);
+    
+    const updatedProfile = await updateUserProfile(cleanProfileData);
+    setProfile(updatedProfile);
+    setSuccess('Profile updated successfully!');
+    return true;
+  } catch (err) {
+    console.error('Failed to update profile:', err);
+    setError(err.message || 'Failed to update profile');
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
 
   return {
     profile,

@@ -41,8 +41,23 @@ const ProfileEditor = ({ profile, onSave, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Log data before submission
+    console.log('Form data before submission:', formData);
+    
+    // Handle data type conversions
+    const processedData = {
+      ...formData,
+      // Convert age to number if it exists, otherwise undefined
+      age: formData.age ? parseInt(formData.age, 10) : undefined
+    };
+    
+    console.log('Processed data for submission:', processedData);
+    onSave(processedData);
   };
+
+
+  
 
   // Country options - matches your Country enum
   const countryOptions = [
