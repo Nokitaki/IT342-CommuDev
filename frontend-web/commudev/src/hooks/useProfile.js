@@ -22,37 +22,33 @@ const useProfile = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getUserProfile();
-      setProfile(data);
-    } catch (err) {
-      setError(err.message || 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async (profileData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
       
-      // Clean empty values to prevent overwrites with empty strings
-      const cleanProfileData = Object.fromEntries(
-        Object.entries(profileData).filter(([_, value]) => 
-          value !== '' && value !== null && value !== undefined
-        )
-      );
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No authentication token found. Please log in.');
+        setLoading(false);
+        return;
+      }
       
-      const updatedProfile = await updateUserProfile(cleanProfileData);
-      setProfile(updatedProfile);
-      setSuccess('Profile updated successfully!');
-      return true;
+      try {
+        const data = await getUserProfile();
+        setProfile(data);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError('Failed to load profile. Please try logging in again.');
+        // Redirect to login if we get an auth error
+        if (err.message === 'Failed to fetch profile') {
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
+        }
+      } finally {
+        setLoading(false);
+      }
     } catch (err) {
-      setError(err.message || 'Failed to update profile');
-      return false;
-    } finally {
+      console.error('Error in fetchProfile:', err);
       setLoading(false);
+      setError('An unexpected error occurred');
     }
   };
 
@@ -152,6 +148,33 @@ const useProfile = () => {
       return () => clearTimeout(timer);
     }
   }, [success, error]);
+
+
+  const updateProfile = async (profileData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      // Clean empty values to prevent overwrites with empty strings
+      const cleanProfileData = Object.fromEntries(
+        Object.entries(profileData).filter(([_, value]) => 
+          value !== '' && value !== null && value !== undefined
+        )
+      );
+      
+      
+      const updatedProfile = await updateUserProfile(cleanProfileData);
+      setProfile(updatedProfile);
+      setSuccess('Profile updated successfully!');
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to update profile');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     profile,

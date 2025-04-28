@@ -62,11 +62,19 @@ export const getPendingFriendRequests = async () => {
     });
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      // Safely try to parse error JSON or use text as fallback
+      const errorText = await response.text();
+      let errorMessage;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error || `Error ${response.status}: ${response.statusText}`;
+      } catch (e) {
+        // If JSON parsing fails, use the raw text
+        errorMessage = `Error ${response.status}: ${errorText}`;
+      }
+      throw new Error(errorMessage);
     }
     
-    return await response.json();
   } catch (error) {
     console.error('Error fetching pending friend requests:', error);
     throw error;
@@ -149,6 +157,7 @@ export const getFriends = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
+      console.warn('No token available for getFriends');
       throw new Error('Authentication required');
     }
     
@@ -156,21 +165,30 @@ export const getFriends = async () => {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
+        'Content-Type': 'application/json'
+      }
+      // Remove credentials: 'include'
     });
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      const text = await response.text();
+      let error;
+      try {
+        // Try to parse as JSON first
+        const errorData = JSON.parse(text);
+        error = errorData.error || `Error ${response.status}: ${response.statusText}`;
+      } catch (e) {
+        // If not JSON, use raw text
+        error = `Error ${response.status}: ${text}`;
+      }
+      throw new Error(error);
     }
     
     return await response.json();
   } catch (error) {
     console.error('Error fetching friends:', error);
-    throw error;
+    // Return empty array instead of throwing
+    return [];
   }
 };
 
@@ -286,3 +304,5 @@ export const checkFriendStatus = async (userId) => {
     throw error;
   }
 };
+
+

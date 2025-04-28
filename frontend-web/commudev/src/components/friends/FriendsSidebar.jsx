@@ -62,7 +62,7 @@ const FriendsSidebar = () => {
           onClick={() => setActiveTab('requests')}
         >
           Requests
-          {pendingRequests.length > 0 && (
+          {pendingRequests && pendingRequests.length > 0 && (
             <span className="request-count">{pendingRequests.length}</span>
           )}
         </button>
@@ -99,7 +99,7 @@ const FriendsSidebar = () => {
           )
         ) : (
           // Friend requests list
-          pendingRequests.length > 0 ? (
+          pendingRequests && pendingRequests.length > 0 ? (
             pendingRequests.map(request => (
               <div key={request.id} className="friend-request-item">
                 <div className="friend-request-user">

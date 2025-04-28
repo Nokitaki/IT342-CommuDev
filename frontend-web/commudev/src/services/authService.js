@@ -24,50 +24,19 @@ const USERS_URL = `${API_URL}/users`;
  * @param {string} password Password
  * @returns {Promise} Promise with user data and token
  */
+// Update the login function in authService.js
 export const login = async (email, password) => {
   try {
-    // First try to authenticate with Firebase
-    let firebaseUser;
-try {
-  // Extract email from the response or use the provided email
-  const userEmail = email.includes('@') ? email : `${email}@example.com`;
-  console.log("Signing in to Firebase with:", userEmail);
-  
-  // Modified: The returned value is directly the user from firebaseAuth.js
-  firebaseUser = await signInWithEmail(userEmail, password);
-  
-  if (firebaseUser && firebaseUser.uid) {
-    console.log("Firebase sign-in successful:", firebaseUser.uid);
-  } else {
-    console.log("Firebase sign-in completed but no user returned");
-  }
-} catch (firebaseError) {
-  console.error("Firebase auth error:", firebaseError);
-      // If the user doesn't exist in Firebase, create them
-      if (firebaseError.code === 'auth/user-not-found') {
-        console.log("Creating new Firebase user");
-        try {
-          const emailToUse = email.includes('@') ? email : `${email}@example.com`;
-          const userCredential = await registerWithEmailAndPassword(emailToUse, password);
-          console.log("Firebase user creation successful:", userCredential.user.uid);
-          firebaseUser = userCredential;
-        } catch (createError) {
-          console.error("Failed to create Firebase user:", createError);
-        }
-      }
-      // Continue with backend auth even if Firebase auth fails
-    }
-
-    // Now authenticate with your backend
-    const response = await fetch(`${AUTH_URL}/login`, {
+    // First clear any existing tokens
+    localStorage.removeItem('token');
+    
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
-      credentials: 'include',
       body: JSON.stringify({
-        email, // This can be either email or username in your backend
+        email, 
         password
       })
     });
@@ -79,16 +48,18 @@ try {
 
     const data = await response.json();
     
+    // Debug the response
+    console.log('Login response:', data);
+    
     // Store JWT token
-    localStorage.setItem('token', data.token);
-    
-    // Store expiration time
-    const expirationTime = new Date().getTime() + data.expiresIn * 1000;
-    localStorage.setItem('expirationTime', expirationTime);
-    
-    // Extract and store user ID if available
-    if (data.userId) {
-      localStorage.setItem('userId', data.userId.toString());
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      console.log('Token stored in localStorage');
+      
+      // Set expiration time (default to 1 hour if not provided)
+      const expiresIn = data.expiresIn || 3600;
+      const expirationTime = new Date().getTime() + expiresIn * 1000;
+      localStorage.setItem('expirationTime', expirationTime);
     }
     
     return data;
@@ -248,6 +219,8 @@ export const updateUserProfile = async (profileData) => {
       throw new Error('You must be logged in to update your profile');
     }
 
+    console.log('Sending profile update with data:', profileData);
+
     const response = await fetch(`${API_URL}/users/me`, {
       method: 'PUT',
       headers: {
@@ -257,9 +230,19 @@ export const updateUserProfile = async (profileData) => {
       body: JSON.stringify(profileData)
     });
 
+    // Handle non-200 responses
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to update profile');
+      const errorText = await response.text();
+      console.error('Profile update error response:', errorText);
+      
+      // Try to parse as JSON if possible
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+      } catch (e) {
+        // If can't parse as JSON, use the text
+        throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}`);
+      }
     }
 
     return await response.json();
@@ -428,4 +411,52 @@ export const logout = () => {
   signOutUser().catch(error => {
     console.error("Firebase signout error:", error);
   });
+};
+
+
+
+export const checkAuthStatus = () => {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
+  
+  console.log('Auth Status Check:');
+  console.log('- Token exists:', !!token);
+  console.log('- User ID:', userId);
+  
+  // Check if token is expired
+  if (token) {
+    try {
+      // Simple validation by checking for token format (not decoding)
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.log('- Token format is invalid');
+        return false;
+      }
+      console.log('- Token format looks valid');
+      return true;
+    } catch (e) {
+      console.log('- Token validation error:', e);
+      return false;
+    }
+  }
+  return false;
+};
+
+
+// Add to authService.js
+export const checkAuth = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.warn('No token found in localStorage');
+    return false;
+  }
+  
+  if (isTokenExpired()) {
+    console.warn('Token is expired');
+    clearAuthData();
+    return false;
+  }
+  
+  console.log('Auth check passed - token exists and not expired');
+  return true;
 };

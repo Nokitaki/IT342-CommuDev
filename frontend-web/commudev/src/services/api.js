@@ -19,6 +19,56 @@ export const getApiConfig = () => {
     
     return config;
   };
+
+
+  export const safeFetch = async (url, options = {}) => {
+    try {
+      const response = await fetch(url, {
+        mode: 'cors',
+        ...options,
+        headers: {
+          ...options.headers
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error(`Network error accessing ${url}:`, error);
+      // Return a fake response object that can be handled consistently
+      return {
+        ok: false,
+        status: 0,
+        statusText: 'Network Error',
+        json: async () => ({ error: 'Network Error - Server unreachable' })
+      };
+    }
+  };
+
+
+
+
+
+  export const testBackendConnection = async () => {
+    try {
+      const response = await fetch(`${API_URL}/public/health`, { 
+        method: 'GET',
+        mode: 'cors'
+      });
+      
+      if (response.ok) {
+        console.log('✅ Backend connection successful');
+        return true;
+      } else {
+        console.error('❌ Backend returned error:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Cannot connect to backend:', error);
+      return false;
+    }
+  };
+
+
+
   
   /**
    * Handle API errors consistently
@@ -51,3 +101,26 @@ export const getApiConfig = () => {
       originalError: error
     };
   };
+
+
+  export const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? {
+      'Authorization': `Bearer ${token}`
+    } : {};
+  };
+
+
+  // Add to api.js or create it if needed
+export const clearAuthData = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('expirationTime');
+  console.log('Auth data cleared');
+};
+
+export const isTokenExpired = () => {
+  const expTime = localStorage.getItem('expirationTime');
+  if (!expTime) return true;
+  return new Date().getTime() > parseInt(expTime, 10);
+};

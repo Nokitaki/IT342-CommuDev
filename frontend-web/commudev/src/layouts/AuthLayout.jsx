@@ -1,11 +1,13 @@
 // src/layouts/AuthLayout.jsx
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import logo from '../../public/assets/images/logo.png';
 import {
   Card,
   Box,
   Typography,
 } from '@mui/material';
+
 <img src="/assets/images/logo.png" alt="Logo" />
 
 

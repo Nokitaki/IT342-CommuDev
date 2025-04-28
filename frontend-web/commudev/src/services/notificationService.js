@@ -14,6 +14,8 @@ export const getAllNotifications = async () => {
       throw new Error('Authentication required');
     }
     
+    console.log('Using token for request:', token.substring(0, 15) + '...');
+    
     const response = await fetch(NOTIFICATIONS_URL, {
       method: 'GET',
       headers: {
@@ -75,17 +77,19 @@ export const getUnreadCount = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      return 0; // Return 0 if not authenticated
+        return 0; // Return 0 if not authenticated
     }
     
+    // Add mode: 'cors' explicitly and modify headers
     const response = await fetch(`${NOTIFICATIONS_URL}/unread/count`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        credentials: 'include'
     });
     
     if (!response.ok) {

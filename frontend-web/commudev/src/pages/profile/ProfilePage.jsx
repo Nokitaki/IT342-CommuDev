@@ -21,6 +21,8 @@ import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based 
 import API_URL from '../../config/apiConfig';
 
 
+import { getProfilePicture, getCoverPhoto } from '../../utils/assetUtils';
+
 const ProfilePage = () => {
   // Authentication and user data
   const { handleLogout } = useAuth(); 

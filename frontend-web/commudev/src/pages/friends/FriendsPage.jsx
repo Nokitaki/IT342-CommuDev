@@ -18,8 +18,8 @@ const FriendsPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   
   const { 
-    friends, 
-    pendingRequests, 
+    friends = [], 
+    pendingRequests = [], 
     loading, 
     error, 
     handleAcceptRequest, 
@@ -308,22 +308,22 @@ const FriendsPage = () => {
         </div>
         
         <div className="friends-tabs">
-          <button 
-            className={`friends-tab ${activeTab === 'friends' ? 'active' : ''}`}
-            onClick={() => setActiveTab('friends')}
-          >
-            Friends
-            <span className="tab-count">{friends.length}</span>
-          </button>
-          <button 
-            className={`friends-tab ${activeTab === 'requests' ? 'active' : ''}`}
-            onClick={() => setActiveTab('requests')}
-          >
-            Friend Requests
-            {pendingRequests.length > 0 && (
-              <span className="tab-count">{pendingRequests.length}</span>
-            )}
-          </button>
+        <button 
+  className={`friends-tab ${activeTab === 'friends' ? 'active' : ''}`}
+  onClick={() => setActiveTab('friends')}
+>
+  Friends
+  <span className="tab-count">{friends?.length || 0}</span>
+</button>
+<button 
+  className={`friends-tab ${activeTab === 'requests' ? 'active' : ''}`}
+  onClick={() => setActiveTab('requests')}
+>
+  Friend Requests
+  {pendingRequests?.length > 0 && (
+    <span className="tab-count">{pendingRequests.length}</span>
+  )}
+</button>
         </div>
         
         <div className="friends-content">
