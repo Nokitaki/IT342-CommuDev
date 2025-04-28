@@ -29,7 +29,7 @@ import API_URL from '../../config/apiConfig';
 
 
 // Import your logo
-import LogoIcon from "../../assets/images/logo.png";
+import LogoIcon from "../../../public/assets/images/logo.png";
 
 const MessagesPage = () => {
   const { 
