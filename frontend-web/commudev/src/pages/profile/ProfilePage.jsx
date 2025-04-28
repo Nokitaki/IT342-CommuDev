@@ -12,11 +12,15 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
+import { getProfilePicture, getCoverPhoto } from '../../utils/assetUtils';
+
+
 // In your ProfilePage.jsx
 import CoverPhotoUpload from './CoverPhotoUpload'; // Adjust path based on your structure
 import ProfilePictureUpload from './ProfilePictureUpload'; // Adjust path based on your structure
 import API_URL from '../../config/apiConfig';
 
+import ASSETS_URL from '../config/assetConfig';
 
 const ProfilePage = () => {
   // Authentication and user data
@@ -550,12 +554,7 @@ const ProfilePage = () => {
         <div className="profile-cover">
           <img  
             key={`cover-image-${imageKey}`}
-            src={profile?.coverPhoto ? 
-              (profile.coverPhoto.startsWith('http') ? 
-                profile.coverPhoto : 
-               `${API_URL}${profile.coverPhoto}`) : 
-              '/src/assets/images/profile/coverphoto.jpg'
-            }
+            src={getCoverPhoto(profile)}
             alt="Cover"
             className="profile-cover-image"
             onError={(e) => {
@@ -580,10 +579,7 @@ const ProfilePage = () => {
             <div className="profile-avatar-wrapper">
               <img 
                 key={`profile-image-${imageKey}`}
-                src={profile?.profilePicture ? 
-                 `${API_URL}${profile.profilePicture}` : 
-                  '/src/assets/images/profile/pp.png'
-                } 
+                src={getProfilePicture(profile) || getAssetUrl('/assets/images/profile/pp.png')}
                 alt={getFullName()} 
                 className="profile-avatar-image"
                 onError={(e) => {

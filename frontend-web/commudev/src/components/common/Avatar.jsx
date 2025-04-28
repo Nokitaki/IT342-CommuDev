@@ -4,7 +4,7 @@ import '../../styles/components/avatar.css';
 
 // Default avatar image
 import defaultAvatar from '../../assets/images/profile/default-avatar.png';
-
+import { getProfilePicture } from '../../utils/assetUtils';
 const Avatar = ({ 
   src, 
   alt = "User Avatar", 
@@ -27,7 +27,7 @@ const Avatar = ({
     >
       <div className={`avatar ${sizeClasses[size] || 'avatar-medium'}`}>
         <img 
-          src={src || defaultAvatar} 
+          src={src || getProfilePicture({})} 
           alt={alt} 
           className="avatar-image" 
           onError={(e) => {

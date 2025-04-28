@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Avatar from './Avatar';
 import '../../styles/components/userList.css';
 import API_URL from '../../config/apiConfig';
-
+import { getAssetUrl } from '../../utils/assetUtils';
 
 const UserList = ({ 
   users, 
@@ -34,7 +34,7 @@ const UserList = ({
         ? user.profilePicture 
         : `${API_URL}${user.profilePicture}`;
     }
-    return '/src/assets/images/profile/default-avatar.png';
+    return getAssetUrl('/assets/images/profile/default-avatar.png');
   };
 
   if (loading) {
