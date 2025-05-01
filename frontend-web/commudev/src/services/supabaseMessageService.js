@@ -54,55 +54,51 @@ export const sendMessage = async (conversationId, message) => {
  * @param {object} user2Data - Second user's data (name, avatar, etc.)
  * @returns {string} - Conversation ID
  */
+/**
+ * Get or create a conversation between two users
+ * @param {string} user1Id - ID of the first user
+ * @param {string} user2Id - ID of the second user
+ * @param {object} user1Data - First user's data (name, avatar, etc.)
+ * @param {object} user2Data - Second user's data (name, avatar, etc.)
+ * @returns {string} - Conversation ID
+ */
 export const getOrCreateConversation = async (user1Id, user2Id, user1Data, user2Data) => {
   try {
-    // Check if a conversation already exists between these users
-    const { data: participants, error: participantsError } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .in('user_id', [user1Id, user2Id])
-      .order('conversation_id');
+    console.log(`Attempting to find or create conversation between users ${user1Id} and ${user2Id}`);
+    
+    // Try to find an existing conversation using our RPC function
+    const { data: existingConversations, error: findError } = await supabase.rpc(
+      'find_conversation_between_users',
+      { user_id_1: user1Id, user_id_2: user2Id }
+    );
 
-    if (participantsError) throw participantsError;
-
-    // Group by conversation_id to find conversations with both users
-    const conversationCounts = {};
-    participants.forEach(p => {
-      conversationCounts[p.conversation_id] = (conversationCounts[p.conversation_id] || 0) + 1;
-    });
-
-    // Find conversation IDs that have both users
-    const sharedConversationIds = Object.entries(conversationCounts)
-      .filter(([_, count]) => count >= 2)
-      .map(([id, _]) => id);
-
-    // If shared conversation exists, return the first one
-    if (sharedConversationIds.length > 0) {
-      return sharedConversationIds[0];
+    if (findError) {
+      console.error('Error finding conversation via RPC:', findError);
+      throw findError;
     }
 
-    // If no conversation exists, create a new one
-    const { data: conversation, error: conversationError } = await supabase
-      .from('conversations')
-      .insert({})
-      .select()
-      .single();
+    // If we found an existing conversation, return it
+    if (existingConversations && existingConversations.length > 0) {
+      console.log('Found existing conversation:', existingConversations[0].conversation_id);
+      return existingConversations[0].conversation_id;
+    }
 
-    if (conversationError) throw conversationError;
+    // No existing conversation, so create a new one using our RPC function
+    console.log('No existing conversation found, creating a new one');
+    const { data: newConversationId, error: createError } = await supabase.rpc(
+      'create_conversation_between_users',
+      { user_id_1: user1Id, user_id_2: user2Id }
+    );
 
-    // Add both users to the conversation
-    const { error: participantsInsertError } = await supabase
-      .from('conversation_participants')
-      .insert([
-        { conversation_id: conversation.id, user_id: user1Id },
-        { conversation_id: conversation.id, user_id: user2Id }
-      ]);
+    if (createError) {
+      console.error('Error creating conversation via RPC:', createError);
+      throw createError;
+    }
 
-    if (participantsInsertError) throw participantsInsertError;
-
-    return conversation.id;
+    console.log('Successfully created new conversation:', newConversationId);
+    return newConversationId;
   } catch (error) {
-    console.error('Error getting/creating conversation:', error);
+    console.error('Error in getOrCreateConversation:', error);
     throw error;
   }
 };

@@ -1,21 +1,21 @@
 // src/hooks/useMessages.js
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  subscribeToMessages, 
-  sendMessage, 
-  getOrCreateConversation, 
-  subscribeToUserConversations,
-  setupPresence,
-  subscribeToUserPresence,
-  markMessagesAsRead,
-  updateTypingStatus,
-  subscribeToTypingStatus,
-  updateMessage,
-  deleteMessage,
-  deleteConversation 
-} from '../services/supabaseMessageService';
+import {
+  getUserConversations,
+  getOrCreateConversation,
+  getConversationMessages,
+  sendMessage,
+  updateMessage as updateMessageApi,
+  deleteMessage as deleteMessageApi,
+  updateTypingStatus as updateTypingApi,
+  getTypingUsers as getTypingUsersApi,
+  deleteConversation as deleteConversationApi
+} from '../services/messageService';
 import useProfile from './useProfile';
 import { getUserById } from '../services/userService';
+
+// How often to refresh data (in milliseconds)
+const REFRESH_INTERVAL = 3000; // 3 seconds
 
 const useMessages = () => {
   const [conversations, setConversations] = useState([]);
@@ -28,132 +28,132 @@ const useMessages = () => {
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
   const { profile } = useProfile();
-  const userId = profile?.id ? profile.id.toString() : localStorage.getItem('userId');
-  
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  
+  // References for interval timers
+  const conversationsIntervalRef = useRef(null);
+  const messagesIntervalRef = useRef(null);
+  const typingIntervalRef = useRef(null);
 
-  // Set up presence when profile is loaded
+  // Load user's conversations initially and on refresh
   useEffect(() => {
-    if (!profile?.id) {
-      console.log("No profile ID available for presence setup");
-      return;
-    }
-    
-    const displayName = `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username;
-    console.log("Setting up presence for user:", profile.id.toString(), displayName);
-    const cleanup = setupPresence(profile.id.toString(), displayName);
-    
-    return () => {
-      if (typeof cleanup === 'function') {
-        cleanup();
-      }
-    };
-  }, [profile]);
-
-  // Subscribe to user's conversations
-  useEffect(() => {
-    if (!userId) {
-      console.log("No user ID available, can't subscribe to conversations");
-      return;
-    }
-    
-    console.log("Subscribing to conversations for user ID:", userId);
-    
-    setLoading(true);
-    const unsubscribe = subscribeToUserConversations(
-      userId, 
-      (newConversations) => {
-        console.log("Received conversations:", newConversations);
-        setConversations(newConversations);
+    const fetchConversations = async () => {
+      try {
+        setLoading(true);
+        const data = await getUserConversations();
+        setConversations(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading conversations:', err);
+        setError('Failed to load conversations. Please try again.');
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
+    // Initial fetch
+    fetchConversations();
+    
+    // Set up regular polling
+    conversationsIntervalRef.current = setInterval(fetchConversations, REFRESH_INTERVAL);
+    
+    // Clean up
     return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
+      if (conversationsIntervalRef.current) {
+        clearInterval(conversationsIntervalRef.current);
       }
     };
-  }, [userId, profile, lastRefresh]);
+  }, [lastRefresh]); // Re-fetch if lastRefresh changes
 
-  // Subscribe to messages when a conversation is selected
+  // Load messages when conversation changes
   useEffect(() => {
     if (!currentConversation) {
       setMessages([]);
       return;
     }
-
-    console.log("Subscribing to messages for conversation:", currentConversation);
-    setLoading(true);
-    const unsubscribe = subscribeToMessages(
-      currentConversation, 
-      (newMessages) => {
-        console.log("Received messages:", newMessages.length);
-        setMessages(newMessages);
+    
+    const fetchMessages = async () => {
+      try {
+        setLoading(true);
+        const data = await getConversationMessages(currentConversation);
+        setMessages(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading messages:', err);
+        setError('Failed to load messages. Please try again.');
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
+    // Initial fetch
+    fetchMessages();
+    
+    // Set up regular polling
+    messagesIntervalRef.current = setInterval(fetchMessages, REFRESH_INTERVAL);
+    
+    // Clean up
     return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
+      if (messagesIntervalRef.current) {
+        clearInterval(messagesIntervalRef.current);
       }
     };
   }, [currentConversation]);
 
-  // Mark messages as read when conversation is opened
+  // Poll for typing status
   useEffect(() => {
-    if (!currentConversation || !userId) {
+    if (!currentConversation) {
+      setTypingUsers([]);
       return;
     }
     
-    console.log("Marking messages as read in conversation:", currentConversation);
-    markMessagesAsRead(currentConversation, userId);
-  }, [currentConversation, messages, userId]);
-
-  // Subscribe to typing status
-  useEffect(() => {
-    if (!currentConversation || !userId) {
-      return;
-    }
-    
-    console.log("Subscribing to typing status for conversation:", currentConversation);
-    const unsubscribe = subscribeToTypingStatus(
-      currentConversation,
-      userId,
-      (typingUserIds) => {
+    const fetchTypingUsers = async () => {
+      try {
+        const typingUserIds = await getTypingUsersApi(currentConversation);
         setTypingUsers(typingUserIds);
-      }
-    );
-    
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
+      } catch (err) {
+        console.error('Error fetching typing status:', err);
+        // Non-critical, so just log the error
       }
     };
-  }, [currentConversation, userId]);
+
+    // Initial fetch
+    fetchTypingUsers();
+    
+    // Set up regular polling (more frequent for typing)
+    typingIntervalRef.current = setInterval(fetchTypingUsers, 1000); // Poll every second
+    
+    // Clean up
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+      }
+    };
+  }, [currentConversation]);
 
   // Handle user typing status
   useEffect(() => {
-    if (!currentConversation || !userId) {
+    if (!currentConversation) {
       return;
     }
     
     if (isTyping) {
-      updateTypingStatus(currentConversation, userId, true);
+      // Send typing status to server
+      updateTypingApi(currentConversation, true);
       
       // Clear any existing timeout
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       
-      // Set timeout to clear typing status after 5 seconds
+      // Set timeout to stop typing status after 5 seconds
       typingTimeoutRef.current = setTimeout(() => {
         setIsTyping(false);
-        updateTypingStatus(currentConversation, userId, false);
+        updateTypingApi(currentConversation, false);
       }, 5000);
     } else {
-      updateTypingStatus(currentConversation, userId, false);
+      // Update server when typing stops
+      updateTypingApi(currentConversation, false);
     }
     
     return () => {
@@ -161,20 +161,19 @@ const useMessages = () => {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [isTyping, currentConversation, userId]);
+  }, [isTyping, currentConversation]);
 
   // Start or open a conversation with a user
   const startConversation = async (otherUserId) => {
-    if (!userId) {
+    if (!profile?.id) {
       console.error("No user ID available, can't start conversation");
       throw new Error('You must be logged in to send messages');
     }
   
     try {
-      console.log(`Starting conversation between ${userId} and ${otherUserId}`);
+      console.log(`Starting conversation with user ${otherUserId}`);
       
-      // Make sure both IDs are strings
-      const myUserId = userId;
+      // Make sure otherUserId is a string
       const otherUserIdStr = otherUserId.toString();
       
       // First check if we already have a conversation with this user
@@ -212,32 +211,8 @@ const useMessages = () => {
         throw new Error('User not found');
       }
       
-      // Create current user data object
-      const currentUserData = {
-        id: myUserId,
-        username: profile?.username || '',
-        firstname: profile?.firstname || '',
-        lastname: profile?.lastname || '',
-        profilePicture: profile?.profilePicture || ''
-      };
-  
-      const otherUser = {
-        id: otherUserIdStr,
-        username: otherUserData.username || '',
-        firstname: otherUserData.firstname || '',
-        lastname: otherUserData.lastname || '',
-        profilePicture: otherUserData.profilePicture || ''
-      };
-  
-      console.log('Creating conversation between:', currentUserData, otherUser);
-    
-      const conversationId = await getOrCreateConversation(
-        myUserId, 
-        otherUserIdStr,
-        currentUserData,
-        otherUser
-      );
-  
+      // Create or get the conversation
+      const conversationId = await getOrCreateConversation(otherUserIdStr);
       console.log('Created/found conversation with ID:', conversationId);
   
       if (!conversationId) {
@@ -250,15 +225,13 @@ const useMessages = () => {
       // Set the selected user for UI
       setSelectedUser({
         id: otherUserIdStr,
-        name: `${otherUser.firstname || ''} ${otherUser.lastname || ''}`.trim() || otherUser.username || 'User',
-        avatar: otherUser.profilePicture,
-        username: otherUser.username
+        name: `${otherUserData.firstname || ''} ${otherUserData.lastname || ''}`.trim() || otherUserData.username || 'User',
+        avatar: otherUserData.profilePicture,
+        username: otherUserData.username
       });
       
       // Force reload of conversations
-      setTimeout(() => {
-        setLastRefresh(Date.now());
-      }, 500);
+      setLastRefresh(Date.now());
       
       return conversationId;
     } catch (err) {
@@ -269,24 +242,24 @@ const useMessages = () => {
 
   // Send a message in the current conversation
   const sendNewMessage = async (text) => {
-    if (!currentConversation || !userId) {
+    if (!currentConversation || !profile?.id) {
       setError('Cannot send message');
       return false;
     }
 
     try {
-      await sendMessage(currentConversation, {
-        senderId: userId,
-        senderName: profile ? 
-          `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username : 
-          'User',
-        senderUsername: profile?.username || '',
-        senderAvatar: profile?.profilePicture || '',
-        text: text
-      });
+      const messageData = {
+        text: text,
+        // Note: Backend will get actual sender ID from authentication
+      };
+      
+      await sendMessage(currentConversation, messageData);
       
       // Clear typing status after sending
       setIsTyping(false);
+      
+      // Refresh messages
+      setLastRefresh(Date.now());
       
       return true;
     } catch (err) {
@@ -298,27 +271,16 @@ const useMessages = () => {
 
   // Edit a message
   const editMessage = async (conversationId, messageId, newText) => {
-    if (!conversationId || !messageId || !userId) {
+    if (!conversationId || !messageId || !profile?.id) {
       setError('Cannot edit message');
       return false;
     }
 
     try {
-      // Find the message to make sure it's our message
-      const message = messages.find(m => m.id === messageId);
+      await updateMessageApi(messageId, newText);
       
-      if (!message) {
-        console.error('Message not found for editing');
-        return false;
-      }
-      
-      if (message.senderId !== userId) {
-        console.error('Cannot edit messages from other users');
-        return false;
-      }
-      
-      // Call Supabase function to update the message
-      await updateMessage(conversationId, messageId, newText);
+      // Refresh messages
+      setLastRefresh(Date.now());
       
       return true;
     } catch (err) {
@@ -330,27 +292,16 @@ const useMessages = () => {
 
   // Delete a message
   const deleteMessageById = async (conversationId, messageId) => {
-    if (!conversationId || !messageId || !userId) {
+    if (!conversationId || !messageId || !profile?.id) {
       setError('Cannot delete message');
       return false;
     }
 
     try {
-      // Find the message to make sure it's our message
-      const message = messages.find(m => m.id === messageId);
+      await deleteMessageApi(messageId);
       
-      if (!message) {
-        console.error('Message not found for deletion');
-        return false;
-      }
-      
-      if (message.senderId !== userId) {
-        console.error('Cannot delete messages from other users');
-        return false;
-      }
-      
-      // Call Supabase function to delete the message
-      await deleteMessage(conversationId, messageId);
+      // Refresh messages and conversations
+      setLastRefresh(Date.now());
       
       return true;
     } catch (err) {
@@ -387,7 +338,7 @@ const useMessages = () => {
     }
   
     try {
-      await deleteConversation(currentConversation);
+      await deleteConversationApi(currentConversation);
       
       // Update the conversations list
       setConversations(prev => 
@@ -397,6 +348,9 @@ const useMessages = () => {
       // Clear current conversation and selected user
       setCurrentConversation(null);
       setSelectedUser(null);
+      
+      // Refresh the conversations list
+      setLastRefresh(Date.now());
       
       return true;
     } catch (err) {
