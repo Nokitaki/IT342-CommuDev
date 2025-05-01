@@ -46,11 +46,5 @@ export const getCurrentUserId = (profile) => {
     return normalizeUserId(localStorageId);
   }
   
-  // Try from Firebase Auth
-  const firebaseUser = auth?.currentUser;
-  if (firebaseUser?.uid) {
-    return firebaseUser.uid;
-  }
-  
   return null;
 };

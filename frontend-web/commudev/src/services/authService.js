@@ -2,17 +2,6 @@
 import API_URL from '../config/apiConfig.js';
 
 
-// src/services/authService.js
-import { 
-  registerWithEmailAndPassword, 
-  signInWithEmail, 
-  signOutUser,
-  getCurrentUser,
-  auth
-} from './firebaseAuth';
-
-
-
 
 
 const AUTH_URL = `${API_URL}/auth`;
@@ -92,25 +81,7 @@ export const register = async (userData) => {
       throw new Error(errorData.error || 'Registration failed');
     }
 
-    const backendResponse = await response.json();
-    
-    // Register with Firebase
-    try {
-      // Make sure we have an email to use with Firebase
-      const emailToUse = userData.email || `${userData.username}@example.com`;
-      
-      const userCredential = await registerWithEmailAndPassword(emailToUse, userData.password);
-      if (userCredential && userCredential.user) {
-        console.log("Firebase registration successful:", userCredential.user.uid);
-      } else {
-        console.log("Firebase registration completed but no user returned");
-      }
-    } catch (firebaseError) {
-      console.error("Firebase registration error:", firebaseError);
-      // Continue anyway since backend registration succeeded
-    }
-
-    return backendResponse;
+    return await response.json();
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
@@ -415,11 +386,6 @@ export const isLoggedIn = () => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('expirationTime');
-  
-  // Also sign out from Firebase
-  signOutUser().catch(error => {
-    console.error("Firebase signout error:", error);
-  });
 };
 
 

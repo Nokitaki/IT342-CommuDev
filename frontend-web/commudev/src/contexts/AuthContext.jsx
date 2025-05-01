@@ -1,6 +1,6 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { subscribeToAuthChanges } from '../services/firebaseAuth';
+import { isLoggedIn, getUserProfile } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -11,12 +11,30 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = subscribeToAuthChanges((user) => {
-      setCurrentUser(user);
+    const checkAuth = async () => {
+      if (isLoggedIn()) {
+        try {
+          const profile = await getUserProfile();
+          setCurrentUser(profile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setCurrentUser(null);
+        }
+      } else {
+        setCurrentUser(null);
+      }
       setLoading(false);
-    });
+    };
 
-    return unsubscribe;
+    checkAuth();
+    
+    // Listen for storage events (like logout from another tab)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const value = {

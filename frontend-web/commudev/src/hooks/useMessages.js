@@ -11,13 +11,11 @@ import {
   updateTypingStatus,
   subscribeToTypingStatus,
   updateMessage,
-  deleteMessage as firebaseDeleteMessage,
-  deleteConversation,
-  debugFirestore
-} from '../services/firebaseService';
+  deleteMessage,
+  deleteConversation 
+} from '../services/supabaseMessageService';
 import useProfile from './useProfile';
 import { getUserById } from '../services/userService';
-import { auth } from '../services/firebaseAuth';
 
 const useMessages = () => {
   const [conversations, setConversations] = useState([]);
@@ -34,32 +32,6 @@ const useMessages = () => {
   
   const [lastRefresh, setLastRefresh] = useState(Date.now());
 
-  // Debug Firebase auth state
-  useEffect(() => {
-    console.log("Current Firebase auth state:", auth.currentUser);
-    
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      console.log("Auth state changed:", user ? `User ${user.uid} logged in` : "User logged out");
-    });
-    
-    return () => unsubscribe();
-  }, []);
-
-  // Debug Firestore conversations
-  useEffect(() => {
-    const checkFirestore = async () => {
-      console.log("Debugging Firestore conversations...");
-      try {
-        const allConversations = await debugFirestore();
-        console.log("All conversations in Firestore:", allConversations);
-      } catch (err) {
-        console.error("Error debugging Firestore:", err);
-      }
-    };
-    
-    checkFirestore();
-  }, []);
-
   // Set up presence when profile is loaded
   useEffect(() => {
     if (!profile?.id) {
@@ -69,7 +41,13 @@ const useMessages = () => {
     
     const displayName = `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username;
     console.log("Setting up presence for user:", profile.id.toString(), displayName);
-    setupPresence(profile.id.toString(), displayName);
+    const cleanup = setupPresence(profile.id.toString(), displayName);
+    
+    return () => {
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
+    };
   }, [profile]);
 
   // Subscribe to user's conversations
@@ -81,15 +59,6 @@ const useMessages = () => {
     
     console.log("Subscribing to conversations for user ID:", userId);
     
-    try {
-      const displayName = profile ? 
-        `${profile.firstname || ''} ${profile.lastname || ''}`.trim() || profile.username : 
-        'User';
-      setupPresence(userId, displayName);
-    } catch (error) {
-      console.error('Error setting up presence:', error);
-    }
-
     setLoading(true);
     const unsubscribe = subscribeToUserConversations(
       userId, 
@@ -100,8 +69,12 @@ const useMessages = () => {
       }
     );
 
-    return () => unsubscribe();
-  }, [userId, profile]);
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, [userId, profile, lastRefresh]);
 
   // Subscribe to messages when a conversation is selected
   useEffect(() => {
@@ -121,7 +94,11 @@ const useMessages = () => {
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, [currentConversation]);
 
   // Mark messages as read when conversation is opened
@@ -149,7 +126,11 @@ const useMessages = () => {
       }
     );
     
-    return () => unsubscribe();
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, [currentConversation, userId]);
 
   // Handle user typing status
@@ -210,7 +191,7 @@ const useMessages = () => {
           id: otherUserIdStr,
           name: existingConversation.otherUserName || 'User',
           avatar: existingConversation.otherUserAvatar,
-          username: existingConversation.userData?.[otherUserIdStr]?.username || ''
+          username: existingConversation.otherUsername || ''
         });
         
         return existingConversation.id;
@@ -231,7 +212,7 @@ const useMessages = () => {
         throw new Error('User not found');
       }
       
-      // Create current user data object for Firebase
+      // Create current user data object
       const currentUserData = {
         id: myUserId,
         username: profile?.username || '',
@@ -336,7 +317,7 @@ const useMessages = () => {
         return false;
       }
       
-      // Call Firebase function to update the message
+      // Call Supabase function to update the message
       await updateMessage(conversationId, messageId, newText);
       
       return true;
@@ -348,7 +329,7 @@ const useMessages = () => {
   };
 
   // Delete a message
-  const deleteMessage = async (conversationId, messageId) => {
+  const deleteMessageById = async (conversationId, messageId) => {
     if (!conversationId || !messageId || !userId) {
       setError('Cannot delete message');
       return false;
@@ -368,8 +349,8 @@ const useMessages = () => {
         return false;
       }
       
-      // Call Firebase function to delete the message
-      await firebaseDeleteMessage(conversationId, messageId);
+      // Call Supabase function to delete the message
+      await deleteMessage(conversationId, messageId);
       
       return true;
     } catch (err) {
@@ -389,18 +370,16 @@ const useMessages = () => {
     setCurrentConversation(conversation.id);
     
     // Set selected user data
-    const userData = conversation.userData?.[conversation.otherUserId] || {};
     setSelectedUser({
       id: conversation.otherUserId,
-      name: userData.name || conversation.otherUserName || 'User',
-      avatar: userData.avatar || conversation.otherUserAvatar,
-      username: userData.username || '',
+      name: conversation.otherUserName || 'User',
+      avatar: conversation.otherUserAvatar,
+      username: conversation.otherUsername || '',
       isOnline: conversation.isOtherUserOnline || false
     });
   }, []);
 
-
-
+  // Delete the current conversation
   const deleteCurrentConversation = async () => {
     if (!currentConversation) {
       setError('No conversation selected');
@@ -440,7 +419,7 @@ const useMessages = () => {
     selectConversation,
     handleTypingInput,
     editMessage,
-    deleteMessage,
+    deleteMessage: deleteMessageById,
     setLastRefresh,
     deleteCurrentConversation
   };
