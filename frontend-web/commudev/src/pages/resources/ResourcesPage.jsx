@@ -1,192 +1,82 @@
 // src/pages/resources/ResourcesPage.jsx
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
 import ResourceHubItem from "../../components/resources/ResourceHubItem";
 import UserCarousel from "../../components/newsfeed/UserCarousel";
 import NotificationItem from "../../components/newsfeed/NotificationItem";
 import Calendar from "../../components/common/Calendar";
-import useAuth from "../../hooks/useAuth";
+import useResourcehub from "../../hooks/useResourcehub";
+import useProfile from "../../hooks/useProfile";
 import "../../styles/pages/resources.css";
 
 const ResourcesPage = () => {
-  const { userData, profilePicture } = useAuth();
+  const { profile } = useProfile();
+  const { 
+    resources, 
+    loading, 
+    error, 
+    success, 
+    fetchResources,
+    fetchResourcesByCategory,
+    createResource,
+    updateResource,
+    deleteResource,
+    likeResource,
+    setError
+  } = useResourcehub();
+  
   const [viewMode, setViewMode] = useState("grid");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
-  // Mock data for resources
-  const [resources, setResources] = useState([
-    {
-      resource_id: 1,
-      resource_title: "Community Guidelines",
-      resource_description: "Essential guidelines and rules for community participation and engagement. Includes best practices and code of conduct.",
-      resource_category: "Document",
-      heart_count: 45,
-      upload_date: new Date("2024-03-20").toISOString(),
-      creator: "John Doe",
-      creator_id: 1,
-      creator_profile_picture: null,
-      fileSize: "2.5 MB",
-      status: "Active"
-    },
-    {
-      resource_id: 2,
-      resource_title: "Municipal Development Plan",
-      resource_description: "Comprehensive development plan for the municipality. This document outlines goals, strategies, and timelines for various community projects.",
-      resource_category: "Document",
-      heart_count: 32,
-      upload_date: new Date("2024-03-15").toISOString(),
-      creator: "Jane Smith",
-      creator_id: 2,
-      creator_profile_picture: null,
-      fileSize: "3.8 MB",
-      status: "Active"
-    },
-    {
-      resource_id: 3,
-      resource_title: "Barangay Meeting Schedule",
-      resource_description: "Schedule of upcoming barangay meetings for the year. Important for community members to stay informed and engaged.",
-      resource_category: "Document",
-      heart_count: 28,
-      upload_date: new Date("2024-03-10").toISOString(),
-      creator: "John Doe",
-      creator_id: 1,
-      creator_profile_picture: null,
-      fileSize: "1.2 MB",
-      status: "Active"
-    },
-    {
-      resource_id: 4,
-      resource_title: "Community Training Videos",
-      resource_description: "Collection of training videos for community development skills. Includes farming techniques, small business management, and more.",
-      resource_category: "Media",
-      heart_count: 67,
-      upload_date: new Date("2024-03-05").toISOString(),
-      creator: "Maria Rodriguez",
-      creator_id: 3,
-      creator_profile_picture: null,
-      fileSize: "150 MB",
-      status: "Active"
-    },
-    {
-      resource_id: 5,
-      resource_title: "Budget Allocation Report",
-      resource_description: "Detailed report on budget allocation for community projects. Ensures transparency in how community funds are distributed.",
-      resource_category: "Document",
-      heart_count: 19,
-      upload_date: new Date("2024-02-28").toISOString(),
-      creator: "David Wilson",
-      creator_id: 4,
-      creator_profile_picture: null,
-      fileSize: "4.7 MB",
-      status: "Active"
-    }
-  ]);
-
+  // Form data for create/edit
   const [formData, setFormData] = useState({
-    resource_title: "",
-    resource_description: "",
-    resource_category: "",
-    heart_count: 0,
-    upload_date: new Date().toISOString()
+    resourceTitle: "",
+    resourceDescription: "",
+    resourceCategory: "",
   });
 
-  // Mock notifications
-  const notifications = [
-    {
-      id: 1,
-      user: "Keanu",
-      image: "prof1.png",
-      message: "downloaded your resource",
-      time: "2 minutes ago",
-    },
-    {
-      id: 2,
-      user: "Ariana",
-      image: "prof2.jpg",
-      message: "shared your document",
-      time: "5 minutes ago",
-    },
-    {
-      id: 3,
-      user: "Harry",
-      image: "prof3.jpg",
-      message: "liked your resource",
-      time: "10 minutes ago",
-    },
-  ];
+  // Handle category change
+  useEffect(() => {
+    if (selectedCategory === "all") {
+      fetchResources();
+    } else {
+      fetchResourcesByCategory(selectedCategory === "documents" ? "Document" : "Media");
+    }
+  }, [selectedCategory, fetchResources, fetchResourcesByCategory]);
 
-  const handleAddResource = (e) => {
+  // Handle adding a new resource
+  const handleAddResource = async (e) => {
     e.preventDefault();
     
-    // Create new resource with mock data
-    const newResource = {
-      resource_id: Math.floor(Math.random() * 1000) + 6,
+    const result = await createResource({
       ...formData,
-      creator: userData ? `${userData.firstname} ${userData.lastname}` : 'Anonymous',
-      creator_id: userData?.id || 1,
-      creator_profile_picture: profilePicture,
-      upload_date: new Date().toISOString(),
-      status: "Active",
-      fileSize: "2.5 MB"
-    };
-    
-    setResources([newResource, ...resources]);
-    setIsModalOpen(false);
-    setFormData({
-      resource_title: "",
-      resource_description: "",
-      resource_category: "",
-      heart_count: 0,
-      upload_date: new Date().toISOString()
+      creator: profile?.username
     });
-  };
-
-  const handleUpdateResource = (resource_id) => {
-    // Update the resource in our mock data
-    setResources(resources.map(resource => 
-      resource.resource_id === resource_id 
-        ? {
-            ...resource,
-            resource_title: formData.resource_title,
-            resource_description: formData.resource_description,
-            resource_category: formData.resource_category,
-            upload_date: new Date().toISOString()
-          } 
-        : resource
-    ));
     
-    setIsModalOpen(false);
-    setEditingResource(null);
-  };
-
-  const handleDeleteResource = (resource_id) => {
-    if (window.confirm("Are you sure you want to delete this resource?")) {
-      setResources(resources.filter(resource => resource.resource_id !== resource_id));
+    if (result) {
+      // Reset form and close modal
+      setFormData({
+        resourceTitle: "",
+        resourceDescription: "",
+        resourceCategory: "",
+      });
+      setIsModalOpen(false);
     }
   };
 
-  const handleLike = (resource_id) => {
-    setResources(resources.map(resource => 
-      resource.resource_id === resource_id 
-        ? { ...resource, heart_count: resource.heart_count + 1 } 
-        : resource
-    ));
-  };
-
-  const filteredResources = resources.filter(resource => {
-    if (selectedCategory === "all") {
-      return true;
-    } else if (selectedCategory === "documents") {
-      return resource.resource_category === "Document";
-    } else if (selectedCategory === "media") {
-      return resource.resource_category === "Media";
+  // Handle updating an existing resource
+  const handleUpdateResource = async (resourceId) => {
+    const result = await updateResource(resourceId, formData);
+    
+    if (result) {
+      // Reset form and close modal
+      setIsModalOpen(false);
+      setEditingResource(null);
     }
-    return true;
-  });
+  };
 
   // Right sidebar content for the layout
   const RightSidebar = (
@@ -199,12 +89,16 @@ const ResourcesPage = () => {
       <div className="notifications-section">
         <h2>Notifications</h2>
         <div className="notifications-list">
-          {notifications.map((notification) => (
-            <NotificationItem 
-              key={notification.id}
-              notification={notification} 
-            />
-          ))}
+          {notifications.length > 0 ? (
+            notifications.map((notification) => (
+              <NotificationItem 
+                key={notification.id}
+                notification={notification} 
+              />
+            ))
+          ) : (
+            <div className="no-notifications">No new notifications</div>
+          )}
         </div>
       </div>
     </div>
@@ -223,11 +117,9 @@ const ResourcesPage = () => {
               onClick={() => {
                 setEditingResource(null);
                 setFormData({
-                  resource_title: "",
-                  resource_description: "",
-                  resource_category: "",
-                  heart_count: 0,
-                  upload_date: new Date().toISOString(),
+                  resourceTitle: "",
+                  resourceDescription: "",
+                  resourceCategory: "",
                 });
                 setIsModalOpen(true);
               }}
@@ -268,39 +160,72 @@ const ResourcesPage = () => {
             </button>
           </div>
 
+          {error && (
+            <div className="error-message">
+              {error}
+              <button onClick={fetchResources} className="retry-button">
+                Retry
+              </button>
+            </div>
+          )}
+          
+          {success && (
+            <div className="success-message">
+              {success}
+            </div>
+          )}
+
           <div className="resources-grid">
-            {isLoading ? (
-              <div className="loading-message">Loading resources...</div>
-            ) : filteredResources.length > 0 ? (
-              filteredResources.map((resource) => (
+            {loading ? (
+              <div className="loading-message">
+                <div className="loading-spinner"></div>
+                <p>Loading resources...</p>
+              </div>
+            ) : resources.length > 0 ? (
+              resources.map((resource) => (
                 <ResourceHubItem
-                  key={resource.resource_id}
+                  key={resource.resourceId}
                   resource={resource}
-                  onDelete={handleDeleteResource}
-                  onLike={handleLike}
+                  onDelete={deleteResource}
+                  onLike={likeResource}
                   onEdit={() => {
                     setEditingResource(resource);
                     setFormData({
-                      resource_title: resource.resource_title,
-                      resource_description: resource.resource_description,
-                      resource_category: resource.resource_category,
-                      heart_count: resource.heart_count,
-                      upload_date: resource.upload_date
+                      resourceTitle: resource.resourceTitle,
+                      resourceDescription: resource.resourceDescription,
+                      resourceCategory: resource.resourceCategory,
                     });
                     setIsModalOpen(true);
                   }}
                 />
               ))
             ) : (
-              <div className="no-resources-message">No resources found</div>
+              <div className="no-resources-message">
+                <div className="empty-state-icon">📚</div>
+                <p>No resources found</p>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    setFormData({
+                      resourceTitle: "",
+                      resourceDescription: "",
+                      resourceCategory: "",
+                    });
+                    setIsModalOpen(true);
+                  }}
+                >
+                  Create your first resource
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Create/Edit Resource Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h3 className="modal-title">
               {editingResource ? "Edit Resource" : "Create New Resource"}
             </h3>
@@ -308,26 +233,26 @@ const ResourcesPage = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 editingResource
-                  ? handleUpdateResource(editingResource.resource_id)
+                  ? handleUpdateResource(editingResource.resourceId)
                   : handleAddResource(e);
               }}
             >
               <input
                 type="text"
-                value={formData.resource_title}
+                value={formData.resourceTitle}
                 onChange={(e) =>
-                  setFormData({ ...formData, resource_title: e.target.value })
+                  setFormData({ ...formData, resourceTitle: e.target.value })
                 }
                 placeholder="Resource Title"
                 className="modal-input"
                 required
               />
               <textarea
-                value={formData.resource_description}
+                value={formData.resourceDescription}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    resource_description: e.target.value,
+                    resourceDescription: e.target.value,
                   })
                 }
                 placeholder="Resource Description"
@@ -335,11 +260,11 @@ const ResourcesPage = () => {
                 required
               />
               <select
-                value={formData.resource_category}
+                value={formData.resourceCategory}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    resource_category: e.target.value,
+                    resourceCategory: e.target.value,
                   })
                 }
                 className="modal-select"
@@ -351,10 +276,7 @@ const ResourcesPage = () => {
                 <option value="Other">Other</option>
               </select>
               <div className="modal-actions">
-                <button type="submit" className="btn btn-primary">
-                  {editingResource ? "Save Changes" : "Create Resource"}
-                </button>
-                <button
+                <button 
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
@@ -363,6 +285,9 @@ const ResourcesPage = () => {
                   className="btn btn-secondary"
                 >
                   Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {editingResource ? "Save Changes" : "Create Resource"}
                 </button>
               </div>
             </form>

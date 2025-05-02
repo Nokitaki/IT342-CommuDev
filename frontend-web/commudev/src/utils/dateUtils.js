@@ -6,14 +6,14 @@
  * @returns {string} Formatted relative time string
  */
 export const formatTimeAgo = (dateString) => {
-  if (!dateString) return "Just now"; // Changed from "No date available" to "Just now"
+  if (!dateString) return "Just now";
 
   try {
-    const postDate = new Date(dateString);
-    if (isNaN(postDate.getTime())) return "Just now"; // Changed from "Invalid date" to "Just now"
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Just now";
     
     const now = new Date();
-    const diffInMilliseconds = now.getTime() - postDate.getTime();
+    const diffInMilliseconds = now.getTime() - date.getTime();
     
     // If date is in the future (possible with system clock differences)
     if (diffInMilliseconds < 0) return "Just now";
@@ -46,8 +46,23 @@ export const formatTimeAgo = (dateString) => {
       return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
     }
     
-    // For older dates, return the formatted date
-    return postDate.toLocaleDateString();
+    // Convert to weeks
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} ${diffInWeeks === 1 ? 'week' : 'weeks'} ago`;
+    }
+    
+    // Convert to months
+    const diffInMonths = Math.floor(diffInDays / 30);
+    
+    if (diffInMonths < 12) {
+      return `${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
+    }
+    
+    // Convert to years
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} ${diffInYears === 1 ? 'year' : 'years'} ago`;
   } catch (error) {
     console.error("Error formatting date:", error);
     return "Just now"; // Fallback in case of errors
@@ -55,37 +70,102 @@ export const formatTimeAgo = (dateString) => {
 };
 
 /**
- * Format a date object to YYYY-MM-DD string
- * @param {Date} date - Date object
+ * Format a date to a human-readable string
+ * @param {string|Date} date - Date to format
+ * @param {Object} options - Formatting options
  * @returns {string} Formatted date string
  */
-export const formatDateToISOString = (date) => {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-    return '';
-  }
+export const formatDate = (date, options = {}) => {
+  const defaultOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  };
   
-  return date.toISOString().split('T')[0];
+  const mergedOptions = { ...defaultOptions, ...options };
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return 'Invalid date';
+    }
+    
+    return dateObj.toLocaleDateString(undefined, mergedOptions);
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return 'Invalid date';
+  }
 };
 
 /**
- * Get the month name from a date
- * @param {Date|string} date - Date object or date string
+ * Get month name from month index
+ * @param {number} monthIndex - Month index (0-11)
  * @returns {string} Month name
  */
-export const getMonthName = (date) => {
+export const getMonthName = (monthIndex) => {
   const months = [
-    'January', 'February', 'March', 'April',
-    'May', 'June', 'July', 'August',
-    'September', 'October', 'November', 'December'
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
   
-  if (typeof date === 'string') {
-    date = new Date(date);
-  }
+  return months[monthIndex] || '';
+};
+
+/**
+ * Check if a date is today
+ * @param {Date|string} date - Date to check
+ * @returns {boolean} True if date is today
+ */
+export const isToday = (date) => {
+  const today = new Date();
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   
-  if (date instanceof Date && !isNaN(date.getTime())) {
-    return months[date.getMonth()];
-  }
+  return (
+    dateObj.getDate() === today.getDate() &&
+    dateObj.getMonth() === today.getMonth() &&
+    dateObj.getFullYear() === today.getFullYear()
+  );
+};
+
+/**
+ * Check if a date is yesterday
+ * @param {Date|string} date - Date to check
+ * @returns {boolean} True if date is yesterday
+ */
+export const isYesterday = (date) => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
   
-  return '';
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  return (
+    dateObj.getDate() === yesterday.getDate() &&
+    dateObj.getMonth() === yesterday.getMonth() &&
+    dateObj.getFullYear() === yesterday.getFullYear()
+  );
+};
+
+/**
+ * Format a date as "Today", "Yesterday" or a date string
+ * @param {Date|string} date - Date to format
+ * @returns {string} Formatted date string
+ */
+export const formatRelativeDate = (date) => {
+  if (isToday(date)) {
+    return 'Today';
+  } else if (isYesterday(date)) {
+    return 'Yesterday';
+  } else {
+    return formatDate(date);
+  }
+};
+
+export default {
+  formatTimeAgo,
+  formatDate,
+  getMonthName,
+  isToday,
+  isYesterday,
+  formatRelativeDate
 };
