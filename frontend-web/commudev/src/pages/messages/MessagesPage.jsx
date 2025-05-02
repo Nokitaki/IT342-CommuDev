@@ -641,10 +641,13 @@ const MessagesPage = () => {
               <>
                {msg.text && msg.text.startsWith('[Image:') ? (
   <div className="message-bubble image-message">
-    <img 
-      src={`http://localhost:8080${msg.text.substring(8, msg.text.length - 1)}`} 
-      alt="Shared image" 
-      className="message-image"
+   <img 
+  src={msg.text.includes('supabase.co') 
+    ? msg.text.substring(8, msg.text.length - 1) // Direct Supabase URL
+    : `http://localhost:8080${msg.text.substring(8, msg.text.length - 1)}` // Local URL
+  } 
+  alt="Shared image" 
+  className="message-image"
       onClick={() => window.open(`http://localhost:8080${msg.text.substring(8, msg.text.length - 1)}`, '_blank')}
       onError={(e) => {
         console.error("Image failed to load:", e.target.src);

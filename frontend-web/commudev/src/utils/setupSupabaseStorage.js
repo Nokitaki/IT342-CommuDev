@@ -1,11 +1,37 @@
 // src/utils/setupSupabaseStorage.js
-import { supabase, canUseSupabaseStorage } from '../services/supabase';
+import { supabase } from '../services/supabase';
+
+/**
+ * Check if Supabase storage is usable and accessible
+ * @returns {Promise<boolean>} - Whether Supabase storage can be used
+ */
+export const canUseSupabaseStorage = async () => {
+  try {
+    console.log('Checking Supabase storage availability...');
+    
+    // Check if we can access the bucket using the correct .from() method
+    const { data, error } = await supabase.storage
+      .from('chat-images')  // Use .from() instead of direct bucket URL
+      .list('', { limit: 1 });
+      
+    if (error) {
+      console.log('Cannot use Supabase storage:', error.message);
+      return false;
+    }
+    
+    // If we get here, Supabase storage is working
+    console.log('Supabase storage is available and configured.');
+    return true;
+  } catch (error) {
+    console.error('Error checking Supabase storage:', error);
+    return false;
+  }
+};
+
 /**
  * Set up Supabase storage for the chat application
  * This script creates the necessary bucket and sets up permissions
  */
-
-
 export const setupSupabaseStorage = async () => {
   try {
     console.log('Checking Supabase storage availability...');
@@ -62,4 +88,3 @@ export const initializeStorage = () => {
       console.error('❌ Failed to initialize Supabase storage:', error);
     });
 };
-
