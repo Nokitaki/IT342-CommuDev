@@ -428,10 +428,17 @@ public class MessageService {
      * Delete a conversation and all its messages
      */
     @Transactional
-    public void deleteConversation(Long conversationId) {
-        // The cascade will handle deleting messages and participants
-        conversationRepository.deleteById(conversationId);
-    }
+public void deleteConversation(Long conversationId) {
+    Conversation conversation = conversationRepository.findById(conversationId)
+            .orElseThrow(() -> new RuntimeException("Conversation not found: " + conversationId));
+    
+    // First, delete all typing statuses associated with the conversation
+    List<TypingStatus> typingStatuses = typingStatusRepository.findByConversationId(conversationId);
+    typingStatusRepository.deleteAll(typingStatuses);
+    
+    // Then, delete the conversation (cascade will handle messages and participants)
+    conversationRepository.delete(conversation);
+}
 
     /**
      * Check if a user has access to a conversation

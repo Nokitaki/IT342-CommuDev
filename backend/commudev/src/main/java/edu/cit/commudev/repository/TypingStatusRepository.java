@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface TypingStatusRepository extends JpaRepository<TypingStatus, Long> {
     List<TypingStatus> findByConversationIdAndTypingTrue(Long conversationId);
-    
+    List<TypingStatus> findByConversationId(Long conversationId);
     Optional<TypingStatus> findByConversationIdAndUserId(Long conversationId, Long userId);
 }
