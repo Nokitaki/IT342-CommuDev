@@ -27,11 +27,13 @@ import "../../styles/pages/messages.css";
 import EmojiPicker from 'emoji-picker-react';
 import API_URL from '../../config/apiConfig';
 
-
 // Import your logo
 import LogoIcon from "../../../public/assets/images/logo.png";
 
 const MessagesPage = () => {
+
+
+
   const { 
     conversations, 
     messages, 
@@ -42,6 +44,7 @@ const MessagesPage = () => {
     error, 
     selectConversation, 
     sendNewMessage, 
+    sendImageMessage,
     handleTypingInput,
     startConversation,
     setLastRefresh,
@@ -70,23 +73,30 @@ const MessagesPage = () => {
   const [cursorPosition, setCursorPosition] = useState(0);
   const messageInputRef = useRef(null);
 
-
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
   
+  const [imageError, setImageError] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
+  const previousMessagesLengthRef = useRef(0);
 
-
-
+    // Debug function for messages
+    useEffect(() => {
+  // Only log if the length has changed to avoid excessive logging
+  if (messages.length !== previousMessagesLengthRef.current) {
+    previousMessagesLengthRef.current = messages.length;
+    
+    // Optional: Log only when debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Messages updated:", messages.length);
+    }
+  }
+}, [messages]);
   const toggleOptionsMenu = (e) => {
     e.stopPropagation();
     setShowOptionsMenu(prev => !prev);
   };
-
-
-
-
-  
 
   const handleImageSelect = () => {
     fileInputRef.current.click();
@@ -95,21 +105,41 @@ const MessagesPage = () => {
   // Add this function to process the selected file
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
+    if (!file) return;
+    
+    // Reset any previous errors
+    setImageError(null);
+    
+    if (file.type.startsWith('image/')) {
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError('Image size exceeds 5MB limit. Please select a smaller image.');
+        return;
+      }
+      
       setSelectedImage(file);
       // Create a preview message with the image
-      const imageUrl = URL.createObjectURL(file);
-      setNewMessage(`[Image: ${file.name}]`);
-      // You can optionally show a preview here
+      setNewMessage(`Sending image: ${file.name}`);
     } else {
-      alert('Please select a valid image file');
+      setImageError('Please select a valid image file (JPEG, PNG, GIF, etc.)');
     }
   };
 
-
-
-
-
+  const UploadProgressBar = ({ progress }) => {
+    if (progress === 0) return null;
+    
+    return (
+      <div className="upload-progress-container">
+        <div className="upload-progress-bar">
+          <div 
+            className="upload-progress-fill" 
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <span className="upload-progress-text">{progress}%</span>
+      </div>
+    );
+  };
   
   // Handle delete conversation
   const handleDeleteConversation = async () => {
@@ -125,7 +155,6 @@ const MessagesPage = () => {
       console.error("Error deleting conversation:", error);
     }
   };
-
 
   const handleEmojiSelect = (emojiData) => {
     const emoji = emojiData.emoji;
@@ -145,7 +174,6 @@ const MessagesPage = () => {
     }
   };
 
-
   const handleInputClick = (e) => {
     setCursorPosition(e.target.selectionStart);
   };
@@ -156,9 +184,6 @@ const MessagesPage = () => {
     handleTypingInput();
   };
 
-
-
-
   // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -167,7 +192,6 @@ const MessagesPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
   
   // Auto focus when editing a message
   useEffect(() => {
@@ -176,20 +200,18 @@ const MessagesPage = () => {
     }
   }, [editingMessageId]);
 
-
   // Add this useEffect to close the emoji picker when clicking outside
-useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (showEmojiPicker && !e.target.closest('.emoji-picker-container') && 
-        !e.target.closest('.input-action[title="Emoji"]')) {
-      setShowEmojiPicker(false);
-    }
-  };
-
-  
-  document.addEventListener('mousedown', handleClickOutside);
-  return () => document.removeEventListener('mousedown', handleClickOutside);
-}, [showEmojiPicker]);
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showEmojiPicker && !e.target.closest('.emoji-picker-container') && 
+          !e.target.closest('.input-action[title="Emoji"]')) {
+        setShowEmojiPicker(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showEmojiPicker]);
   
   // Filter conversations based on search term
   const filteredConversations = conversations.filter(conv => {
@@ -201,21 +223,60 @@ useEffect(() => {
     return otherUserName.includes(searchLower);
   });
 
-  // Handle send message
+  // Modified handle send message with debugging
   const handleSendMessage = async () => {
     if ((newMessage.trim() === "" && !selectedImage) || !currentConversation || isSending) return;
     
     setIsSending(true);
+    setImageError(null); // Clear any previous errors
     
     try {
       let success;
       
       if (selectedImage) {
-        // For now, we'll send a placeholder message with the image name
-        // In a real implementation, you would upload the image to storage
-        // and send a message with the image URL
-        success = await sendNewMessage(`Sent an image: ${selectedImage.name}`);
-        setSelectedImage(null);
+        // Debug the image before upload
+        console.log("Sending image:", {
+          name: selectedImage.name,
+          size: selectedImage.size,
+          type: selectedImage.type
+        });
+        
+        // Show upload in progress
+        setUploadProgress(10);
+        
+        // Update progress periodically to show activity
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev < 90) return prev + 10;
+            return prev;
+          });
+        }, 500);
+        
+        try {
+          // Send image using our updated function
+          success = await sendImageMessage(selectedImage);
+          console.log("Image send result:", success);
+          
+          // Complete the progress bar
+          setUploadProgress(100);
+          
+          // Reset after success
+          if (success) {
+            setSelectedImage(null);
+            setUploadProgress(0);
+          } else {
+            setImageError('Failed to send image. Please try again.');
+          }
+          
+          // Clear the progress interval
+          clearInterval(progressInterval);
+        } catch (error) {
+          // Clear the progress interval on error
+          clearInterval(progressInterval);
+          setUploadProgress(0);
+          console.error('Image upload error details:', error);
+          throw error;
+        }
       } else {
         success = await sendNewMessage(newMessage);
       }
@@ -225,6 +286,7 @@ useEffect(() => {
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      setImageError(error.message || 'Failed to send message. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -475,290 +537,309 @@ useEffect(() => {
               </div>
             </div>
             <div className="chat-actions">
-                  <button className="action-btn" title="Voice call">
-                    <Phone size={20} />
-                  </button>
-                  <button className="action-btn" title="Video call">
-                    <Video size={20} />
-                  </button>
+              <button className="action-btn" title="Voice call">
+                <Phone size={20} />
+              </button>
+              <button className="action-btn" title="Video call">
+                <Video size={20} />
+              </button>
+              <button 
+                className="action-btn" 
+                title="More options"
+                onClick={toggleOptionsMenu}
+              >
+                <MoreVertical size={20} />
+              </button>
+              
+              {/* Options menu dropdown */}
+              {showOptionsMenu && (
+                <div className="options-menu">
                   <button 
-                    className="action-btn" 
-                    title="More options"
-                    onClick={toggleOptionsMenu}
+                    className="option-item delete"
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                      setShowOptionsMenu(false);
+                    }}
                   >
-                    <MoreVertical size={20} />
+                    <Trash2 size={16} />
+                    Delete Conversation
                   </button>
-                  
-                  {/* Options menu dropdown */}
-                  {showOptionsMenu && (
-                    <div className="options-menu">
-                      <button 
-                        className="option-item delete"
-                        onClick={() => {
-                          setShowDeleteConfirm(true);
-                          setShowOptionsMenu(false);
-                        }}
-                      >
-                        <Trash2 size={16} />
-                        Delete Conversation
-                      </button>
-                      {/* Add other options here as needed */}
-                    </div>
-                  )}
-                  
-                  {/* Delete confirmation dialog */}
-                  {showDeleteConfirm && (
-                    <div className="delete-conversation-confirmation">
-                      <p>Delete this entire conversation?</p>
-                      <div className="delete-actions">
-                        <button 
-                          className="delete-confirm"
-                          onClick={handleDeleteConversation}
-                        >
-                          Delete
-                        </button>
-                        <button 
-                          className="delete-cancel"
-                          onClick={() => setShowDeleteConfirm(false)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  {/* Add other options here as needed */}
                 </div>
-
-            
+              )}
+              
+              {/* Delete confirmation dialog */}
+              {showDeleteConfirm && (
+                <div className="delete-conversation-confirmation">
+                  <p>Delete this entire conversation?</p>
+                  <div className="delete-actions">
+                    <button 
+                      className="delete-confirm"
+                      onClick={handleDeleteConversation}
+                    >
+                      Delete
+                    </button>
+                    <button 
+                      className="delete-cancel"
+                      onClick={() => setShowDeleteConfirm(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="messages-area">
-            {messages.length === 0 ? (
-              <div className="no-messages">
-                <div className="no-messages-icon">
-                  <img src={LogoIcon} alt="Start conversation" className="no-chat-icon" />
+  {messages.length === 0 ? (
+    <div className="no-messages">
+      <div className="no-messages-icon">
+        <img src={LogoIcon} alt="Start conversation" className="no-chat-icon" />
+      </div>
+      <p>No messages yet. Start the conversation!</p>
+    </div>
+  ) : (
+    messages.map((msg) => {
+      // Add a useEffect outside this map function to log messages only when they change
+      
+      return (
+        <div
+          key={msg.id}
+          className={`message ${msg.senderId === profile?.id?.toString() ? "message-sent" : "message-received"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="message-content">
+            {editingMessageId === msg.id ? (
+              <div className="message-edit-container">
+                <input
+                  type="text"
+                  className="message-edit-input"
+                  value={editedMessageText}
+                  onChange={(e) => setEditedMessageText(e.target.value)}
+                  ref={editInputRef}
+                  onKeyPress={(e) => e.key === "Enter" && handleSaveEdit()}
+                />
+                <div className="message-edit-actions">
+                  <button 
+                    className="message-edit-btn save" 
+                    onClick={handleSaveEdit}
+                    title="Save changes"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button 
+                    className="message-edit-btn cancel" 
+                    onClick={handleCancelEdit}
+                    title="Cancel editing"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-                <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`message ${msg.senderId === profile?.id?.toString() ? "message-sent" : "message-received"}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="message-content">
-                    {editingMessageId === msg.id ? (
-                      <div className="message-edit-container">
-                        <input
-                          type="text"
-                          className="message-edit-input"
-                          value={editedMessageText}
-                          onChange={(e) => setEditedMessageText(e.target.value)}
-                          ref={editInputRef}
-                          onKeyPress={(e) => e.key === "Enter" && handleSaveEdit()}
-                        />
-                        <div className="message-edit-actions">
+              <>
+               {msg.text && msg.text.startsWith('[Image:') ? (
+  <div className="message-bubble image-message">
+    <img 
+      src={`http://localhost:8080${msg.text.substring(8, msg.text.length - 1)}`} 
+      alt="Shared image" 
+      className="message-image"
+      onClick={() => window.open(`http://localhost:8080${msg.text.substring(8, msg.text.length - 1)}`, '_blank')}
+      onError={(e) => {
+        console.error("Image failed to load:", e.target.src);
+        e.target.onerror = null;
+        // Show a more appealing placeholder on error
+        e.target.src = '../../../public/assets/images/profile/default-avatar.png';
+        e.target.alt = 'Image not available';
+      }}
+    />
+  </div>
+) : (
+  <div className="message-bubble">
+    {msg.text}
+  </div>
+)}
+                <div className="message-meta">
+                  <span className="message-time">
+                    {formatMessageTime(msg.timestamp)}
+                    {msg.senderId === profile?.id?.toString() && (
+                      <span className="message-status">
+                        {msg.read ? " ✓✓" : " ✓"}
+                      </span>
+                    )}
+                  </span>
+                  
+                  {/* Only show message actions for sent messages */}
+                  {msg.senderId === profile?.id?.toString() && (
+                    <div className="message-actions">
+                      <button 
+                        className="message-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMessageActions(msg.id);
+                        }}
+                        title="Message options"
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+                      
+                      {messageActionsId === msg.id && (
+                        <div className="message-actions-menu">
                           <button 
-                            className="message-edit-btn save" 
-                            onClick={handleSaveEdit}
-                            title="Save changes"
+                            className="message-action-item edit"
+                            onClick={() => handleStartEditing(msg)}
                           >
-                            <Check size={16} />
+                            <Edit2 size={14} />
+                            Edit
                           </button>
                           <button 
-                            className="message-edit-btn cancel" 
-                            onClick={handleCancelEdit}
-                            title="Cancel editing"
+                            className="message-action-item delete"
+                            onClick={() => showDeleteConfirmation(msg.id)}
                           >
-                            <X size={16} />
+                            <Trash2 size={14} />
+                            Delete
                           </button>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        {msg.text.startsWith('Sent an image:') ? (
-                      <>
-                        <div className="message-bubble">
-                          <p>Image message</p>
-                          {/* This is a placeholder. In a real implementation, you would display the actual image */}
-                          <img 
-                            src="/src/assets/images/image-placeholder.png" 
-                            alt="Image message" 
-                            className="message-image"
-                          />
+                      )}
+                      
+                      {confirmDeleteId === msg.id && (
+                        <div className="delete-confirmation">
+                          <p>Delete this message?</p>
+                          <div className="delete-actions">
+                            <button 
+                              className="delete-confirm"
+                              onClick={() => handleDeleteMessage(msg.id)}
+                            >
+                              Delete
+                            </button>
+                            <button 
+                              className="delete-cancel"
+                              onClick={hideDeleteConfirmation}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
-                      </>
-                    ) : (
-                      <div className="message-bubble">
-                        {msg.text}
-                      </div>
-                    )}
-                        <div className="message-meta">
-                          <span className="message-time">
-                            {formatMessageTime(msg.timestamp)}
-                            {msg.senderId === profile?.id?.toString() && (
-                              <span className="message-status">
-                                {msg.read ? " ✓✓" : " ✓"}
-                              </span>
-                            )}
-                          </span>
-                          
-                          {/* Only show message actions for sent messages */}
-                          {msg.senderId === profile?.id?.toString() && (
-                            <div className="message-actions">
-                              <button 
-                                className="message-action-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleMessageActions(msg.id);
-                                }}
-                                title="Message options"
-                              >
-                                <MoreVertical size={14} />
-                              </button>
-                              
-                              {messageActionsId === msg.id && (
-                                <div className="message-actions-menu">
-                                  <button 
-                                    className="message-action-item edit"
-                                    onClick={() => handleStartEditing(msg)}
-                                  >
-                                    <Edit2 size={14} />
-                                    Edit
-                                  </button>
-                                  <button 
-                                    className="message-action-item delete"
-                                    onClick={() => showDeleteConfirmation(msg.id)}
-                                  >
-                                    <Trash2 size={14} />
-                                    Delete
-                                  </button>
-                                </div>
-                              )}
-                              
-                              {confirmDeleteId === msg.id && (
-                                <div className="delete-confirmation">
-                                  <p>Delete this message?</p>
-                                  <div className="delete-actions">
-                                    <button 
-                                      className="delete-confirm"
-                                      onClick={() => handleDeleteMessage(msg.id)}
-                                    >
-                                      Delete
-                                    </button>
-                                    <button 
-                                      className="delete-cancel"
-                                      onClick={hideDeleteConfirmation}
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              ))
+              </>
             )}
-            
-            {typingUsers.length > 0 && (
-              <div className="typing-indicator">
-                <div className="typing-animation">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-                <span className="typing-text">typing...</span>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
           </div>
-
-          <div className="input-area">
-  <button 
-    className="input-action" 
-    title="Emoji"
-    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-  >
-    <Smile size={20} />
-  </button>
+        </div>
+      );
+    })
+  )}
   
-  {showEmojiPicker && (
-    <div className="emoji-picker-container">
-      <EmojiPicker onEmojiClick={handleEmojiSelect} />
+  {typingUsers.length > 0 && (
+    <div className="typing-indicator">
+      <div className="typing-animation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <span className="typing-text">typing...</span>
     </div>
   )}
   
-  <button className="input-action" title="Attach file">
-    <Paperclip size={20} />
-  </button>
-
-
-
-
-
-  {selectedImage && (
-  <div className="selected-image-preview">
-    <img 
-      src={URL.createObjectURL(selectedImage)} 
-      alt="Preview" 
-      className="image-preview"
-    />
-    <button 
-      className="remove-image-btn" 
-      onClick={() => {
-        setSelectedImage(null);
-        setNewMessage("");
-      }}
-    >
-      <X size={16} />
-    </button>
-  </div>
-)}
-
-
-  <input
-  type="file"
-  ref={fileInputRef}
-  style={{ display: 'none' }}
-  accept="image/*"
-  onChange={handleFileChange}
-/>
-
-<button className="input-action" title="Send image" onClick={handleImageSelect}>
-  <Image size={20} />
-</button>
-
-
-
-  <input
-    type="text"
-    placeholder="Type a message"
-    className="message-input"
-    value={newMessage}
-    onChange={handleInputChange}
-    onClick={handleInputClick}
-    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-    disabled={isSending}
-    ref={messageInputRef}
-  />
-  <button
-    className={`send-btn ${!newMessage.trim() ? 'disabled' : ''}`}
-    onClick={handleSendMessage}
-    disabled={isSending || !newMessage.trim()}
-    title="Send message"
-  >
-    <Send size={20} />
-  </button>
-  <button className="input-action" title="Voice message">
-    <Mic size={20} />
-  </button>
+  <div ref={messagesEndRef} />
 </div>
+
+          <div className="input-area">
+            <button 
+              className="input-action" 
+              title="Emoji"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            >
+              <Smile size={20} />
+            </button>
+            
+            {showEmojiPicker && (
+              <div className="emoji-picker-container">
+                <EmojiPicker onEmojiClick={handleEmojiSelect} />
+              </div>
+            )}
+            
+            <button className="input-action" title="Attach file">
+              <Paperclip size={20} />
+            </button>
+
+            {selectedImage && (
+              <div className="selected-image-preview">
+                <img 
+                  src={URL.createObjectURL(selectedImage)} 
+                  alt="Preview" 
+                  className="image-preview"
+                />
+                <button 
+                  className="remove-image-btn" 
+                  onClick={() => {
+                    setSelectedImage(null);
+                    setNewMessage("");
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+
+            <button className="input-action" title="Send image" onClick={handleImageSelect}>
+              <Image size={20} />
+            </button>
+
+            <input
+              type="text"
+              placeholder="Type a message"
+              className="message-input"
+              value={newMessage}
+              onChange={handleInputChange}
+              onClick={handleInputClick}
+              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              disabled={isSending}
+              ref={messageInputRef}
+            />
+            <button
+              className={`send-btn ${!newMessage.trim() && !selectedImage ? 'disabled' : ''}`}
+              onClick={handleSendMessage}
+              disabled={isSending || (!newMessage.trim() && !selectedImage)}
+              title="Send message"
+            >
+              <Send size={20} />
+            </button>
+            <button className="input-action" title="Voice message">
+              <Mic size={20} />
+            </button>
+          </div>
+          
+          {/* Add the upload progress bar */}
+          {uploadProgress > 0 && (
+            <div className="upload-progress-overlay">
+              <UploadProgressBar progress={uploadProgress} />
+            </div>
+          )}
+          
+          {/* Add error display */}
+          {imageError && (
+            <div className="image-upload-error">
+              <span className="error-message">{imageError}</span>
+              <button 
+                className="dismiss-error-btn" 
+                onClick={() => setImageError(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="no-chat">
@@ -878,3 +959,4 @@ useEffect(() => {
 };
 
 export default MessagesPage;
+              

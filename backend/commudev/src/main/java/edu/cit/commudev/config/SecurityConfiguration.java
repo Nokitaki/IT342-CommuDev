@@ -62,7 +62,7 @@ public class SecurityConfiguration {
         
         // Add these lines for public image access
         .requestMatchers("/profile-pictures/**", "/cover-photos/**").permitAll()
-        
+        .requestMatchers("/profile-pictures/**", "/cover-photos/**", "/messages/**").permitAll()
         // Public newsfeed endpoints
         .requestMatchers(HttpMethod.GET, "/api/newsfeed/all", "/api/newsfeed/{id}").permitAll()
         .requestMatchers(HttpMethod.GET, "/api/newsfeed/user/**").permitAll()

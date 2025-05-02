@@ -1,7 +1,7 @@
 // src/services/supabaseMessageService.js
 import { supabase } from './supabase';
 import { getUserById } from './userService';
-
+import { supabase } from '../services/supabase';
 /**
  * Send a message in a conversation
  * @param {string} conversationId - ID of the conversation
@@ -675,6 +675,45 @@ export const deleteConversation = async (conversationId) => {
     throw error;
   }
 };
+
+
+/**
+ * Upload an image for a message and return the URL
+ * @param {File} file - The image file to upload
+ * @param {string} conversationId - ID of the conversation
+ * @param {string} senderId - ID of the sender
+ * @returns {Promise<string>} - Promise that resolves with the image URL
+ */
+export const uploadMessageImage = async (file, conversationId, senderId) => {
+  try {
+    // Create a unique file path
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const filePath = `messages/${conversationId}/${senderId}/${fileName}`;
+    
+    // Upload the file to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('chat-images') // You'll need to create this bucket in Supabase
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type
+      });
+    
+    if (error) throw error;
+    
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('chat-images')
+      .getPublicUrl(filePath);
+    
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    console.error('Error uploading message image:', error);
+    throw error;
+  }
+};
+
 
 export default {
   sendMessage,

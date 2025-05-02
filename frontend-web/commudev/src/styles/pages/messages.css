@@ -1232,6 +1232,7 @@ img.profile-avatar{
 }
 
 /* Style for images in messages */
+
 .message-image {
   max-width: 200px;
   max-height: 200px;
@@ -1243,4 +1244,314 @@ img.profile-avatar{
 
 .message-image:hover {
   transform: scale(1.05);
+}
+
+.selected-image-preview {
+  position: absolute;
+  bottom: 80px;
+  left: 16px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+}
+
+.image-preview {
+  max-width: 150px;
+  max-height: 100px;
+  border-radius: 4px;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Add these styles to your messages.css file */
+
+/* Upload progress overlay */
+.upload-progress-overlay {
+  position: absolute;
+  bottom: 80px;
+  left: 16px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  width: 250px;
+}
+
+.upload-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.upload-progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  background: linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.upload-progress-text {
+  font-size: 12px;
+  color: #757575;
+  text-align: right;
+}
+
+/* Image error message */
+.image-upload-error {
+  position: absolute;
+  bottom: 80px;
+  left: 16px;
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 300px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease;
+  z-index: 10;
+}
+
+.error-message {
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.dismiss-error-btn {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.dismiss-error-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced image preview */
+.selected-image-preview {
+  position: absolute;
+  bottom: 80px;
+  left: 16px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}
+
+.image-preview {
+  max-width: 150px;
+  max-height: 100px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Add these styles to your messages.css file */
+
+/* Image message styling */
+.image-message {
+  padding: 4px !important;
+  background-color: transparent !important;
+  overflow: hidden;
+}
+
+.message-image {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: block;
+}
+
+.message-image:hover {
+  transform: scale(1.03);
+}
+
+/* Make sent images look different from received ones */
+.message-sent .image-message {
+  background-color: rgba(76, 175, 80, 0.1) !important;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.message-received .image-message {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid #e4e6eb;
+}
+
+/* Image placeholder for loading images */
+.image-placeholder {
+  width: 200px;
+  height: 150px;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #65676b;
+}
+
+/* Add these styles to your messages.css file */
+
+/* Image message styling */
+.image-message {
+  padding: 8px !important;
+  overflow: hidden;
+  background-color: transparent !important;
+}
+
+/* The actual image element */
+.message-image {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: block;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-image:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Style for sent vs received images */
+.message-sent .image-message {
+  background-color: rgba(76, 175, 80, 0.1) !important;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.message-received .image-message {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid #e4e6eb;
+}
+
+/* Image placeholder for unavailable images */
+.image-placeholder {
+  width: 200px;
+  height: 150px;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #65676b;
+  padding: 16px;
+  text-align: center;
+}
+
+.image-placeholder small {
+  font-size: 10px;
+  margin-top: 8px;
+  color: #8e8e8e;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.image-message {
+  padding: 8px !important;
+  overflow: hidden;
+  background-color: transparent !important;
+}
+
+.image-placeholder {
+  padding: 15px;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.view-image-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.view-image-btn:hover {
+  background-color: #45a049;
+}
+
+.message-image {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.message-image:hover {
+  transform: scale(1.05);
+}
+
+.image-message {
+  padding: 8px !important;
+  overflow: hidden;
+  background-color: transparent !important;
 }

@@ -21,21 +21,21 @@ public class WebConfig implements WebMvcConfigurer {
         // Add this line for cover photos
         registry.addResourceHandler("/cover-photos/**")
                 .addResourceLocations("file:uploads/cover-photos/");
-
+                
+        // Make sure this mapping exists and is correct for message images
+        registry.addResourceHandler("/messages/**")
+                .addResourceLocations("file:uploads/messages/");
     }
 
-
-    
-
     @Override
-public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/**")
-            .allowedOrigins("http://localhost:5173", "http://localhost:3000")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true)
-            .maxAge(3600);
-}
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:5173", "http://localhost:3000")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+    }
 
     @Bean
     public CorsFilter corsFilter() {
@@ -47,6 +47,5 @@ public void addCorsMappings(CorsRegistry registry) {
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
-
     }
 }

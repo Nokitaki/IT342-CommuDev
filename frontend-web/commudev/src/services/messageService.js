@@ -349,6 +349,47 @@ export const deleteConversation = async (conversationId) => {
   }
 };
 
+
+
+/**
+ * Upload an image for a message
+ * @param {File} file - Image file to upload
+ * @param {string} conversationId - ID of the conversation
+ * @returns {Promise<string>} - Promise with the image URL
+ */
+export const uploadMessageImage = async (file, conversationId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('conversationId', conversationId);
+    
+    const response = await fetch(`${API_URL}/api/messages/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+        // Don't set Content-Type here, browser will set it with correct boundary
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.imageUrl;
+  } catch (error) {
+    console.error('Error uploading message image:', error);
+    throw error;
+  }
+};
+
 export default {
   getUserConversations,
   getOrCreateConversation,

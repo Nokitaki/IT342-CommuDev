@@ -13,6 +13,7 @@ import {
 } from '../services/messageService';
 import useProfile from './useProfile';
 import { getUserById } from '../services/userService';
+import { uploadMessageImage } from '../services/imageService';
 
 // How often to refresh data (in milliseconds)
 const REFRESH_INTERVAL = 3000; // 3 seconds
@@ -360,6 +361,58 @@ const useMessages = () => {
     }
   };
 
+
+  // Add this function to useMessages.js
+  const sendImageMessage = async (imageFile) => {
+    if (!currentConversation || !profile?.id) {
+      setError('Cannot send image');
+      return false;
+    }
+  
+    try {
+      setLoading(true);
+      
+      // Log before upload
+      console.log('Attempting to upload image:', {
+        fileName: imageFile.name,
+        size: imageFile.size,
+        conversationId: currentConversation
+      });
+      
+      // Upload the image
+      const imageUrl = await uploadMessageImage(
+        imageFile, 
+        currentConversation, 
+        profile.id.toString()
+      );
+      
+      console.log('Image uploaded, URL received:', imageUrl);
+      
+      // IMPORTANT: Check the format of the message text for images
+      const messageText = `[Image: ${imageUrl}]`;
+      console.log('Formatted message text for image:', messageText);
+      
+      // Send the message
+      const messageData = {
+        text: messageText,
+      };
+      
+      const result = await sendMessage(currentConversation, messageData);
+      console.log('Message with image sent, response:', result);
+      
+      setIsTyping(false);
+      setLastRefresh(Date.now());
+      
+      return true;
+    } catch (err) {
+      console.error('Error sending image message:', err);
+      setError(err.message || 'Failed to send image');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     conversations,
     messages,
@@ -370,6 +423,7 @@ const useMessages = () => {
     error,
     startConversation,
     sendNewMessage,
+    sendImageMessage,
     selectConversation,
     handleTypingInput,
     editMessage,

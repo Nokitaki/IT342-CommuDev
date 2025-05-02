@@ -8,9 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Path;
+import org.springframework.util.StringUtils;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -178,4 +185,62 @@ public class MessageController {
         messageService.deleteConversation(conversationId);
         return ResponseEntity.ok(Map.of("success", true));
     }
+
+
+
+
+   /**
+ * Upload an image for a message
+ */
+@PostMapping("/image-upload")
+public ResponseEntity<?> uploadMessageImage(
+        @AuthenticationPrincipal User user,
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("conversationId") Long conversationId) {
+    
+    try {
+        // Check if user has access to this conversation
+        if (!messageService.userHasAccessToConversation(user.getId(), conversationId)) {
+            return ResponseEntity.status(403).body(Map.of(
+                "error", "You don't have access to this conversation"
+            ));
+        }
+        
+        // Create directory for message uploads if it doesn't exist
+        String uploadDir = "uploads/messages/" + conversationId + "/";
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        
+        // Generate a unique filename
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String newFilename = user.getId() + "_" + System.currentTimeMillis() + fileExtension;
+        
+        // Save the file
+        Path filePath = uploadPath.resolve(newFilename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        System.out.println("File saved to: " + filePath.toAbsolutePath());
+        
+        // Return the URL to the saved file
+        String fileUrl = "/messages/" + conversationId + "/" + newFilename;
+        
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "imageUrl", fileUrl
+        ));
+    } catch (IOException e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Map.of(
+            "error", "Failed to upload image: " + e.getMessage()
+        ));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Map.of(
+            "error", "Unexpected error: " + e.getMessage()
+        ));
+    }
+}
 }
