@@ -1,7 +1,5 @@
 import API_URL from '../config/apiConfig.js';
 
-
-
 /**
  * Fetch all users from the system
  * @returns {Promise<Array>} Promise with array of users
@@ -115,5 +113,52 @@ export const getUserById = async (userId) => {
   } catch (error) {
     console.error('Error fetching user details:', error);
     throw error;
+  }
+};
+
+/**
+ * Get user details by username
+ * @param {string} username - Username to fetch details for
+ * @returns {Promise<Object>} User details
+ */
+export const getUserByUsername = async (username) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/users/profiles/${username}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching user details for ${username}:`, error);
+    
+    // Fallback: Try to find the user in the list of all users
+    try {
+      const allUsers = await getAllUsers();
+      const user = allUsers.find(u => u.username === username);
+      if (user) {
+        return user;
+      }
+    } catch (err) {
+      console.error('Error in fallback fetch:', err);
+    }
+    
+    // Return a default user object to prevent UI errors
+    return {
+      username: username,
+      firstname: '',
+      lastname: '',
+      profilePicture: null
+    };
   }
 };

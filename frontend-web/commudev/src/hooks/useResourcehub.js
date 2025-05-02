@@ -13,6 +13,7 @@ const useResourcehub = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const { profile } = useProfile();
+  const [likedResources, setLikedResources] = useState({});
 
   // Clear messages after 5 seconds
   useEffect(() => {
@@ -140,7 +141,16 @@ const useResourcehub = () => {
       setLoading(true);
       setError(null);
       
-      const updatedResource = await resourcehubService.updateResource(resourceId, resourceData);
+      // Get the current resource to preserve creator field
+      const currentResource = resources.find(r => r.resourceId === resourceId);
+      
+      // Make sure the creator field is preserved in update data
+      const completeData = {
+        ...resourceData,
+        creator: currentResource ? currentResource.creator : (profile?.username || resourceData.creator)
+      };
+      
+      const updatedResource = await resourcehubService.updateResource(resourceId, completeData);
       
       // Update resources list with the updated resource
       setResources(prev => 
@@ -156,7 +166,7 @@ const useResourcehub = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resources, profile]);
 
   // Delete a resource
   const deleteResource = useCallback(async (resourceId) => {
@@ -180,11 +190,19 @@ const useResourcehub = () => {
     }
   }, []);
 
-  // Like a resource
-  const likeResource = useCallback(async (resourceId) => {
+  // Like/unlike a resource
+  const likeResource = useCallback(async (resourceId, isLike = true) => {
     try {
       setError(null);
       
+      // Toggle locally first for fast UI feedback
+      setLikedResources(prev => ({
+        ...prev,
+        [resourceId]: isLike
+      }));
+      
+      // For now our API only supports liking, not unliking
+      // In future this will be upgraded to support unlike
       const updatedResource = await resourcehubService.likeResource(resourceId);
       
       // Update resources list with the liked resource
@@ -196,6 +214,32 @@ const useResourcehub = () => {
     } catch (err) {
       console.error(`Error liking resource ${resourceId}:`, err);
       setError('Failed to like resource. Please try again.');
+      
+      // Revert local state on error
+      setLikedResources(prev => ({
+        ...prev,
+        [resourceId]: !isLike
+      }));
+      
+      return null;
+    }
+  }, []);
+
+  // Download a resource (placeholder for now)
+  const downloadResource = useCallback(async (resourceId) => {
+    try {
+      setError(null);
+      
+      const result = await resourcehubService.downloadResource(resourceId);
+      
+      if (!result.success) {
+        setError(result.message || 'Download functionality not yet implemented.');
+      }
+      
+      return result;
+    } catch (err) {
+      console.error(`Error downloading resource ${resourceId}:`, err);
+      setError('Failed to download resource. Please try again.');
       return null;
     }
   }, []);
@@ -210,6 +254,7 @@ const useResourcehub = () => {
     loading,
     error,
     success,
+    likedResources,
     fetchResources,
     fetchResourcesByCategory,
     fetchMyResources,
@@ -218,6 +263,7 @@ const useResourcehub = () => {
     updateResource,
     deleteResource,
     likeResource,
+    downloadResource,
     setError,
     setSuccess
   };

@@ -23,6 +23,7 @@ const ResourcesPage = () => {
     updateResource,
     deleteResource,
     likeResource,
+    downloadResource,
     setError
   } = useResourcehub();
   
@@ -74,7 +75,13 @@ const ResourcesPage = () => {
 
   // Handle updating an existing resource
   const handleUpdateResource = async (resourceId) => {
-    const result = await updateResource(resourceId, formData);
+    if (!editingResource) return;
+    
+    // Preserve the creator field to avoid "Unknown User" issue
+    const result = await updateResource(resourceId, {
+      ...formData,
+      creator: editingResource.creator
+    });
     
     if (result) {
       // Reset form and close modal
@@ -91,9 +98,31 @@ const ResourcesPage = () => {
   
   // Confirm resource deletion
   const handleConfirmDelete = async () => {
-    if (resourceToDelete) {
-      await deleteResource(resourceToDelete.resourceId);
+    if (resourceToDelete && resourceToDelete.resourceId) {
+      try {
+        await deleteResource(resourceToDelete.resourceId);
+        setDeleteConfirmOpen(false);
+      } catch (error) {
+        console.error("Error in delete confirmation:", error);
+      }
+    } else {
+      console.error("Cannot delete: resourceToDelete or resourceId is undefined", resourceToDelete);
+      setError("Cannot delete resource: ID is missing");
+      setDeleteConfirmOpen(false);
     }
+  };
+  
+  // Handle resource edit button click
+  const handleEditClick = (resource) => {
+    setEditingResource(resource);
+    setFormData({
+      resourceTitle: resource.resourceTitle,
+      resourceDescription: resource.resourceDescription,
+      resourceCategory: resource.resourceCategory,
+      // Make sure to preserve the creator
+      creator: resource.creator
+    });
+    setIsModalOpen(true);
   };
 
   // Right sidebar content for the layout
@@ -105,18 +134,12 @@ const ResourcesPage = () => {
       </div>
 
       <div className="notifications-section">
-        <h2>Notifications</h2>
-        <div className="notifications-list">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <NotificationItem 
-                key={notification.id}
-                notification={notification} 
-              />
-            ))
-          ) : (
-            <div className="no-notifications">No new notifications</div>
-          )}
+        <h2>Resource Activity</h2>
+        <div className="resource-activity">
+          {/* In the future, you can populate this with actual resource activity */}
+          <div className="no-notifications">
+            <p>Resource activity will be shown here</p>
+          </div>
         </div>
       </div>
     </div>
@@ -205,16 +228,8 @@ const ResourcesPage = () => {
                   key={resource.resourceId}
                   resource={resource}
                   onDelete={() => handleDeleteClick(resource)}
-                  onLike={likeResource}
-                  onEdit={() => {
-                    setEditingResource(resource);
-                    setFormData({
-                      resourceTitle: resource.resourceTitle,
-                      resourceDescription: resource.resourceDescription,
-                      resourceCategory: resource.resourceCategory,
-                    });
-                    setIsModalOpen(true);
-                  }}
+                  onLike={(resourceId, isLike) => likeResource(resourceId, isLike)}
+                  onEdit={() => handleEditClick(resource)}
                 />
               ))
             ) : (
@@ -314,16 +329,18 @@ const ResourcesPage = () => {
       )}
       
       {/* Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Delete Resource"
-        message={`Are you sure you want to delete "${resourceToDelete?.resourceTitle}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        type="danger"
-      />
+      {resourceToDelete && (
+        <ConfirmationModal
+          isOpen={deleteConfirmOpen}
+          onClose={() => setDeleteConfirmOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Resource"
+          message={`Are you sure you want to delete "${resourceToDelete.resourceTitle}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+        />
+      )}
     </MainLayout>
   );
 };

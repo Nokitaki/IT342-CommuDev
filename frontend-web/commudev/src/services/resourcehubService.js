@@ -104,7 +104,7 @@ export const updateResource = async (resourceId, resourceData) => {
 /**
  * Delete a resource
  * @param {number} resourceId - ID of the resource to delete
- * @returns {Promise<string>} - Promise that resolves to a success message
+ * @returns {Promise<Object>} - Promise that resolves with response data
  */
 export const deleteResource = async (resourceId) => {
   try {
@@ -135,10 +135,14 @@ export const deleteResource = async (resourceId) => {
 /**
  * Like (heart) a resource
  * @param {number} resourceId - ID of the resource to like
+ * @param {boolean} isLike - True to like, false to unlike (default: true)
  * @returns {Promise<Object>} - Promise that resolves to the updated resource
  */
-export const likeResource = async (resourceId) => {
+export const likeResource = async (resourceId, isLike = true) => {
   try {
+    // If we implement unlike functionality in the future,
+    // we would use a different endpoint or method
+    // For now, we only support liking (hearting)
     const response = await fetch(`${API_URL}/api/resourcehub/heart/${resourceId}`, {
       method: 'PATCH',
       headers: getAuthHeaders()
@@ -153,6 +157,17 @@ export const likeResource = async (resourceId) => {
     console.error(`Error liking resource ${resourceId}:`, error);
     throw error;
   }
+};
+
+/**
+ * Download a resource (placeholder for future implementation)
+ * @param {number} resourceId - ID of the resource to download
+ * @returns {Promise<Object>} - Promise that resolves to download info
+ */
+export const downloadResource = async (resourceId) => {
+  // This will be implemented in the future
+  console.log(`Downloading resource ${resourceId} - functionality not yet implemented`);
+  return { success: false, message: 'Download functionality not yet implemented' };
 };
 
 /**
@@ -228,6 +243,7 @@ export default {
   updateResource,
   deleteResource,
   likeResource,
+  downloadResource,
   searchResources,
   getResourcesByCategory,
   getResourcesByCreator

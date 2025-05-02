@@ -154,13 +154,13 @@
   margin-bottom: 5px;
 }
 
-.download-count {
+.heart-count {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.download-icon, .heart-icon {
+.heart-icon, .download-icon {
   width: 16px;
   height: 16px;
 }
@@ -171,6 +171,11 @@
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px solid #e4e6eb;
+}
+
+.resource-primary-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .resource-button {
@@ -186,22 +191,32 @@
   transition: all 0.2s ease;
 }
 
+.like-button {
+  background-color: #f0f2f5;
+  color: #444;
+}
+
+.like-button:hover {
+  background-color: #e2e5e9;
+}
+
+.like-button.liked {
+  background-color: #e8f5e9;
+  color: #4CAF50;
+}
+
+.like-button.liked:hover {
+  background-color: #c8e6c9;
+}
+
 .download-button {
-  /* Green gradient */
   background: linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%);
   color: white;
 }
 
 .download-button:hover {
-  /* Darker green gradient */
   background: linear-gradient(45deg, #388E3C 30%, #689F38 90%);
   transform: scale(1.05);
-}
-
-.download-button.liked {
-  /* Red gradient for liked state */
-  background: linear-gradient(45deg, #F44336 30%, #FF5252 90%);
-  color: white;
 }
 
 .action-buttons {
@@ -238,8 +253,10 @@
     gap: 10px;
   }
   
+  .resource-primary-actions,
   .action-buttons {
     justify-content: space-between;
+    width: 100%;
   }
   
   .resource-button {

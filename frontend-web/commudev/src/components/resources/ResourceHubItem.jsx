@@ -1,15 +1,37 @@
 // src/components/resources/ResourceHubItem.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Avatar from '../common/Avatar';
 import '../../styles/components/resourceItem.css';
 import API_URL from '../../config/apiConfig';
 import { formatTimeAgo } from '../../utils/dateUtils';
 import { getProfilePicture } from '../../utils/assetUtils';
+import { getUserByUsername } from '../../services/userService';
 
 const ResourceHubItem = ({ resource, onDelete, onLike, onEdit }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(resource.heartCount || 0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [creatorData, setCreatorData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch creator data when component mounts
+  useEffect(() => {
+    const fetchCreatorData = async () => {
+      if (resource.creator) {
+        try {
+          setLoading(true);
+          const userData = await getUserByUsername(resource.creator);
+          setCreatorData(userData);
+        } catch (err) {
+          console.error('Error fetching creator data:', err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchCreatorData();
+  }, [resource.creator]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -25,33 +47,63 @@ const ResourceHubItem = ({ resource, onDelete, onLike, onEdit }) => {
     return formatTimeAgo(dateString);
   };
 
-  // Handle like action
-  const handleLike = async () => {
-    if (!isLiked) {
-      setIsLiked(true);
-      setLikeCount(prev => prev + 1);
-      
-      try {
-        // Call the API to like the resource
-        await onLike(resource.resourceId);
-      } catch (error) {
-        // Revert UI changes if API call fails
-        setIsLiked(false);
-        setLikeCount(prev => prev - 1);
-        console.error('Error liking resource:', error);
-      }
+  // Handle like toggle action (like/unlike)
+  const handleLikeToggle = async () => {
+    // Toggle the liked state
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    
+    // Calculate the new like count correctly
+    // If liking, set to 1, if unliking, set to 0
+    const newLikeCount = newLikedState ? 1 : 0;
+    setLikeCount(newLikeCount);
+    
+    try {
+      // Call the API to like/unlike the resource
+      await onLike(resource.resourceId, newLikedState);
+    } catch (error) {
+      // Revert UI changes if API call fails
+      setIsLiked(!newLikedState);
+      setLikeCount(!newLikedState ? 1 : 0);
+      console.error('Error toggling like:', error);
     }
   };
 
-  // Check if we have creator data with a profile picture
+  // Handle download action (placeholder for now)
+  const handleDownload = () => {
+    // This will be implemented later
+    console.log('Download requested for resource ID:', resource.resourceId);
+    alert('Download functionality will be implemented soon!');
+  };
+
+  // Get creator's profile picture
   const getCreatorProfilePicture = () => {
-    // If the creator has a profile picture field from the API
-    if (resource.creatorProfilePicture) {
-      return `${API_URL}${resource.creatorProfilePicture}`;
+    // If we have fetched creator data with a profile picture
+    if (creatorData?.profilePicture) {
+      return creatorData.profilePicture.startsWith('http')
+        ? creatorData.profilePicture
+        : `${API_URL}${creatorData.profilePicture}`;
     }
     
-    // Otherwise use the default avatar
-    return getProfilePicture({});
+    // Otherwise use the default avatar from assetUtils
+    try {
+      return getProfilePicture({});
+    } catch (e) {
+      // Fallback to a direct path if the utility function fails
+      return '/assets/images/profile/default-avatar.png';
+    }
+  };
+
+  // Get creator's display name
+  const getCreatorName = () => {
+    if (creatorData) {
+      if (creatorData.firstname && creatorData.lastname) {
+        return `${creatorData.firstname} ${creatorData.lastname}`;
+      } else if (creatorData.firstname) {
+        return creatorData.firstname;
+      }
+    }
+    return resource.creator || 'Unknown User';
   };
 
   // Toggle description expansion
@@ -70,7 +122,7 @@ const ResourceHubItem = ({ resource, onDelete, onLike, onEdit }) => {
             size="medium" 
           />
           <div className="author-info">
-            <h3 className="author-name">{resource.creator || 'Unknown User'}</h3>
+            <h3 className="author-name">{getCreatorName()}</h3>
             <div className="resource-meta">
               <span className="upload-date">{getTimeAgo(resource.uploadDate)}</span>
               <div className="resource-badges">
@@ -113,17 +165,31 @@ const ResourceHubItem = ({ resource, onDelete, onLike, onEdit }) => {
       </div>
 
       <footer className="resource-actions">
-        <button 
-          className={`resource-button download-button ${isLiked ? 'liked' : ''}`}
-          onClick={handleLike}
-          title="Like this resource"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" className="heart-icon">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-              fill={isLiked ? "#ffffff" : "currentColor"} />
-          </svg>
-          {isLiked ? 'Liked' : 'Like'}
-        </button>
+        <div className="resource-primary-actions">
+          <button 
+            className={`resource-button like-button ${isLiked ? 'liked' : ''}`}
+            onClick={handleLikeToggle}
+            title={isLiked ? "Unlike this resource" : "Like this resource"}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" className="heart-icon">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
+                fill={isLiked ? "#ffffff" : "currentColor"} />
+            </svg>
+            {isLiked ? 'Liked' : 'Like'}
+          </button>
+          
+          <button 
+            className="resource-button download-button"
+            onClick={handleDownload}
+            title="Download this resource"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" className="download-icon" fill="currentColor">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+            Download
+          </button>
+        </div>
+        
         <div className="action-buttons">
           <button 
             className="resource-button edit-button" 
@@ -136,7 +202,7 @@ const ResourceHubItem = ({ resource, onDelete, onLike, onEdit }) => {
           </button>
           <button 
             className="resource-button delete-button" 
-            onClick={() => onDelete(resource.resourceId)}
+            onClick={() => onDelete(resource)}
           >
             <svg className="delete-icon" viewBox="0 0 24 24" width="16" height="16">
               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
