@@ -5,6 +5,7 @@ import ResourceHubItem from "../../components/resources/ResourceHubItem";
 import UserCarousel from "../../components/newsfeed/UserCarousel";
 import NotificationItem from "../../components/newsfeed/NotificationItem";
 import Calendar from "../../components/common/Calendar";
+import ConfirmationModal from "../../components/modals/ConfirmationModal";
 import useResourcehub from "../../hooks/useResourcehub";
 import useProfile from "../../hooks/useProfile";
 import "../../styles/pages/resources.css";
@@ -30,6 +31,10 @@ const ResourcesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState(null);
 
   // Form data for create/edit
   const [formData, setFormData] = useState({
@@ -75,6 +80,19 @@ const ResourcesPage = () => {
       // Reset form and close modal
       setIsModalOpen(false);
       setEditingResource(null);
+    }
+  };
+  
+  // Open delete confirmation modal
+  const handleDeleteClick = (resource) => {
+    setResourceToDelete(resource);
+    setDeleteConfirmOpen(true);
+  };
+  
+  // Confirm resource deletion
+  const handleConfirmDelete = async () => {
+    if (resourceToDelete) {
+      await deleteResource(resourceToDelete.resourceId);
     }
   };
 
@@ -186,7 +204,7 @@ const ResourcesPage = () => {
                 <ResourceHubItem
                   key={resource.resourceId}
                   resource={resource}
-                  onDelete={deleteResource}
+                  onDelete={() => handleDeleteClick(resource)}
                   onLike={likeResource}
                   onEdit={() => {
                     setEditingResource(resource);
@@ -294,6 +312,18 @@ const ResourcesPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Resource"
+        message={`Are you sure you want to delete "${resourceToDelete?.resourceTitle}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </MainLayout>
   );
 };

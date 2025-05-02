@@ -8,7 +8,10 @@ import { getAuthHeaders } from './api';
  */
 export const getAllResources = async () => {
   try {
-    const response = await fetch(`${API_URL}/api/resourcehub/all`);
+    // Add authentication headers to the request
+    const response = await fetch(`${API_URL}/api/resourcehub/all`, {
+      headers: getAuthHeaders()
+    });
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -28,7 +31,9 @@ export const getAllResources = async () => {
  */
 export const getResourceById = async (resourceId) => {
   try {
-    const response = await fetch(`${API_URL}/api/resourcehub/${resourceId}`);
+    const response = await fetch(`${API_URL}/api/resourcehub/${resourceId}`, {
+      headers: getAuthHeaders()
+    });
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -112,7 +117,15 @@ export const deleteResource = async (resourceId) => {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
     
-    return await response.json();
+    // First check if the response content type is JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      // If it's not JSON, just return the text as a success message
+      const text = await response.text();
+      return { message: text };
+    }
   } catch (error) {
     console.error(`Error deleting resource ${resourceId}:`, error);
     throw error;
@@ -149,7 +162,9 @@ export const likeResource = async (resourceId) => {
  */
 export const searchResources = async (keyword) => {
   try {
-    const response = await fetch(`${API_URL}/api/resourcehub/search?keyword=${encodeURIComponent(keyword)}`);
+    const response = await fetch(`${API_URL}/api/resourcehub/search?keyword=${encodeURIComponent(keyword)}`, {
+      headers: getAuthHeaders()
+    });
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -169,7 +184,9 @@ export const searchResources = async (keyword) => {
  */
 export const getResourcesByCategory = async (category) => {
   try {
-    const response = await fetch(`${API_URL}/api/resourcehub/category/${encodeURIComponent(category)}`);
+    const response = await fetch(`${API_URL}/api/resourcehub/category/${encodeURIComponent(category)}`, {
+      headers: getAuthHeaders()
+    });
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -189,7 +206,9 @@ export const getResourcesByCategory = async (category) => {
  */
 export const getResourcesByCreator = async (creator) => {
   try {
-    const response = await fetch(`${API_URL}/api/resourcehub/creator/${encodeURIComponent(creator)}`);
+    const response = await fetch(`${API_URL}/api/resourcehub/creator/${encodeURIComponent(creator)}`, {
+      headers: getAuthHeaders()
+    });
     
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);

@@ -70,10 +70,15 @@ public class SecurityConfiguration {
         // Public comment endpoints
         .requestMatchers(HttpMethod.GET, "/api/comments/post/**", "/api/comments/count/**").permitAll()
         
+        // Public ResourceHub endpoints
+        .requestMatchers(HttpMethod.GET, "/api/resourcehub/all", "/api/resourcehub/{id}").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/resourcehub/category/**").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/resourcehub/search").permitAll()
+        
         // Add this line for public profile access
         .requestMatchers("/users/profiles/**").permitAll()
         
-        
+        // Public user list
         .requestMatchers("/users/all").permitAll()
 
         
@@ -99,6 +104,13 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PUT, "/api/comments/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
                         .requestMatchers("/api/comments/my-comments").authenticated()
+                        
+                        // Authenticated ResourceHub endpoints (write operations)
+                        .requestMatchers(HttpMethod.POST, "/api/resourcehub/create").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/resourcehub/update/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/resourcehub/delete/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/resourcehub/heart/**").authenticated()
+                        .requestMatchers("/api/resourcehub/creator/**").authenticated()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()

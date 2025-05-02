@@ -160,10 +160,6 @@ const useResourcehub = () => {
 
   // Delete a resource
   const deleteResource = useCallback(async (resourceId) => {
-    if (!window.confirm('Are you sure you want to delete this resource?')) {
-      return false;
-    }
-    
     try {
       setLoading(true);
       setError(null);
