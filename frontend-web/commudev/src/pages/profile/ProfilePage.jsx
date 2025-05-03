@@ -12,7 +12,7 @@ import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import { fetchAllPosts } from '../../services/newsfeedService';
 import '../../styles/pages/profile.css';
-
+import ProfileDropdown from '../../components/profile/ProfileDropdown';
 import { getAssetUrl } from '../../utils/assetUtils';
 
 // In your ProfilePage.jsx
@@ -557,25 +557,15 @@ const ProfilePage = () => {
         </div>
         
         <div className="profile-top-right">
-          <div className="profile-user-menu">
-            <Avatar 
-              src={profile?.profilePicture ? 
-               `${API_URL}${profile.profilePicture}` : 
-                '/src/assets/images/profile/pp.png'
-              } 
-              alt={getFullName()} 
-              size="small" 
-            />
-            <span className="profile-username">
-              {profile ? profile.firstname : "User"}
-            </span>
-            <button className="profile-menu-button" onClick={handleLogout}>
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+  <ProfileDropdown 
+    username={profile ? getFullName() : "User"}
+    profilePicture={
+      profile?.profilePicture ? 
+      `${API_URL}${profile.profilePicture}` : 
+      getAssetUrl('/assets/images/profile/default-avatar.png')
+    }
+  />
+</div>
       </div>
       
       <div className="profile-main">

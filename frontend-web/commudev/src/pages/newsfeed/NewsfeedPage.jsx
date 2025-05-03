@@ -1,17 +1,48 @@
 // src/pages/newsfeed/NewsfeedPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import CreatePostForm from '../../components/newsfeed/CreatePostForm';
-import NewsfeedItem from '../../components/newsfeed/NewsfeedItem';
 import PostFormModal from '../../components/modals/PostFormModal';
 import UserCarousel from '../../components/newsfeed/UserCarousel';
 import useNewsfeed from '../../hooks/useNewsfeed';
 import useProfile from '../../hooks/useProfile';
 import '../../styles/pages/newsfeed.css';
+import API_URL from '../../config/apiConfig';
+import { getAssetUrl } from '../../utils/assetUtils';
+
+// Lazy load the heavy components
+const NewsfeedItem = React.lazy(() => import('../../components/newsfeed/NewsfeedItem'));
+
+// Skeleton component for loading state
+const PostSkeleton = () => (
+  <div className="feed-item skeleton">
+    <div className="skeleton-header">
+      <div className="skeleton-avatar"></div>
+      <div className="skeleton-text-container">
+        <div className="skeleton-text"></div>
+        <div className="skeleton-text short"></div>
+      </div>
+    </div>
+    <div className="skeleton-content">
+      <div className="skeleton-text"></div>
+      <div className="skeleton-text"></div>
+      <div className="skeleton-text short"></div>
+    </div>
+    <div className="skeleton-actions">
+      <div className="skeleton-button"></div>
+      <div className="skeleton-button"></div>
+    </div>
+  </div>
+);
 
 const NewsfeedPage = () => {
+  // UI state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(5);
+  
+  // Weather state
   const [weatherData, setWeatherData] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [weatherError, setWeatherError] = useState(null);
@@ -25,7 +56,6 @@ const NewsfeedPage = () => {
     loading,
     error,
     loadPosts,
-    loadMyPosts,
     handleCreatePost,
     handleUpdatePost,
     handleDeletePost,
@@ -41,12 +71,38 @@ const NewsfeedPage = () => {
     "Iloilo City", "Marikina", "Baguio", "Batangas City", "Butuan"
   ];
 
-  // Fetch weather data
+  // Pagination calculations
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(posts.length / postsPerPage);
+
+  // Optimized weather data fetching with cache
   useEffect(() => {
     const fetchWeatherData = async () => {
       if (!selectedCity) return;
       
       try {
+        // Check if we have cached weather data less than 30 minutes old
+        const cachedWeather = localStorage.getItem('weatherData');
+        const cachedTime = localStorage.getItem('weatherDataTime');
+        const cachedCity = localStorage.getItem('weatherCity');
+        
+        if (cachedWeather && cachedTime && cachedCity === selectedCity) {
+          const parsedData = JSON.parse(cachedWeather);
+          const timestamp = parseInt(cachedTime);
+          const now = Date.now();
+          
+          // If the data is less than 30 minutes old, use it
+          if (now - timestamp < 30 * 60 * 1000) {
+            setWeatherData(parsedData);
+            setWeatherError(null);
+            setWeatherLoading(false);
+            return;
+          }
+        }
+        
+        // Otherwise fetch new data
         setWeatherLoading(true);
         const apiKey = '842a99c8bd5d8f66dd96de258dcbd954';
         
@@ -59,6 +115,12 @@ const NewsfeedPage = () => {
         }
         
         const data = await response.json();
+        
+        // Save to localStorage
+        localStorage.setItem('weatherData', JSON.stringify(data));
+        localStorage.setItem('weatherDataTime', Date.now().toString());
+        localStorage.setItem('weatherCity', selectedCity);
+        
         setWeatherData(data);
         setWeatherError(null);
       } catch (error) {
@@ -77,19 +139,61 @@ const NewsfeedPage = () => {
     return () => clearInterval(intervalId);
   }, [selectedCity]);
 
-  // Modified useEffect to avoid the refresh loop issue
+  // Batch initial data loading
   useEffect(() => {
-    // Explicitly load all posts
-    loadPosts();
+    const fetchInitialData = async () => {
+      try {
+        // Call loadPosts directly since it already has loading state management
+        await loadPosts();
+      } catch (error) {
+        console.error("Error in initial data loading:", error);
+      }
+    };
+
+    fetchInitialData();
     
-    // Set up auto-refresh every 30 seconds
+    // Set up auto-refresh every 30 seconds without full page reload
     const intervalId = setInterval(() => {
-      loadPosts(); // Just call loadPosts directly instead of using refreshTrigger
+      loadPosts();
     }, 30000);
     
     // Clean up interval on unmount
     return () => clearInterval(intervalId);
-  }, [loadPosts]); // Remove refreshTrigger from dependencies
+  }, [loadPosts]);
+
+  // Implement intersection observer for lazy loading comments
+  useEffect(() => {
+    if (posts.length === 0 || loading) return;
+
+    const options = {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // This post is visible, we could lazy load its comments here
+          const postId = entry.target.dataset.postId;
+          console.log(`Post ${postId} is visible`);
+          
+          // Stop observing once it's visible
+          observer.unobserve(entry.target);
+        }
+      });
+    }, options);
+    
+    // Start observing all post elements
+    const postElements = document.querySelectorAll('.feed-item');
+    postElements.forEach(post => {
+      observer.observe(post);
+    });
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, [posts, loading]);
 
   const handleSubmitPost = async (formData) => {
     try {
@@ -98,7 +202,6 @@ const NewsfeedPage = () => {
         // Get the correct ID
         const postId = editingPost.newsfeedId || editingPost.newsfeed_id;
         console.log("Updating post with ID:", postId);
-        console.log("Post data:", formData);
         
         // Make sure to pass the original post object with the ID
         const updatedData = {
@@ -162,7 +265,7 @@ const NewsfeedPage = () => {
   const onLikePost = async (postId) => {
     await handleLikePost(postId);
     
-    // After liking, refresh posts to get updated like count
+    // Refresh posts to get updated like count
     loadPosts();
   };
 
@@ -175,6 +278,32 @@ const NewsfeedPage = () => {
       return profile.username;
     }
     return '';
+  };
+
+  // Pagination controls
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Optimize image loading
+  const optimizeImageUrl = (url, width = 100) => {
+    if (!url) return getAssetUrl('/assets/images/profile/default-avatar.png');
+    
+    if (url.startsWith('http')) {
+      return url;
+    }
+    
+    return `${API_URL}${url}?w=${width}`;
   };
 
   // Right sidebar content with weather
@@ -256,6 +385,7 @@ const NewsfeedPage = () => {
                   src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@4x.png`}
                   alt={weatherData.weather[0].description}
                   className="weather-icon"
+                  loading="lazy"
                 />
               </div>
             </div>
@@ -317,7 +447,18 @@ const NewsfeedPage = () => {
   return (
     <MainLayout rightSidebar={RightSidebar}>
       <div className="newsfeed-content">
-        <UserCarousel />
+        {/* Using Suspense for UserCarousel */}
+        <Suspense fallback={
+          <div className="user-carousel skeleton-carousel">
+            <div className="skeleton-avatar"></div>
+            <div className="skeleton-avatar"></div>
+            <div className="skeleton-avatar"></div>
+            <div className="skeleton-avatar"></div>
+            <div className="skeleton-avatar"></div>
+          </div>
+        }>
+          <UserCarousel />
+        </Suspense>
         
         <div className="feed-container">
           <CreatePostForm 
@@ -328,23 +469,67 @@ const NewsfeedPage = () => {
           />
           
           {loading ? (
-            <div className="loading-indicator">Loading posts...</div>
+            <div className="loading-posts">
+              <PostSkeleton />
+              <PostSkeleton />
+              <PostSkeleton />
+            </div>
           ) : error ? (
             <div className="error-message">{error}</div>
           ) : (
             <div className="newsfeed-items">
               {posts.length > 0 ? (
-                posts.map(post => (
-                  <NewsfeedItem 
-                    key={post.newsfeedId || post.newsfeed_id}
-                    post={post}
-                    onUpdate={(updatedPost) => handleUpdatePost(post.newsfeedId || post.newsfeed_id, updatedPost)}
-                    onDelete={onDeletePost}
-                    onLike={onLikePost}
-                    onEdit={onEditPost}
-                    isCurrentUser={profile?.id === post.user?.id}
-                  />
-                ))
+                <Suspense fallback={
+                  <div className="loading-indicator">
+                    <div className="loading-spinner"></div>
+                    <p>Loading posts...</p>
+                  </div>
+                }>
+                  {currentPosts.map(post => (
+                    <NewsfeedItem 
+                      key={post.newsfeedId || post.newsfeed_id}
+                      post={post}
+                      onUpdate={(updatedPost) => handleUpdatePost(post.newsfeedId || post.newsfeed_id, updatedPost)}
+                      onDelete={() => onDeletePost(post.newsfeedId || post.newsfeed_id)}
+                      onLike={() => onLikePost(post.newsfeedId || post.newsfeed_id)}
+                      onEdit={() => onEditPost(post)}
+                      isCurrentUser={profile?.id === post.user?.id}
+                    />
+                  ))}
+                  
+                  {/* Pagination controls */}
+                  {posts.length > postsPerPage && (
+                    <div className="pagination">
+                      <button 
+                        onClick={prevPage} 
+                        disabled={currentPage === 1}
+                        className="pagination-button"
+                      >
+                        &laquo; Previous
+                      </button>
+                      
+                      <div className="pagination-numbers">
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <button
+                            key={i + 1}
+                            onClick={() => paginate(i + 1)}
+                            className={`pagination-number ${currentPage === i + 1 ? 'active' : ''}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <button 
+                        onClick={nextPage} 
+                        disabled={currentPage === totalPages}
+                        className="pagination-button"
+                      >
+                        Next &raquo;
+                      </button>
+                    </div>
+                  )}
+                </Suspense>
               ) : (
                 <div className="no-posts-message">No posts to display. Be the first to create a post!</div>
               )}

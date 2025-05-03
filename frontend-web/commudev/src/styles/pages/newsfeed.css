@@ -41,3 +41,176 @@
     padding-bottom: 60px; /* To accommodate the fixed bottom nav on mobile */
   }
 }
+
+/* Add these styles to your existing newsfeed.css file */
+
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.skeleton {
+  background: #f6f7f8;
+  background-image: linear-gradient(
+    to right,
+    #f6f7f8 0%,
+    #edeef1 20%,
+    #f6f7f8 40%,
+    #f6f7f8 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+  will-change: background-position;
+  contain: content;
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+  background-color: #e0e0e0;
+}
+
+.skeleton-text-container {
+  flex: 1;
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 200px;
+  background-color: #e0e0e0;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-text.short {
+  width: 100px;
+}
+
+.skeleton-content {
+  margin-bottom: 15px;
+}
+
+.skeleton-content .skeleton-text {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-content .skeleton-text:last-child {
+  width: 70%;
+}
+
+.skeleton-actions {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.skeleton-button {
+  height: 30px;
+  width: 80px;
+  background-color: #e0e0e0;
+  border-radius: 20px;
+}
+
+.skeleton-carousel {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px 0;
+  margin-bottom: 20px;
+}
+
+.skeleton-carousel .skeleton-avatar {
+  width: 50px;
+  height: 50px;
+}
+
+/* Pagination styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  gap: 10px;
+}
+
+.pagination-button {
+  padding: 8px 16px;
+  background-color: #f0f2f5;
+  border: none;
+  border-radius: 4px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #e4e6eb;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination-number {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-number.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.pagination-number:hover:not(.active) {
+  background-color: #e4e6eb;
+}
+
+/* CSS optimizations for performance */
+.weather-animation, 
+.like-button, 
+.post-actions button {
+  will-change: transform;
+}
+
+.feed-item {
+  contain: content;
+}
+
+.loading-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
