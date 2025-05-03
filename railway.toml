@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "mvn package"
+
+[deploy]
+startCommand = "java -Dserver.port=$PORT -jar target/*.jar"
+healthcheckPath = "/"
+healthcheckTimeout = 60
