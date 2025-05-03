@@ -1,0 +1,1 @@
+web: java -jar target/IT342-COMMUDEV.jar
