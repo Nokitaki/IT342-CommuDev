@@ -135,8 +135,8 @@ public class SecurityConfiguration {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",  // Frontend development
                 "http://localhost:3000",  // Alternative frontend port
-                "http://localhost:8080"  // Backend URL
-                
+                "http://localhost:8080",  // Backend URL
+                "https://it-342-commu-dev-qidx.vercel.app"  // Production frontend
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(

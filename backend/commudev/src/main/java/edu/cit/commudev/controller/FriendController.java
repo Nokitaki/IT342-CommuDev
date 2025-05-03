@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/friends")
-@CrossOrigin(origins = {"http://localhost:5173", "https://it-342-commu-dev.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://it-342-commu-dev-qidx.vercel.app"})
 
 public class FriendController {
 
