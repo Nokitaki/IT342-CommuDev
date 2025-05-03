@@ -7,13 +7,16 @@ import API_URL from '../config/apiConfig.js';
 const AUTH_URL = `${API_URL}/auth`;
 const USERS_URL = `${API_URL}/users`;
 
+/// src/services/authService.js
+
+import API_URL from '../config/apiConfig.js';
+
 /**
  * Login user
  * @param {string} email Email or username
  * @param {string} password Password
  * @returns {Promise} Promise with user data and token
  */
-// Update the login function in authService.js
 export const login = async (email, password) => {
   try {
     // First clear any existing tokens
