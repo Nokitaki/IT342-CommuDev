@@ -9,7 +9,7 @@ const USERS_URL = `${API_URL}/users`;
 
 /// src/services/authService.js
 
-import API_URL from '../config/apiConfig.js';
+
 
 /**
  * Login user
