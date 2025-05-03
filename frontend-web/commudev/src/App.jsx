@@ -34,7 +34,7 @@ function App() {
   return (
     <AuthProvider>
       <AppRoutes />
-      {process.env.NODE_ENV === 'development' && <AuthDebugger />}
+      
     </AuthProvider>
   );
 }
