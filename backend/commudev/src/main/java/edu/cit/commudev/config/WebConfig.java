@@ -34,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
             "http://localhost:5173", 
                        "http://localhost:3000",
                        "it-342-commu-dev-git-replica-kenji-nokitakis-projects.vercel.app" // Add your Vercel domain
-        )
+        )           
                 
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
