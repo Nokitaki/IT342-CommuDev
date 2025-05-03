@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/resourcehub")
-@CrossOrigin(origins = {"http://localhost:5173", "https://it-342-commu-dev-qidx.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://it-342-commu-dev-v675.vercel.app"})
 public class ResourcehubController {
 
     @Autowired
