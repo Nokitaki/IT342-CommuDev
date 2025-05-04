@@ -349,16 +349,13 @@ public User updateCoverPhoto(MultipartFile file) throws IOException {
  * @return Updated User entity
  */
 public User updateExternalProfilePicture(String imageUrl) {
-    // Get the authenticated user
+    // Get the current user from security context instead of parameter
     User currentUser = getCurrentUser();
     if (currentUser == null) {
         throw new AccessDeniedException("Not authenticated");
     }
     
-    // Set the profile picture URL
     currentUser.setProfilePicture(imageUrl);
-    
-    // Save the updated user
     return userRepository.save(currentUser);
 }
 

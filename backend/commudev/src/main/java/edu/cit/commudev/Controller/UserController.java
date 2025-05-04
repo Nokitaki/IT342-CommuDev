@@ -238,8 +238,12 @@ public ResponseEntity<UserDto> updateExternalProfilePicture(
 /**
  * Update the user's profile picture with an external URL
  */
+/**
+ * Update the user's profile picture with an external URL
+ */
 public User updateExternalProfilePicture(String imageUrl) {
-    User currentUser = getCurrentUser();
+    // Use userService instead of calling getCurrentUser directly
+    User currentUser = userService.getCurrentUser();
     if (currentUser == null) {
         throw new AccessDeniedException("Not authenticated");
     }
