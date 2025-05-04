@@ -1,7 +1,7 @@
 
 import API_URL from '../config/apiConfig.js';
 
-
+import { uploadUserImage } from '../utils/profileStorageUtils';
 
 
 const AUTH_URL = `${API_URL}/auth`;
@@ -240,23 +240,52 @@ export const updateUserProfile = async (profileData) => {
 export const uploadProfilePicture = async (file) => {
   try {
     const token = localStorage.getItem('token');
-    let formData;
+    if (!token) {
+      throw new Error('Authentication required');
+    }
     
+    let formData;
     // Handle both FormData objects and File objects
     if (file instanceof FormData) {
       formData = file;
     } else {
-      formData = new FormData();        
+      formData = new FormData();
       formData.append('file', file);
     }
     
-    const response = await fetch(`${USERS_URL}/me/picture`, {
+    // Get the current user profile to get the user ID
+    const profile = await getUserProfile();
+    const userId = profile.id;
+    
+    // Try to use Supabase first, with fallback to server
+    try {
+      const imageUrl = await uploadUserImage(formData.get('file'), userId, 'profile');
+      
+      // If we got a URL from Supabase, inform the server about it
+      if (imageUrl && imageUrl.startsWith('http')) {
+        const serverUpdateResponse = await fetch(`${API_URL}/users/me/external-profile-picture`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url: imageUrl })
+        });
+        
+        if (serverUpdateResponse.ok) {
+          return await serverUpdateResponse.json();
+        }
+      }
+    } catch (storageError) {
+      console.error('Storage upload failed, falling back to server upload:', storageError);
+    }
+    
+    // If Supabase failed or we need to fallback, use the original server upload
+    const response = await fetch(`${API_URL}/users/me/picture`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
-        // Do NOT set Content-Type here, browser will set it with correct boundary
       },
-      credentials: 'include',
       body: formData
     });
     
@@ -281,8 +310,11 @@ export const uploadProfilePicture = async (file) => {
 export const uploadCoverPhoto = async (file) => {
   try {
     const token = localStorage.getItem('token');
-    let formData;
+    if (!token) {
+      throw new Error('Authentication required');
+    }
     
+    let formData;
     // Handle both FormData objects and File objects
     if (file instanceof FormData) {
       formData = file;
@@ -291,13 +323,39 @@ export const uploadCoverPhoto = async (file) => {
       formData.append('file', file);
     }
     
-    const response = await fetch(`${USERS_URL}/me/cover`, {
+    // Get the current user profile to get the user ID
+    const profile = await getUserProfile();
+    const userId = profile.id;
+    
+    // Try to use Supabase first, with fallback to server
+    try {
+      const imageUrl = await uploadUserImage(formData.get('file'), userId, 'cover');
+      
+      // If we got a URL from Supabase, inform the server about it
+      if (imageUrl && imageUrl.startsWith('http')) {
+        const serverUpdateResponse = await fetch(`${API_URL}/users/me/external-cover-photo`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url: imageUrl })
+        });
+        
+        if (serverUpdateResponse.ok) {
+          return await serverUpdateResponse.json();
+        }
+      }
+    } catch (storageError) {
+      console.error('Storage upload failed, falling back to server upload:', storageError);
+    }
+    
+    // If Supabase failed or we need to fallback, use the original server upload
+    const response = await fetch(`${API_URL}/users/me/cover`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
-        // Do NOT set Content-Type here, browser will set it with correct boundary
       },
-      credentials: 'include',
       body: formData
     });
     

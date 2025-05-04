@@ -216,4 +216,38 @@ public ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletRespo
     }
 }
 
+/**
+ * Update profile picture URL when stored externally (e.g., in Supabase)
+ */
+@PostMapping("/me/external-profile-picture")
+public ResponseEntity<UserDto> updateExternalProfilePicture(
+        @AuthenticationPrincipal User user,
+        @RequestBody Map<String, String> request) {
+    
+    String imageUrl = request.get("url");
+    if (imageUrl == null || imageUrl.isEmpty()) {
+        return ResponseEntity.badRequest().build();
+    }
+    
+    User updatedUser = userService.updateExternalProfilePicture(imageUrl);
+    return ResponseEntity.ok(convertToDto(updatedUser));
+}
+
+/**
+ * Update cover photo URL when stored externally (e.g., in Supabase)
+ */
+@PostMapping("/me/external-cover-photo")
+public ResponseEntity<UserDto> updateExternalCoverPhoto(
+        @AuthenticationPrincipal User user,
+        @RequestBody Map<String, String> request) {
+    
+    String imageUrl = request.get("url");
+    if (imageUrl == null || imageUrl.isEmpty()) {
+        return ResponseEntity.badRequest().build();
+    }
+    
+    User updatedUser = userService.updateExternalCoverPhoto(imageUrl);
+    return ResponseEntity.ok(convertToDto(updatedUser));
+}
+
 }
