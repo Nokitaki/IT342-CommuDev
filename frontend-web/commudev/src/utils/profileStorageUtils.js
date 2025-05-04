@@ -9,34 +9,35 @@ import API_URL from '../config/apiConfig';
  * @returns {Promise<string>} - Promise that resolves with the image URL
  */
 export const uploadProfileImageToSupabase = async (file, userId) => {
-  try {
-    // Create a unique file path
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `users/${userId}/profile/${fileName}`;
-    
-    // Upload the file to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('profile-images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type
-      });
-    
-    if (error) throw error;
-    
-    // Get the public URL
-    const { data: publicUrlData } = supabase.storage
-      .from('profile-images')
-      .getPublicUrl(filePath);
-    
-    return publicUrlData.publicUrl;
-  } catch (error) {
-    console.error('Error uploading profile image to Supabase:', error);
-    throw error;
-  }
-};
+    try {
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `users/${userId}/profile/${fileName}`;
+      
+      // Upload the file to Supabase Storage - profile-images bucket
+      const { data, error } = await supabase.storage
+        .from('profile-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
+        });
+      
+      if (error) throw error;
+      
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(filePath);
+      
+      console.log('Successfully uploaded to profile-images bucket:', publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading profile image to Supabase:', error);
+      throw error;
+    }
+  };
 
 /**
  * Upload a cover photo using Supabase storage
@@ -45,34 +46,35 @@ export const uploadProfileImageToSupabase = async (file, userId) => {
  * @returns {Promise<string>} - Promise that resolves with the image URL
  */
 export const uploadCoverPhotoToSupabase = async (file, userId) => {
-  try {
-    // Create a unique file path
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `users/${userId}/cover/${fileName}`;
-    
-    // Upload the file to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('profile-images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type
-      });
-    
-    if (error) throw error;
-    
-    // Get the public URL
-    const { data: publicUrlData } = supabase.storage
-      .from('profile-images')
-      .getPublicUrl(filePath);
-    
-    return publicUrlData.publicUrl;
-  } catch (error) {
-    console.error('Error uploading cover photo to Supabase:', error);
-    throw error;
-  }
-};
+    try {
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `users/${userId}/cover/${fileName}`;
+      
+      // Upload the file to Supabase Storage - profile-images bucket
+      const { data, error } = await supabase.storage
+        .from('profile-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
+        });
+      
+      if (error) throw error;
+      
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(filePath);
+      
+      console.log('Successfully uploaded to profile-images bucket:', publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading cover photo to Supabase:', error);
+      throw error;
+    }
+  };
 
 /**
  * Upload an image to either Supabase or server with fallback mechanism
@@ -97,9 +99,9 @@ export const uploadUserImage = async (file, userId, type) => {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `users/${userId}/${type}/${fileName}`;
       
-      // Upload the file to the chat-images bucket
+      // Use profile-images bucket for profile/cover photos
       const { data, error } = await supabase.storage
-        .from('chat-images')
+        .from('profile-images') // Change from chat-images to profile-images
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
@@ -111,9 +113,9 @@ export const uploadUserImage = async (file, userId, type) => {
         throw error;
       }
       
-      // Get the public URL
+      // Get the public URL from profile-images bucket
       const { data: publicUrlData } = supabase.storage
-        .from('chat-images')
+        .from('profile-images') // Change from chat-images to profile-images
         .getPublicUrl(filePath);
       
       console.log(`${type} image uploaded successfully:`, publicUrlData.publicUrl);
@@ -122,7 +124,7 @@ export const uploadUserImage = async (file, userId, type) => {
       console.error(`Error in uploadUserImage (${type}):`, error);
       throw error;
     }
-  };
+};
 
 /**
  * Upload an image to the backend server

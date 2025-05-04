@@ -257,15 +257,31 @@ export const uploadProfilePicture = async (file) => {
     const profile = await getUserProfile();
     const userId = profile.id;
     
-    // Try to upload to Supabase first
+    // Upload to Supabase first - ensure we use profile-images bucket
+    let supabaseUrl = null;
     try {
-      await uploadUserImage(fileObj, userId, 'profile');
-      console.log('Profile picture uploaded to Supabase');
+      // Use the specific function for profile pictures
+      supabaseUrl = await uploadProfileImageToSupabase(fileObj, userId);
+      console.log('Profile picture uploaded to Supabase:', supabaseUrl);
+      
+      // Update the backend with the Supabase URL
+      const response = await fetch(`${API_URL}/users/me/external-profile-picture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: supabaseUrl })
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      }
     } catch (error) {
       console.error('Supabase upload failed:', error);
     }
     
-    // Always do the server upload for now
+    // If Supabase upload failed or updating the URL failed, fall back to server upload
     const formData = new FormData();
     formData.append('file', fileObj);
     
@@ -278,8 +294,6 @@ export const uploadProfilePicture = async (file) => {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server response:', response.status, errorText);
       throw new Error('Failed to upload profile picture');
     }
     
