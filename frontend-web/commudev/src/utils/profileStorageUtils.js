@@ -81,43 +81,48 @@ export const uploadCoverPhotoToSupabase = async (file, userId) => {
  * @param {string} type - Type of image ('profile' or 'cover')
  * @returns {Promise<string>} - Promise that resolves with the image URL
  */
+/**
+ * Upload a user image to Supabase storage
+ * @param {File} file - The image file to upload
+ * @param {string} userId - ID of the user
+ * @param {string} type - Type of image ('profile' or 'cover')
+ * @returns {Promise<string>} - Promise that resolves with the image URL
+ */
 export const uploadUserImage = async (file, userId, type) => {
-  try {
-    // Check if we're in fallback mode
-    const usingFallback = localStorage.getItem('usingFallbackStorage') === 'true';
-    
-    if (usingFallback) {
-      // Use server upload directly if in fallback mode
-      console.log(`Using server-side upload for ${type} (fallback mode)`);
-      return await uploadUserImageToServer(file, type);
-    }
-    
-    // Try Supabase upload first
     try {
-      console.log(`Attempting Supabase upload for ${type}...`);
+      console.log(`Uploading ${type} image for user ${userId}`);
       
-      if (type === 'profile') {
-        return await uploadProfileImageToSupabase(file, userId);
-      } else if (type === 'cover') {
-        return await uploadCoverPhotoToSupabase(file, userId);
-      } else {
-        throw new Error('Invalid image type specified');
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `users/${userId}/${type}/${fileName}`;
+      
+      // Upload the file to the chat-images bucket
+      const { data, error } = await supabase.storage
+        .from('chat-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
+        });
+      
+      if (error) {
+        console.error(`Error uploading ${type} image:`, error);
+        throw error;
       }
-    } catch (supabaseError) {
-      console.warn(`Supabase upload failed for ${type}, switching to server upload:`, supabaseError);
       
-      // Set fallback mode for future uploads
-      localStorage.setItem('usingFallbackStorage', 'true');
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('chat-images')
+        .getPublicUrl(filePath);
       
-      // Fall back to server upload
-      return await uploadUserImageToServer(file, type);
+      console.log(`${type} image uploaded successfully:`, publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error(`Error in uploadUserImage (${type}):`, error);
+      throw error;
     }
-  } catch (error) {
-    console.error(`Error in image upload for ${type}:`, error);
-    // Final fallback - always try server upload
-    return await uploadUserImageToServer(file, type);
-  }
-};
+  };
 
 /**
  * Upload an image to the backend server

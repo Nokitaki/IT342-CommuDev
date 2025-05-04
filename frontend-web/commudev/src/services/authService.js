@@ -244,43 +244,31 @@ export const uploadProfilePicture = async (file) => {
       throw new Error('Authentication required');
     }
     
-    let formData;
+    let fileObj;
+    
     // Handle both FormData objects and File objects
     if (file instanceof FormData) {
-      formData = file;
+      fileObj = file.get('file');
     } else {
-      formData = new FormData();
-      formData.append('file', file);
+      fileObj = file;
     }
     
     // Get the current user profile to get the user ID
     const profile = await getUserProfile();
     const userId = profile.id;
     
-    // Try to use Supabase first, with fallback to server
+    // Try to upload to Supabase first
     try {
-      const imageUrl = await uploadUserImage(formData.get('file'), userId, 'profile');
-      
-      // If we got a URL from Supabase, inform the server about it
-      if (imageUrl && imageUrl.startsWith('http')) {
-        const serverUpdateResponse = await fetch(`${API_URL}/users/me/external-profile-picture`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ url: imageUrl })
-        });
-        
-        if (serverUpdateResponse.ok) {
-          return await serverUpdateResponse.json();
-        }
-      }
-    } catch (storageError) {
-      console.error('Storage upload failed, falling back to server upload:', storageError);
+      await uploadUserImage(fileObj, userId, 'profile');
+      console.log('Profile picture uploaded to Supabase');
+    } catch (error) {
+      console.error('Supabase upload failed:', error);
     }
     
-    // If Supabase failed or we need to fallback, use the original server upload
+    // Always do the server upload for now
+    const formData = new FormData();
+    formData.append('file', fileObj);
+    
     const response = await fetch(`${API_URL}/users/me/picture`, {
       method: 'POST',
       headers: {
@@ -314,43 +302,31 @@ export const uploadCoverPhoto = async (file) => {
       throw new Error('Authentication required');
     }
     
-    let formData;
+    let fileObj;
+    
     // Handle both FormData objects and File objects
     if (file instanceof FormData) {
-      formData = file;
+      fileObj = file.get('file');
     } else {
-      formData = new FormData();
-      formData.append('file', file);
+      fileObj = file;
     }
     
     // Get the current user profile to get the user ID
     const profile = await getUserProfile();
     const userId = profile.id;
     
-    // Try to use Supabase first, with fallback to server
+    // Try to upload to Supabase first
     try {
-      const imageUrl = await uploadUserImage(formData.get('file'), userId, 'cover');
-      
-      // If we got a URL from Supabase, inform the server about it
-      if (imageUrl && imageUrl.startsWith('http')) {
-        const serverUpdateResponse = await fetch(`${API_URL}/users/me/external-cover-photo`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ url: imageUrl })
-        });
-        
-        if (serverUpdateResponse.ok) {
-          return await serverUpdateResponse.json();
-        }
-      }
-    } catch (storageError) {
-      console.error('Storage upload failed, falling back to server upload:', storageError);
+      await uploadUserImage(fileObj, userId, 'cover');
+      console.log('Cover photo uploaded to Supabase');
+    } catch (error) {
+      console.error('Supabase upload failed:', error);
     }
     
-    // If Supabase failed or we need to fallback, use the original server upload
+    // Always do the server upload for now
+    const formData = new FormData();
+    formData.append('file', fileObj);
+    
     const response = await fetch(`${API_URL}/users/me/cover`, {
       method: 'POST',
       headers: {
