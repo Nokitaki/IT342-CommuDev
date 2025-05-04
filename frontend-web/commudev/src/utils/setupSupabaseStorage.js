@@ -9,26 +9,13 @@ export const canUseSupabaseStorage = async () => {
   try {
     console.log('Checking Supabase storage availability...');
     
-    // Check if we can access both buckets
-    const chatBucket = await supabase.storage
-      .from('chat-images')
+    // Check if we can access the bucket using the correct .from() method
+    const { data, error } = await supabase.storage
+      .from('chat-images')  // Use .from() instead of direct bucket URL
       .list('', { limit: 1 });
       
-    const profileBucket = await supabase.storage
-      .from('profile-images')
-      .list('', { limit: 1 });
-      
-    if (chatBucket.error || profileBucket.error) {
-      // If either bucket has an error, check if it's just because of permissions vs the bucket not existing
-      console.log('Error accessing storage buckets:', 
-                 chatBucket.error?.message || '', 
-                 profileBucket.error?.message || '');
-      
-      if ((chatBucket.error && chatBucket.error.message.includes("does not exist")) ||
-         (profileBucket.error && profileBucket.error.message.includes("does not exist"))) {
-        console.log('One or more buckets need to be created');
-      }
-      
+    if (error) {
+      console.log('Cannot use Supabase storage:', error.message);
       return false;
     }
     

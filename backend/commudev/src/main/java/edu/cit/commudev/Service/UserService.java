@@ -104,26 +104,28 @@ public class UserService implements UserDetailsService {
      *
      * @return the authenticated user
      */
-    /**
- * Helper method to get the current authenticated user
- * @return Current user or null if not authenticated
- */
-public User getCurrentUser() {  // Change from private to public
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !authentication.isAuthenticated()) {
-        return null;
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No authenticated user found");
+        }
+
+        String username = authentication.getName();
+
+        // Try to find by username first (since we're using username for auth)
+        Optional<User> userByUsername = findByUsername(username);
+        if (userByUsername.isPresent()) {
+            return userByUsername.get();
+        }
+
+        // If not found by username, try by email
+        Optional<User> userByEmail = findByEmail(username);
+        if (userByEmail.isPresent()) {
+            return userByEmail.get();
+        }
+
+        throw new EntityNotFoundException("Authenticated user not found in database");
     }
-    
-    Object principal = authentication.getPrincipal();
-    if (principal instanceof User) {
-        return (User) principal;
-    } else if (principal instanceof String) {
-        String username = (String) principal;
-        return userRepository.findByUsername(username).orElse(null);
-    }
-    
-    return null;
-}
 
     /**
      * Enable or disable a user.
@@ -342,42 +344,4 @@ public User updateCoverPhoto(MultipartFile file) throws IOException {
     
     return userRepository.save(currentUser);
 }
-
-/**
- * Update the user's profile picture with an external URL
- * @param imageUrl The external URL to the profile picture
- * @return Updated User entity
- */
-public User updateExternalProfilePicture(String imageUrl) {
-    // Get the current user from security context instead of parameter
-    User currentUser = getCurrentUser();
-    if (currentUser == null) {
-        throw new AccessDeniedException("Not authenticated");
-    }
-    
-    currentUser.setProfilePicture(imageUrl);
-    return userRepository.save(currentUser);
-}
-
-/**
- * Update the user's cover photo with an external URL
- * @param imageUrl The external URL to the cover photo
- * @return Updated User entity
- */
-public User updateExternalCoverPhoto(String imageUrl) {
-    // Get the authenticated user
-    User currentUser = getCurrentUser();
-    if (currentUser == null) {
-        throw new AccessDeniedException("Not authenticated");
-    }
-    
-    // Set the cover photo URL
-    currentUser.setCoverPhoto(imageUrl);
-    
-    // Save the updated user
-    return userRepository.save(currentUser);
-}
-
-
-
 }

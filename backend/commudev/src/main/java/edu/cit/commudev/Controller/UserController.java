@@ -7,7 +7,6 @@ import edu.cit.commudev.entity.User;
 import edu.cit.commudev.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import edu.cit.commudev.repository.UserRepository;
 
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.security.access.AccessDeniedException;
 
 @RestController
 @RequestMapping("/users")
@@ -32,15 +29,11 @@ import org.springframework.security.access.AccessDeniedException;
 public class UserController {
     
     private final UserService userService;
-    private final UserRepository userRepository;
     
-   
-
     @Autowired
-    public UserController(UserService userService, UserRepository userRepository) {
-    this.userService = userService;
-    this.userRepository = userRepository;
-}
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
     
     /**
      * Get the current authenticated user's profile
@@ -221,41 +214,6 @@ public ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletRespo
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Logout failed: " + e.getMessage()));
     }
-}
-
-/**
- * Update profile picture URL when stored externally (e.g., in Supabase)
- */
-@PostMapping("/me/external-profile-picture")
-public ResponseEntity<UserDto> updateExternalProfilePicture(
-        @AuthenticationPrincipal User user,
-        @RequestBody Map<String, String> request) {
-    
-    String imageUrl = request.get("url");
-    if (imageUrl == null || imageUrl.isEmpty()) {
-        return ResponseEntity.badRequest().build();
-    }
-    
-    User updatedUser = userService.updateExternalProfilePicture(imageUrl);
-    return ResponseEntity.ok(convertToDto(updatedUser));
-}
-
-
-/**
- * Update cover photo URL when stored externally (e.g., in Supabase)
- */
-@PostMapping("/me/external-cover-photo")
-public ResponseEntity<UserDto> updateExternalCoverPhoto(
-        @AuthenticationPrincipal User user,
-        @RequestBody Map<String, String> request) {
-    
-    String imageUrl = request.get("url");
-    if (imageUrl == null || imageUrl.isEmpty()) {
-        return ResponseEntity.badRequest().build();
-    }
-    
-    User updatedUser = userService.updateExternalCoverPhoto(imageUrl);
-    return ResponseEntity.ok(convertToDto(updatedUser));
 }
 
 }
