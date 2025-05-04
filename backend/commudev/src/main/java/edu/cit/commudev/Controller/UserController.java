@@ -7,6 +7,7 @@ import edu.cit.commudev.entity.User;
 import edu.cit.commudev.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import edu.cit.commudev.repository.UserRepository;
 
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
