@@ -28,9 +28,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import edu.cit.commudev.repository.RoleRepository;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 /**
  * Service for user management.
  * Implements UserDetailsService for Spring Security integration.
@@ -106,11 +104,11 @@ public class UserService implements UserDetailsService {
      *
      * @return the authenticated user
      */
-   /**
+    /**
  * Helper method to get the current authenticated user
  * @return Current user or null if not authenticated
  */
-private User getCurrentUser() {
+public User getCurrentUser() {  // Change from private to public
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !authentication.isAuthenticated()) {
         return null;
