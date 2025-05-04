@@ -24,6 +24,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.security.access.AccessDeniedException;
 
 @RestController
 @RequestMapping("/users")
@@ -32,10 +33,17 @@ public class UserController {
     
     private final UserService userService;
     private final UserRepository userRepository;
+    
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
+    @Autowired
+    public UserController(UserService userService, UserRepository userRepository) {
+    this.userService = userService;
+    this.userRepository = userRepository;
+}
     
     /**
      * Get the current authenticated user's profile
@@ -241,8 +249,7 @@ public ResponseEntity<UserDto> updateExternalProfilePicture(
 /**
  * Update the user's profile picture with an external URL
  */
-public User updateExternalProfilePicture(String imageUrl) {
-    // Use userService instead of calling getCurrentUser directly
+public User updateExternalProfilePicture(String imageUrl) throws AccessDeniedException {
     User currentUser = userService.getCurrentUser();
     if (currentUser == null) {
         throw new AccessDeniedException("Not authenticated");
