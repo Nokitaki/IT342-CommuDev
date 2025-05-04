@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class UserController {
     
     private final UserService userService;
-    
+    private final UserRepository userRepository;
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
