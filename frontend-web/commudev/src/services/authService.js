@@ -256,32 +256,40 @@ export const uploadProfilePicture = async (file) => {
     // Get the current user profile to get the user ID
     const profile = await getUserProfile();
     const userId = profile.id;
+    console.log("Uploading profile picture for user ID:", userId);
     
-    // Upload to Supabase first - ensure we use profile-images bucket
+    // Try to upload to Supabase first
     let supabaseUrl = null;
     try {
-      // Use the specific function for profile pictures
       supabaseUrl = await uploadProfileImageToSupabase(fileObj, userId);
-      console.log('Profile picture uploaded to Supabase:', supabaseUrl);
+      console.log("Got Supabase URL:", supabaseUrl);
       
-      // Update the backend with the Supabase URL
-      const response = await fetch(`${API_URL}/users/me/external-profile-picture`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ url: supabaseUrl })
-      });
-      
-      if (response.ok) {
-        return await response.json();
+      // If we got a Supabase URL, update the user's profile with this external URL
+      if (supabaseUrl) {
+        console.log("Updating user profile with Supabase URL");
+        const response = await fetch(`${API_URL}/users/me/external-profile-picture`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url: supabaseUrl })
+        });
+        
+        if (response.ok) {
+          console.log("Successfully updated profile with Supabase URL");
+          return await response.json();
+        } else {
+          console.error("Failed to update profile with Supabase URL:", 
+                      await response.text());
+        }
       }
     } catch (error) {
-      console.error('Supabase upload failed:', error);
+      console.error("Error in Supabase upload flow:", error);
     }
     
-    // If Supabase upload failed or updating the URL failed, fall back to server upload
+    // If we get here, Supabase upload failed or updating with the URL failed
+    console.log("Falling back to server upload");
     const formData = new FormData();
     formData.append('file', fileObj);
     
@@ -328,16 +336,40 @@ export const uploadCoverPhoto = async (file) => {
     // Get the current user profile to get the user ID
     const profile = await getUserProfile();
     const userId = profile.id;
+    console.log("Uploading cover photo for user ID:", userId);
     
     // Try to upload to Supabase first
+    let supabaseUrl = null;
     try {
-      await uploadUserImage(fileObj, userId, 'cover');
-      console.log('Cover photo uploaded to Supabase');
+      supabaseUrl = await uploadCoverPhotoToSupabase(fileObj, userId);
+      console.log("Got Supabase URL for cover photo:", supabaseUrl);
+      
+      // If we got a Supabase URL, update the user's profile with this external URL
+      if (supabaseUrl) {
+        console.log("Updating user profile with Supabase cover photo URL");
+        const response = await fetch(`${API_URL}/users/me/external-cover-photo`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url: supabaseUrl })
+        });
+        
+        if (response.ok) {
+          console.log("Successfully updated profile with Supabase cover photo URL");
+          return await response.json();
+        } else {
+          console.error("Failed to update profile with Supabase cover photo URL:", 
+                      await response.text());
+        }
+      }
     } catch (error) {
-      console.error('Supabase upload failed:', error);
+      console.error("Error in Supabase cover photo upload flow:", error);
     }
     
-    // Always do the server upload for now
+    // If we get here, Supabase upload failed or updating with the URL failed
+    console.log("Falling back to server upload for cover photo");
     const formData = new FormData();
     formData.append('file', fileObj);
     
@@ -350,8 +382,6 @@ export const uploadCoverPhoto = async (file) => {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server response:', response.status, errorText);
       throw new Error('Failed to upload cover photo');
     }
     

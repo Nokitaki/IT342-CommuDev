@@ -9,33 +9,42 @@ import API_URL from '../config/apiConfig';
  * @returns {Promise<string>} - Promise that resolves with the image URL
  */
 export const uploadProfileImageToSupabase = async (file, userId) => {
+    console.log("STARTING SUPABASE UPLOAD for user:", userId);
+    console.log("File:", file.name, file.size, "bytes", file.type);
+    
     try {
       // Create a unique file path
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const fileName = `profile_${Date.now()}.${fileExt}`;
       const filePath = `users/${userId}/profile/${fileName}`;
       
-      // Upload the file to Supabase Storage - profile-images bucket
+      console.log("Uploading to path:", filePath);
+      
+      // Upload the file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile-images')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          contentType: file.type
+          upsert: true
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error("SUPABASE UPLOAD ERROR:", error);
+        return null; // Return null instead of throwing to continue with server upload
+      }
+      
+      console.log("SUPABASE UPLOAD SUCCESS:", data);
       
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('profile-images')
         .getPublicUrl(filePath);
       
-      console.log('Successfully uploaded to profile-images bucket:', publicUrlData.publicUrl);
+      console.log("SUPABASE URL:", publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
     } catch (error) {
-      console.error('Error uploading profile image to Supabase:', error);
-      throw error;
+      console.error("SUPABASE UPLOAD EXCEPTION:", error);
+      return null; // Return null instead of throwing to continue with server upload
     }
   };
 
@@ -46,33 +55,42 @@ export const uploadProfileImageToSupabase = async (file, userId) => {
  * @returns {Promise<string>} - Promise that resolves with the image URL
  */
 export const uploadCoverPhotoToSupabase = async (file, userId) => {
+    console.log("STARTING SUPABASE COVER PHOTO UPLOAD for user:", userId);
+    console.log("File:", file.name, file.size, "bytes", file.type);
+    
     try {
       // Create a unique file path
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const fileName = `cover_${Date.now()}.${fileExt}`;
       const filePath = `users/${userId}/cover/${fileName}`;
       
-      // Upload the file to Supabase Storage - profile-images bucket
+      console.log("Uploading cover to path:", filePath);
+      
+      // Upload the file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile-images')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          contentType: file.type
+          upsert: true
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error("SUPABASE COVER UPLOAD ERROR:", error);
+        return null; // Return null instead of throwing to continue with server upload
+      }
+      
+      console.log("SUPABASE COVER UPLOAD SUCCESS:", data);
       
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('profile-images')
         .getPublicUrl(filePath);
       
-      console.log('Successfully uploaded to profile-images bucket:', publicUrlData.publicUrl);
+      console.log("SUPABASE COVER URL:", publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
     } catch (error) {
-      console.error('Error uploading cover photo to Supabase:', error);
-      throw error;
+      console.error("SUPABASE COVER UPLOAD EXCEPTION:", error);
+      return null; // Return null instead of throwing to continue with server upload
     }
   };
 
