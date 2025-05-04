@@ -34,10 +34,7 @@ public class UserController {
     private final UserService userService;
     private final UserRepository userRepository;
     
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+   
 
     @Autowired
     public UserController(UserService userService, UserRepository userRepository) {
@@ -243,21 +240,6 @@ public ResponseEntity<UserDto> updateExternalProfilePicture(
     return ResponseEntity.ok(convertToDto(updatedUser));
 }
 
-/**
- * Update the user's profile picture with an external URL
- */
-/**
- * Update the user's profile picture with an external URL
- */
-public User updateExternalProfilePicture(String imageUrl) throws AccessDeniedException {
-    User currentUser = userService.getCurrentUser();
-    if (currentUser == null) {
-        throw new AccessDeniedException("Not authenticated");
-    }
-    
-    currentUser.setProfilePicture(imageUrl);
-    return userRepository.save(currentUser);
-}
 
 /**
  * Update cover photo URL when stored externally (e.g., in Supabase)
