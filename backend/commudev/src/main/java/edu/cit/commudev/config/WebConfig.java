@@ -32,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:5173",
                                             "http://localhost:3000",
-                                            "https://it-342-commu-dev-v675-n4nsr6hks-nokitakis-projects.vercel.app",
+                                            "https://it-342-commu-dev-v675-git-master-nokitakis-projects.vercel.app",
                                             "https://it-342-commu-dev-v675.vercel.app")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
